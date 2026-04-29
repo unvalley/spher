@@ -1,13 +1,16 @@
-import { findNearestProjectedItem, placeItems, projectItems } from "../core/index.js"
+import { findNearestProjectedItem } from "../core/hit-test.js"
 import { clamp, cssNumber } from "../core/math.js"
+import { placeItems } from "../core/placement.js"
+import { projectItems } from "../core/projection.js"
 import { normalizeControls } from "./controls.js"
 import type {
   SpherDomInstance,
   SpherDomItem,
+  SpherDomItemState,
   SpherDomListener,
   SpherDomOptions,
-  SpherDomProjection,
   SpherDomState,
+  SpherDomSurfaceProjection,
 } from "./types.js"
 
 const defaultRadius = 320
@@ -23,7 +26,7 @@ export const createSpher = <TItem extends SpherDomItem>(
   const listeners = new Set<SpherDomListener<TItem>>()
   const elements = new Map<string, HTMLElement>()
   const createdElements = new Set<HTMLElement>()
-  const projections = new Map<string, SpherDomProjection<TItem>>()
+  const projections = new Map<string, SpherDomSurfaceProjection<TItem>>()
   const previousRootPosition = root.style.position
   const previousRootPerspective = root.style.perspective
   const previousRootOverflow = root.style.overflow
@@ -32,17 +35,20 @@ export const createSpher = <TItem extends SpherDomItem>(
   let destroyed = false
   let stateOptions: SpherDomOptions<TItem> = { ...options }
   let state = normalizeOptions(options)
+  const rootStyle = getComputedStyle(root)
 
   root.dataset.spherRoot = ""
-  if (!root.style.position) root.style.position = "relative"
-  if (!root.style.overflow) root.style.overflow = "hidden"
+  if (!root.style.position && rootStyle.position === "static") root.style.position = "relative"
+  if (!root.style.overflow && rootStyle.overflow === "visible") root.style.overflow = "hidden"
   root.style.perspective = `${cssNumber(state.perspective)}px`
 
   layer.dataset.spherLayer = ""
   Object.assign(layer.style, {
     position: "absolute",
     inset: "0",
+    transformOrigin: "50% 50%",
     transformStyle: "preserve-3d",
+    willChange: "transform",
   })
   root.append(layer)
 
@@ -88,6 +94,8 @@ export const createSpher = <TItem extends SpherDomItem>(
         position: "absolute",
         left: "50%",
         top: "50%",
+        backfaceVisibility: "visible",
+        transformStyle: "preserve-3d",
         willChange: "transform, opacity",
       })
       stateOptions.render?.(item, element)
@@ -110,6 +118,9 @@ export const createSpher = <TItem extends SpherDomItem>(
     if (destroyed) return
 
     root.style.perspective = `${cssNumber(state.perspective)}px`
+    layer.style.transform = `scale(${cssNumber(state.zoom)}) rotateX(${cssNumber(
+      state.rotation.x,
+    )}deg) rotateY(${cssNumber(state.rotation.y)}deg)`
     reconcileElements()
     projections.clear()
 
@@ -127,31 +138,30 @@ export const createSpher = <TItem extends SpherDomItem>(
 
     for (const projected of projectedItems) {
       const front = projected.z < 0
-      const visibility = front ? clamp(1 - projected.edgeFactor * 0.35, 0, 1) : 0
+      const visibility = front ? clamp(1 - projected.edgeFactor * 0.24, 0.62, 1) : 0.34
       const projection = { ...projected, front, visibility }
       projections.set(projected.item.id, projection)
 
       const element = elements.get(projected.item.id)
       if (!element) continue
 
-      element.style.setProperty("--spher-x", `${cssNumber(projected.projectedX)}px`)
-      element.style.setProperty("--spher-y", `${cssNumber(projected.projectedY)}px`)
-      element.style.setProperty("--spher-z", cssNumber(projected.z))
-      element.style.setProperty("--spher-scale", cssNumber(projected.perspectiveScale))
-      element.style.setProperty("--spher-edge", cssNumber(projected.edgeFactor))
       element.style.setProperty("--spher-visibility", cssNumber(visibility))
+      element.style.setProperty("--spher-longitude", `${cssNumber(projected.item.longitude)}deg`)
+      element.style.setProperty("--spher-latitude", `${cssNumber(projected.item.latitude)}deg`)
+      element.style.setProperty("--spher-radius", `${cssNumber(projected.item.radius)}px`)
+      element.style.setProperty("--spher-roll", `${cssNumber(projected.item.roll)}deg`)
       element.style.setProperty(
         "--spher-selected",
         projected.item.id === state.selectedId ? "1" : "0",
       )
-      element.dataset.spherVisible = front ? "true" : "false"
+      element.dataset.spherVisible = visibility > 0 ? "true" : "false"
       element.dataset.spherFront = front ? "true" : "false"
       element.dataset.spherSelected = projected.item.id === state.selectedId ? "true" : "false"
-      element.style.transform = `translate(-50%, -50%) translate3d(${cssNumber(
-        projected.projectedX,
-      )}px, ${cssNumber(projected.projectedY)}px, 0) scale(${cssNumber(
-        projected.perspectiveScale,
-      )})`
+      element.style.transform = `translate(-50%, -50%) rotateY(${cssNumber(
+        projected.item.longitude,
+      )}deg) rotateX(${cssNumber(projected.item.latitude)}deg) translateZ(-${cssNumber(
+        projected.item.radius,
+      )}px) rotateZ(${cssNumber(projected.item.roll)}deg)`
       element.style.opacity = cssNumber(visibility)
       element.style.pointerEvents = front ? "auto" : "none"
     }
@@ -213,7 +223,7 @@ export const createSpher = <TItem extends SpherDomItem>(
     const hit = findNearestProjectedItem(
       event.clientX,
       event.clientY,
-      Array.from(projections.values()),
+      Array.from(projections.values()).filter(({ front }) => front),
       rect,
     )
     if (hit) {
@@ -267,6 +277,19 @@ export const createSpher = <TItem extends SpherDomItem>(
     listeners.clear()
   }
 
+  const itemState = (id: string): SpherDomItemState<TItem> | null => {
+    const projection = projections.get(id)
+    if (!projection) return null
+
+    return {
+      item: projection.item,
+      front: projection.front,
+      visible: projection.visibility > 0,
+      visibility: projection.visibility,
+      selected: projection.item.id === state.selectedId,
+    }
+  }
+
   root.addEventListener("pointerdown", handlePointerDown)
   root.addEventListener("pointermove", handlePointerMove)
   root.addEventListener("pointerup", handlePointerUp)
@@ -280,7 +303,7 @@ export const createSpher = <TItem extends SpherDomItem>(
     select,
     rotateTo,
     destroy,
-    project: (id) => projections.get(id) ?? null,
+    itemState,
     getState: () => ({ ...state }),
     subscribe: (listener) => {
       listeners.add(listener)

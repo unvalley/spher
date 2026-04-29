@@ -20,7 +20,7 @@ afterEach(() => {
 })
 
 describe("createSpher", () => {
-  it("renders items as DOM slots with projection CSS variables", () => {
+  it("renders items as DOM slots with surface CSS variables", () => {
     const root = createRoot()
     const instance = createSpher(root, {
       radius: 100,
@@ -41,15 +41,15 @@ describe("createSpher", () => {
 
     expect(element).not.toBeNull()
     expect(element?.textContent).toBe("front")
-    expect(element?.style.getPropertyValue("--spher-x")).toBe("0px")
-    expect(element?.style.getPropertyValue("--spher-y")).toBe("0px")
+    expect(element?.style.getPropertyValue("--spher-longitude")).toBe("0deg")
+    expect(element?.style.getPropertyValue("--spher-latitude")).toBe("0deg")
     expect(element?.dataset.spherVisible).toBe("true")
-    expect(instance.project("front")?.front).toBe(true)
+    expect(instance.itemState("front")?.front).toBe(true)
 
     instance.destroy()
   })
 
-  it("updates projections without recreating existing elements", () => {
+  it("updates surface state without recreating existing elements", () => {
     const root = createRoot()
     const instance = createSpher(root, {
       radius: 100,
@@ -65,8 +65,49 @@ describe("createSpher", () => {
     instance.rotateTo({ x: 0, y: 180 })
 
     expect(root.querySelector<HTMLElement>('[data-spher-item="item"]')).toBe(element)
-    expect(instance.project("item")?.front).toBe(false)
-    expect(element?.dataset.spherVisible).toBe("false")
+    expect(instance.itemState("item")?.front).toBe(false)
+    expect(element?.dataset.spherVisible).toBe("true")
+    expect(element?.dataset.spherFront).toBe("false")
+    expect(element?.style.opacity).toBe("0.34")
+
+    instance.destroy()
+  })
+
+  it("preserves non-static positioning from stylesheets", () => {
+    const style = document.createElement("style")
+    style.textContent = ".fixed-sphere-root { position: fixed; inset: 0; }"
+    document.head.append(style)
+
+    const root = createRoot()
+    root.className = "fixed-sphere-root"
+    const instance = createSpher(root, {
+      items: [{ id: "item" }],
+    })
+
+    expect(root.style.position).toBe("")
+    expect(getComputedStyle(root).position).toBe("fixed")
+
+    instance.destroy()
+    style.remove()
+  })
+
+  it("renders items as CSS 3D sphere surfaces", () => {
+    const root = createRoot()
+    const instance = createSpher(root, {
+      items: [{ id: "surface" }],
+      position: () => ({ latitude: 12, longitude: 34 }),
+      radius: 120,
+      rotation: { x: 4, y: 8 },
+    })
+
+    const layer = root.querySelector<HTMLElement>("[data-spher-layer]")
+    const element = root.querySelector<HTMLElement>('[data-spher-item="surface"]')
+
+    expect(layer?.style.transform).toContain("rotateX(4deg)")
+    expect(layer?.style.transform).toContain("rotateY(8deg)")
+    expect(element?.style.getPropertyValue("--spher-longitude")).toBe("34deg")
+    expect(element?.style.getPropertyValue("--spher-latitude")).toBe("12deg")
+    expect(element?.style.transform).toContain("translateZ(-120px)")
 
     instance.destroy()
   })

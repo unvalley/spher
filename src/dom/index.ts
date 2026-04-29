@@ -4,9 +4,9 @@ export type {
   SpherDomControls,
   SpherDomInstance,
   SpherDomItem,
+  SpherDomItemState,
   SpherDomListener,
   SpherDomOptions,
   SpherDomPosition,
-  SpherDomProjection,
   SpherDomState,
 } from "./types.js"

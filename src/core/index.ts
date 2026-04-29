@@ -1,4 +1,3 @@
-export { findNearestProjectedItem, type SpherRect } from "./hit-test.js"
 export { clamp, cssNumber, toRadians } from "./math.js"
 export {
   getFibonacciSpherePosition,
@@ -9,15 +8,8 @@ export {
   placeItems,
   type SphericalPosition,
 } from "./placement.js"
-export {
-  type ProjectItemsOptions,
-  projectItems,
-  type SpherRotation,
-  selectInsideVisibleItemIds,
-} from "./projection.js"
 export type {
   PositionedItem,
-  ProjectedItem,
   SpherItemBase,
   SpherPlacement,
 } from "./types.js"

@@ -18,7 +18,7 @@ Styled archive UI is intentionally not part of the library API. An archive-style
 
 ```txt
 src/
-├─ core      pure placement, projection, and hit-test utilities
+├─ core      pure placement utilities
 ├─ dom       framework-agnostic DOM engine
 ├─ Spher.tsx  unstyled React wrapper around the DOM engine
 ├─ react.ts  React export entry
@@ -42,7 +42,7 @@ const instance = createSpher(root, {
 });
 ```
 
-`createSpher` owns projection, selection, controls, DOM style variables, and cleanup.
+`createSpher` owns surface placement, selection, controls, DOM style variables, and cleanup.
 
 ### React
 
@@ -78,16 +78,15 @@ This keeps spher fields from colliding with user domain data.
 
 ## Styling Contract
 
-The DOM engine writes state to CSS variables and data attributes:
+The DOM engine owns each slot's CSS 3D transform and writes surface state to CSS variables and data attributes:
 
 ```txt
---spher-x
---spher-y
---spher-z
---spher-scale
---spher-edge
 --spher-visibility
 --spher-selected
+--spher-longitude
+--spher-latitude
+--spher-radius
+--spher-roll
 data-spher-item
 data-spher-visible
 data-spher-front

@@ -4,9 +4,9 @@ export {
   type SpherDomControls,
   type SpherDomInstance,
   type SpherDomItem,
+  type SpherDomItemState,
   type SpherDomListener,
   type SpherDomOptions,
   type SpherDomPosition,
-  type SpherDomProjection,
   type SpherDomState,
 } from "./dom/index.js"

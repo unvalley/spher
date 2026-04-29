@@ -1,4 +1,4 @@
-import type { ProjectedItem, SpherItemBase, SpherPlacement } from "../core/index.js"
+import type { ProjectedItem, SpherItemBase, SpherPlacement } from "../core/types.js"
 
 export type SpherDomPosition = {
   latitude: number
@@ -47,9 +47,18 @@ export type SpherDomState<TItem extends SpherDomItem = SpherDomItem> = {
   selectedId: string | null
 }
 
-export type SpherDomProjection<TItem extends SpherDomItem = SpherDomItem> = ProjectedItem<TItem> & {
+export type SpherDomSurfaceProjection<TItem extends SpherDomItem = SpherDomItem> =
+  ProjectedItem<TItem> & {
+    front: boolean
+    visibility: number
+  }
+
+export type SpherDomItemState<TItem extends SpherDomItem = SpherDomItem> = {
+  item: TItem
   front: boolean
+  visible: boolean
   visibility: number
+  selected: boolean
 }
 
 export type SpherDomListener<TItem extends SpherDomItem = SpherDomItem> = (
@@ -61,7 +70,7 @@ export type SpherDomInstance<TItem extends SpherDomItem = SpherDomItem> = {
   select: (id: string | null) => void
   rotateTo: (rotation: SpherDomState<TItem>["rotation"]) => void
   destroy: () => void
-  project: (id: string) => SpherDomProjection<TItem> | null
+  itemState: (id: string) => SpherDomItemState<TItem> | null
   getState: () => SpherDomState<TItem>
   subscribe: (listener: SpherDomListener<TItem>) => () => void
 }

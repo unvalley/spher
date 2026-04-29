@@ -14,7 +14,7 @@ afterEach(() => {
 })
 
 describe("Spher", () => {
-  it("renders unstyled React content into projected DOM slots", async () => {
+  it("renders unstyled React content into surface DOM slots", async () => {
     const element = document.createElement("div")
     Object.assign(element.style, {
       width: "400px",
@@ -45,7 +45,7 @@ describe("Spher", () => {
     const button = element.querySelector("button")
 
     expect(slot).not.toBeNull()
-    expect(slot?.style.getPropertyValue("--spher-x")).toBe("0px")
+    expect(slot?.style.getPropertyValue("--spher-longitude")).toBe("0deg")
     expect(slot?.dataset.spherVisible).toBe("true")
     expect(button?.textContent).toBe("front")
   })

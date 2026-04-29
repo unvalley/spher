@@ -66,10 +66,6 @@ if (root) {
   background: white;
   box-shadow: 0 16px 40px rgb(15 23 42 / 16%);
   opacity: var(--spher-visibility);
-  transform:
-    translate(-50%, -50%)
-    translate3d(var(--spher-x), var(--spher-y), 0)
-    scale(var(--spher-scale));
 }
 ```
 
@@ -103,7 +99,7 @@ type SpherDomInstance = {
   select: (id: string | null) => void;
   rotateTo: (rotation) => void;
   destroy: () => void;
-  project: (id: string) => SpherDomProjection | null;
+  itemState: (id: string) => SpherDomItemState | null;
   getState: () => SpherDomState;
   subscribe: (listener) => () => void;
 };
@@ -151,16 +147,15 @@ createSpher(root, {
 });
 ```
 
-spher writes projection state to CSS variables and data attributes:
+spher owns the CSS 3D transform on each slot and writes surface state to CSS variables and data attributes:
 
 ```txt
---spher-x
---spher-y
---spher-z
---spher-scale
---spher-edge
 --spher-visibility
 --spher-selected
+--spher-longitude
+--spher-latitude
+--spher-radius
+--spher-roll
 data-spher-item
 data-spher-visible
 data-spher-front
@@ -169,24 +164,20 @@ data-spher-selected
 
 ## Core Utilities
 
-Pure placement and projection utilities are available from `spher/core`.
+Pure placement utilities are available from `spher/core`.
 
 ```ts
-import { placeItems, projectItems } from "spher/core";
+import { placeItems } from "spher/core";
 
 const placed = placeItems([{ id: "a" }, { id: "b" }], {
   radius: 320,
   placement: "fibonacci",
 });
-const projected = projectItems(placed, {
-  rotation: { x: 0, y: 20 },
-  perspective: 900,
-});
 ```
 
 ## React
 
-The React adapter is available from `spher/react`. It exports an unstyled `Spher` component that renders your elements and lets the DOM engine write projection state to their wrappers.
+The React adapter is available from `spher/react`. It exports an unstyled `Spher` component that renders your elements and lets the DOM engine write surface state to their wrappers.
 
 ```tsx
 import { Spher } from "spher/react";

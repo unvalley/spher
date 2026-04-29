@@ -10,14 +10,14 @@ import {
   useRef,
   useState,
 } from "react"
-import type { SpherPlacement } from "./core/index.js"
+import type { SpherPlacement } from "./core/types.js"
 import {
   createSpher,
   type SpherDomControls,
   type SpherDomInstance,
   type SpherDomItem,
+  type SpherDomItemState,
   type SpherDomPosition,
-  type SpherDomProjection,
 } from "./dom/index.js"
 
 export type SpherRenderState<TItem extends SpherDomItem> = {
@@ -25,7 +25,7 @@ export type SpherRenderState<TItem extends SpherDomItem> = {
   front: boolean
   visible: boolean
   visibility: number
-  projection: SpherDomProjection<TItem> | null
+  itemState: SpherDomItemState<TItem> | null
   select: () => void
 }
 
@@ -89,7 +89,7 @@ const SpherInner = <TItem extends SpherDomItem>(
       select: (id) => instanceRef.current?.select(id),
       rotateTo: (rotation) => instanceRef.current?.rotateTo(rotation),
       destroy: () => instanceRef.current?.destroy(),
-      project: (id) => instanceRef.current?.project(id) ?? null,
+      itemState: (id) => instanceRef.current?.itemState(id) ?? null,
       getState: () => {
         const state = instanceRef.current?.getState()
         if (!state) {
@@ -156,14 +156,14 @@ const SpherInner = <TItem extends SpherDomItem>(
   return (
     <div className={className} data-spher-react ref={rootRef} style={style}>
       {items.map((item) => {
-        const projection = instanceRef.current?.project(item.id) ?? null
+        const itemState = instanceRef.current?.itemState(item.id) ?? null
         const itemSelected = effectiveSelectedId === item.id
         const renderState: SpherRenderState<TItem> = {
           selected: itemSelected,
-          front: projection?.front ?? false,
-          visible: Boolean(projection?.front),
-          visibility: projection?.visibility ?? 0,
-          projection,
+          front: itemState?.front ?? false,
+          visible: itemState?.visible ?? false,
+          visibility: itemState?.visibility ?? 0,
+          itemState,
           select: () => {
             instanceRef.current?.select(item.id)
           },

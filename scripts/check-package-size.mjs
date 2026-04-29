@@ -2,7 +2,7 @@ import { existsSync } from "node:fs"
 import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { brotliCompressSync, gzipSync } from "node:zlib"
-import { build } from "esbuild"
+import { build } from "tsdown"
 
 const rootDir = path.resolve(import.meta.dirname, "..")
 
@@ -39,19 +39,33 @@ const bundleEntry = async (entry) => {
     throw new Error(`Missing ${entry.path}. Run \`pnpm build\` before checking size.`)
   }
 
-  const result = await build({
-    bundle: true,
-    entryPoints: [absoluteEntryPath],
-    external: entry.external ?? [],
+  const bundles = await build({
+    clean: false,
+    config: false,
+    cwd: rootDir,
+    deps: {
+      neverBundle: entry.external ?? [],
+    },
+    dts: false,
+    entry: [absoluteEntryPath],
     format: "esm",
-    legalComments: "none",
+    logLevel: "error",
     minify: true,
     platform: "browser",
     target: "es2020",
     write: false,
   })
 
-  return result.outputFiles[0].contents
+  const chunks = bundles.flatMap((bundle) => bundle.chunks)
+  const entryChunk = chunks.find((chunk) => chunk.type === "chunk" && chunk.isEntry)
+
+  await Promise.all(bundles.map((bundle) => bundle[Symbol.asyncDispose]?.()))
+
+  if (!entryChunk) {
+    throw new Error(`Could not bundle ${entry.path}.`)
+  }
+
+  return Buffer.from(entryChunk.code)
 }
 
 const checkEntry = async (entry) => {

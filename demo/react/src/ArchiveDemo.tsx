@@ -1,4 +1,4 @@
-import { type CSSProperties, useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import type { SpherDomItem } from "../../../src/dom/index.js"
 import { Spher, type SpherRenderState } from "../../../src/react.js"
 
@@ -284,13 +284,6 @@ const ArchiveCard = ({
   item: ArchiveItem
   state: SpherRenderState<ArchiveItem>
 }) => {
-  const imageParallaxY = state.viewMode === "inside" ? clamp(state.normalY * 1.4, -2, 2) : 0
-  const imageScale = state.viewMode === "inside" ? 1.05 + state.edgeFactor * 0.04 : 1
-  const imageLightOpacity =
-    state.viewMode === "inside" && state.faceDirection !== "outward"
-      ? clamp(state.edgeFactor * 0.24, 0, 0.24)
-      : 0
-
   return (
     <button
       aria-label={item.title}
@@ -299,34 +292,13 @@ const ArchiveCard = ({
       data-interactive={state.interactive}
       data-selected={state.selected}
       data-view-mode={state.viewMode}
-      style={
-        {
-          "--archive-image-y": `${cssNumber(imageParallaxY)}px`,
-          "--archive-image-scale": cssNumber(imageScale),
-          "--archive-light-opacity": cssNumber(imageLightOpacity),
-          filter: state.interactive
-            ? `drop-shadow(0 ${Math.round(10 * state.perspectiveScale)}px ${Math.round(
-                12 * state.perspectiveScale,
-              )}px rgb(15 23 42 / 22%))`
-            : undefined,
-        } as CSSProperties
-      }
       type="button"
     >
       <div className="archive-card-media">
-        <img
-          alt=""
-          decoding="async"
-          fetchPriority={state.interactive ? "high" : "auto"}
-          src={item.image}
-        />
+        <img alt="" decoding="async" src={item.image} />
         <div aria-hidden="true" className="archive-card-light" />
       </div>
       <span>{item.title}</span>
     </button>
   )
 }
-
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
-
-const cssNumber = (value: number) => Number(value.toFixed(6)).toString()

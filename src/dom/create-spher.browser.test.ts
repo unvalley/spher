@@ -74,6 +74,29 @@ describe("createSpher", () => {
     instance.destroy()
   })
 
+  it("does not rerun item rendering when only rotation changes", () => {
+    const root = createRoot()
+    let renderCount = 0
+    const instance = createSpher(root, {
+      radius: 100,
+      perspective: 500,
+      items: [{ id: "item" }],
+      position: () => ({ latitude: 0, longitude: 0 }),
+      render: (item, element) => {
+        renderCount += 1
+        element.textContent = item.id
+      },
+    })
+
+    expect(renderCount).toBe(1)
+
+    instance.rotateTo({ x: 4, y: 12 })
+
+    expect(renderCount).toBe(1)
+
+    instance.destroy()
+  })
+
   it("reduces overlapping visible surface items", () => {
     const root = createRoot()
     const instance = createSpher(root, {

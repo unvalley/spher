@@ -81,6 +81,9 @@ button {
 }
 
 .archive-card {
+  --archive-image-scale: 1;
+  --archive-image-y: 0px;
+  --archive-light-opacity: 0;
   display: grid;
   width: 56px;
   padding: 3px;
@@ -101,15 +104,28 @@ button {
     opacity 160ms ease;
 }
 
-.archive-card[data-interactive="false"] {
+[data-spher-interactive="true"] .archive-card {
+  filter: drop-shadow(
+    0 calc(var(--spher-perspective-scale) * 10px) calc(var(--spher-perspective-scale) * 12px)
+      rgb(15 23 42 / 22%)
+  );
+}
+
+[data-spher-interactive="false"] .archive-card {
   cursor: default;
 }
 
-.archive-card[data-selected="true"] {
+[data-spher-selected="true"] .archive-card {
   box-shadow:
     0 0 0 2px #111827,
     0 24px 60px rgb(15 23 42 / 24%);
   transform: translateY(-2px);
+}
+
+[data-spher-view-mode="inside"] .archive-card {
+  --archive-image-scale: calc(1.05 + var(--spher-edge) * 0.04);
+  --archive-image-y: calc(var(--spher-normal-y) * 1.4px);
+  --archive-light-opacity: min(calc(var(--spher-edge) * 0.24), 0.24);
 }
 
 .archive-card-media {
@@ -120,7 +136,7 @@ button {
   backface-visibility: visible;
 }
 
-.archive-card[data-face-direction="outward"] .archive-card-media {
+[data-spher-face-direction="outward"] .archive-card-media {
   transform: rotateY(180deg);
 }
 
@@ -134,7 +150,7 @@ button {
   backface-visibility: visible;
 }
 
-.archive-card[data-face-direction="outward"] img {
+[data-spher-face-direction="outward"] img {
   filter: saturate(1.32) contrast(1.34) brightness(0.86);
 }
 
@@ -150,6 +166,10 @@ button {
   );
   mix-blend-mode: screen;
   opacity: var(--archive-light-opacity, 0);
+}
+
+[data-spher-face-direction="outward"] .archive-card-light {
+  opacity: 0;
 }
 
 .archive-card span {

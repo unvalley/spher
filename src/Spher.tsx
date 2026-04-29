@@ -139,7 +139,10 @@ const SpherInner = <TItem extends SpherDomItem>(
     const instance = createSpher<TItem>(root, instanceOptions)
 
     instanceRef.current = instance
-    const unsubscribe = instance.subscribe(() => setRevision((revision) => revision + 1))
+    const unsubscribe = instance.subscribe((_state, change) => {
+      if (change.reason === "rotation" || change.reason === "zoom") return
+      setRevision((revision) => revision + 1)
+    })
     setRevision((revision) => revision + 1)
 
     return () => {

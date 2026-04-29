@@ -2,8 +2,10 @@ import { findNearestProjectedItem } from "../core/hit-test.js"
 import { clamp, cssNumber } from "../core/math.js"
 import { placeItems } from "../core/placement.js"
 import { projectItems, selectVisibleSurfaceItemIds } from "../core/projection.js"
+import type { PositionedItem } from "../core/types.js"
 import { normalizeControls } from "./controls.js"
 import type {
+  SpherDomChangeReason,
   SpherDomInstance,
   SpherDomItem,
   SpherDomItemState,
@@ -46,6 +48,19 @@ export const createSpher = <TItem extends SpherDomItem>(
   const ownsLayer = !internalOptions.layer
   const previousLayerStyle = layer.getAttribute("style")
   const previousLayerDatasetValue = layer.dataset.spherLayer
+  let placedItemsCache: PositionedItem<TItem>[] | null = null
+  let placedItemsCacheDeps: {
+    items: TItem[]
+    placement: SpherDomState<TItem>["placement"]
+    position: SpherDomOptions<TItem>["position"]
+    radius: number
+    size: SpherDomOptions<TItem>["size"]
+  } | null = null
+  let reconcileDeps: {
+    element: SpherDomOptions<TItem>["element"]
+    items: TItem[]
+    render: SpherDomOptions<TItem>["render"]
+  } | null = null
   let dragStart: { x: number; y: number } | null = null
   let dragDistance = 0
   let suppressNextClick = false
@@ -72,8 +87,8 @@ export const createSpher = <TItem extends SpherDomItem>(
   })
   if (ownsLayer) root.append(layer)
 
-  const emit = () => {
-    for (const listener of listeners) listener({ ...state })
+  const emit = (reason: SpherDomChangeReason) => {
+    for (const listener of listeners) listener({ ...state }, { reason })
   }
 
   const controls = () => normalizeControls(stateOptions.controls)
@@ -92,7 +107,7 @@ export const createSpher = <TItem extends SpherDomItem>(
   const setRotationState = (rotation: SpherDomState<TItem>["rotation"]) => {
     state = { ...state, rotation }
     render()
-    emit()
+    emit("rotation")
   }
 
   const scheduleRotationDelta = (deltaX: number, deltaY: number) => {
@@ -139,10 +154,54 @@ export const createSpher = <TItem extends SpherDomItem>(
     state = { ...state, selectedId: item.id }
     stateOptions.onSelect?.(item)
     render()
-    emit()
+    emit("select")
+  }
+
+  const getPlacedItems = () => {
+    const deps = {
+      items: state.items,
+      placement: state.placement,
+      position: stateOptions.position,
+      radius: state.radius,
+      size: stateOptions.size,
+    }
+    if (
+      placedItemsCache &&
+      placedItemsCacheDeps &&
+      placedItemsCacheDeps.items === deps.items &&
+      placedItemsCacheDeps.placement === deps.placement &&
+      placedItemsCacheDeps.position === deps.position &&
+      placedItemsCacheDeps.radius === deps.radius &&
+      placedItemsCacheDeps.size === deps.size
+    ) {
+      return placedItemsCache
+    }
+
+    placedItemsCache = placeItems(state.items, {
+      radius: state.radius,
+      placement: state.placement,
+      size: stateOptions.size,
+      position: stateOptions.position,
+    })
+    placedItemsCacheDeps = deps
+    return placedItemsCache
   }
 
   const reconcileElements = () => {
+    const deps = {
+      element: stateOptions.element,
+      items: state.items,
+      render: stateOptions.render,
+    }
+    if (
+      reconcileDeps &&
+      reconcileDeps.element === deps.element &&
+      reconcileDeps.items === deps.items &&
+      reconcileDeps.render === deps.render
+    ) {
+      return
+    }
+
     const nextIds = new Set(state.items.map((item) => item.id))
 
     for (const [id, element] of elements) {
@@ -187,6 +246,7 @@ export const createSpher = <TItem extends SpherDomItem>(
       stateOptions.render?.(item, element)
       elements.set(item.id, element)
     }
+    reconcileDeps = deps
   }
 
   function handleItemClick(event: MouseEvent) {
@@ -217,12 +277,7 @@ export const createSpher = <TItem extends SpherDomItem>(
     reconcileElements()
     projections.clear()
 
-    const placedItems = placeItems(state.items, {
-      radius: state.radius,
-      placement: state.placement,
-      size: stateOptions.size,
-      position: stateOptions.position,
-    })
+    const placedItems = getPlacedItems()
     const projectedItems = projectItems(placedItems, {
       rotation: state.rotation,
       zoom: state.sceneZoom,
@@ -313,7 +368,11 @@ export const createSpher = <TItem extends SpherDomItem>(
     dragStart = { x: event.clientX, y: event.clientY }
     dragDistance = 0
     suppressNextClick = false
-    root.setPointerCapture(event.pointerId)
+    try {
+      root.setPointerCapture(event.pointerId)
+    } catch {
+      // Synthetic pointer events may not have an active pointer to capture.
+    }
   }
 
   const handlePointerMove = (event: PointerEvent) => {
@@ -344,7 +403,7 @@ export const createSpher = <TItem extends SpherDomItem>(
       }
       state = normalizeOptions(stateOptions, state)
       render()
-      emit()
+      emit("zoom")
     } else {
       scheduleRotationDelta(-event.deltaY * 0.024, event.deltaX * 0.024)
     }
@@ -373,7 +432,7 @@ export const createSpher = <TItem extends SpherDomItem>(
       }
       state = normalizeOptions(stateOptions, state)
       render()
-      emit()
+      emit("zoom")
       return
     }
 
@@ -415,7 +474,7 @@ export const createSpher = <TItem extends SpherDomItem>(
     state = normalizeOptions(stateOptions, state)
     if (hasOption(patch, "rotation")) targetRotation = { ...state.rotation }
     render()
-    emit()
+    emit("update")
   }
 
   const select = (id: string | null) => {
@@ -424,7 +483,7 @@ export const createSpher = <TItem extends SpherDomItem>(
     state = { ...state, selectedId: id }
     if (item) stateOptions.onSelect?.(item)
     render()
-    emit()
+    emit("select")
   }
 
   const rotateTo = (rotation: SpherDomState<TItem>["rotation"]) => {

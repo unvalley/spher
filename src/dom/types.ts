@@ -4,6 +4,12 @@ export type SpherDomFaceDirection = "inward" | "outward"
 
 export type SpherDomViewMode = "inside" | "shell"
 
+export type SpherDomChangeReason = "rotation" | "select" | "update" | "zoom"
+
+export type SpherDomChange = {
+  reason: SpherDomChangeReason
+}
+
 export type SpherDomPosition = {
   latitude: number
   longitude: number
@@ -90,6 +96,7 @@ export type SpherDomItemState<TItem extends SpherDomItem = SpherDomItem> = {
 
 export type SpherDomListener<TItem extends SpherDomItem = SpherDomItem> = (
   state: SpherDomState<TItem>,
+  change: SpherDomChange,
 ) => void
 
 export type SpherDomInstance<TItem extends SpherDomItem = SpherDomItem> = {

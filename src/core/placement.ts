@@ -1,11 +1,12 @@
 import { clamp, toRadians } from "./math.js";
 import type {
+  OrbaItemBase,
   PositionedItem,
   SphericalArchiveItemBase,
   SphericalArchivePlacement,
 } from "./types.js";
 
-type SphericalPosition = {
+export type SphericalPosition = {
   longitude: number;
   latitude: number;
   baseX: number;
@@ -67,6 +68,63 @@ export const getFibonacciSpherePosition = (
     baseZ:
       -Math.cos(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
   };
+};
+
+export const getSphericalPosition = (
+  latitude: number,
+  longitude: number,
+  sphereRadius: number,
+): SphericalPosition => {
+  const longitudeRadians = toRadians(longitude);
+  const latitudeRadians = toRadians(latitude);
+
+  return {
+    longitude,
+    latitude,
+    baseX:
+      -Math.sin(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
+    baseY: Math.sin(latitudeRadians) * sphereRadius,
+    baseZ:
+      -Math.cos(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
+  };
+};
+
+export const placeItems = <TItem extends OrbaItemBase,>(
+  items: TItem[],
+  sphereRadius: number,
+  placement: SphericalArchivePlacement,
+  getItemSize?: (item: TItem) => number,
+  getItemPosition?: (
+    item: TItem,
+    index: number,
+    items: TItem[],
+  ) => Pick<SphericalPosition, "latitude" | "longitude"> | null | undefined,
+): PositionedItem<TItem>[] => {
+  return items.map((item, index) => {
+    const explicitPosition = getItemPosition?.(item, index, items);
+    const { longitude, latitude, baseX, baseY, baseZ } = explicitPosition
+      ? getSphericalPosition(
+          explicitPosition.latitude,
+          explicitPosition.longitude,
+          sphereRadius,
+        )
+      : placement === "latitude-longitude-grid"
+        ? getLatitudeLongitudeGridPosition(index, items.length, sphereRadius)
+        : getFibonacciSpherePosition(index, items.length, sphereRadius);
+    const clampedLatitude = clamp(latitude, -82, 82);
+
+    return {
+      ...item,
+      longitude,
+      latitude: clampedLatitude,
+      baseX,
+      baseY,
+      baseZ,
+      radius: sphereRadius,
+      roll: 0,
+      size: getItemSize?.(item) ?? 64,
+    };
+  });
 };
 
 export const getLatitudeLongitudeGridPosition = (

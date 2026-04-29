@@ -12,7 +12,12 @@ import {
 import { ArchiveCard } from "./orba/ArchiveCard.js";
 import { FilterRow } from "./orba/FilterRow.js";
 import { preloadArchiveImages } from "./orba/imagePreload.js";
-import { clamp, cssNumber, toRadians } from "./orba/math.js";
+import {
+  findNearestProjectedItem,
+  projectItems,
+  selectInsideVisibleItemIds,
+} from "./core/index.js";
+import { clamp, cssNumber } from "./orba/math.js";
 import { positionItems } from "./orba/placement.js";
 import type {
   PositionedItem,
@@ -406,12 +411,15 @@ export const SphericalArchive = <TItem extends SphericalArchiveItemBase,>({
 
   const handlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (dragDistanceRef.current < 6) {
-      const hitItem = findNearestProjectedItem(
-        event.clientX,
-        event.clientY,
-        getLiveClickableProjectedItems(),
-        sceneRef.current,
-      );
+      const sceneRect = sceneRef.current?.getBoundingClientRect();
+      const hitItem = sceneRect
+        ? findNearestProjectedItem(
+            event.clientX,
+            event.clientY,
+            getLiveClickableProjectedItems(),
+            sceneRect,
+          )
+        : null;
       if (hitItem) selectItem(hitItem.id);
     }
 
@@ -430,12 +438,15 @@ export const SphericalArchive = <TItem extends SphericalArchiveItemBase,>({
       return;
     }
 
-    const hitItem = findNearestProjectedItem(
-      event.clientX,
-      event.clientY,
-      getLiveClickableProjectedItems(),
-      sceneRef.current,
-    );
+    const sceneRect = sceneRef.current?.getBoundingClientRect();
+    const hitItem = sceneRect
+      ? findNearestProjectedItem(
+          event.clientX,
+          event.clientY,
+          getLiveClickableProjectedItems(),
+          sceneRect,
+        )
+      : null;
     if (hitItem) selectItem(hitItem.id);
   };
 
@@ -744,152 +755,4 @@ export const SphericalArchive = <TItem extends SphericalArchiveItemBase,>({
       </section>
     </main>
   );
-};
-
-const projectItems = <TItem extends SphericalArchiveItemBase,>(
-  items: PositionedItem<TItem>[],
-  rotation: { x: number; y: number },
-  zoom: number,
-  scenePerspective: number,
-): ProjectedItem<TItem>[] => {
-  return items.map((item) => {
-    const rotationX = toRadians(rotation.x);
-    const rotationY = toRadians(rotation.y);
-    let x = item.baseX;
-    let y = item.baseY;
-    let z = item.baseZ;
-
-    const xAfterY = x * Math.cos(rotationY) + z * Math.sin(rotationY);
-    const zAfterY = -x * Math.sin(rotationY) + z * Math.cos(rotationY);
-    x = xAfterY;
-    z = zAfterY;
-
-    const yAfterX = y * Math.cos(rotationX) - z * Math.sin(rotationX);
-    const zAfterX = y * Math.sin(rotationX) + z * Math.cos(rotationX);
-    y = yAfterX;
-    z = zAfterX;
-
-    const normalY = clamp(y / item.radius, -1, 1);
-
-    x *= zoom;
-    y *= zoom;
-    z *= zoom;
-
-    const perspectiveScale = scenePerspective / (scenePerspective - z);
-    const angularDistance = Math.atan2(Math.hypot(x, y), Math.max(1, -z));
-    const edgeFactor = clamp(angularDistance / (Math.PI / 2), 0, 1);
-
-    return {
-      item,
-      projectedX: x * perspectiveScale,
-      projectedY: y * perspectiveScale,
-      perspectiveScale,
-      edgeFactor,
-      normalY,
-      z,
-    };
-  });
-};
-
-const selectInsideVisibleItemIds = <TItem extends SphericalArchiveItemBase,>(
-  projectedItems: ProjectedItem<TItem>[],
-  insideZoomProgress: number,
-  insideSceneScale: number,
-  sphereRadius: number,
-  filterActive: boolean,
-  matchingItemIds: Set<string>,
-) => {
-  const visibleDepth = -sphereRadius * insideSceneScale * 0.02;
-  const selected: ProjectedItem<TItem>[] = [];
-  const selectedIds = new Set<string>();
-  const candidates = projectedItems
-    .filter(({ z }) => z < visibleDepth)
-    .sort((a, b) => {
-      if (filterActive) {
-        const matchDelta =
-          Number(matchingItemIds.has(b.item.id)) -
-          Number(matchingItemIds.has(a.item.id));
-        if (matchDelta !== 0) return matchDelta;
-      }
-      return a.edgeFactor - b.edgeFactor;
-    });
-
-  for (const candidate of candidates) {
-    const candidateRadius = getInsideCollisionRadius(
-      candidate,
-      insideZoomProgress,
-      insideSceneScale,
-    );
-    const overlaps = selected.some((existing) => {
-      const minimumDistance =
-        candidateRadius +
-        getInsideCollisionRadius(
-          existing,
-          insideZoomProgress,
-          insideSceneScale,
-        );
-      return (
-        Math.hypot(
-          candidate.projectedX - existing.projectedX,
-          candidate.projectedY - existing.projectedY,
-        ) < minimumDistance
-      );
-    });
-
-    if (!overlaps) {
-      selected.push(candidate);
-      selectedIds.add(candidate.item.id);
-    }
-  }
-
-  return selectedIds;
-};
-
-const getInsideCollisionRadius = <TItem extends SphericalArchiveItemBase,>(
-  projectedItem: ProjectedItem<TItem>,
-  insideZoomProgress: number,
-  insideSceneScale: number,
-) => {
-  const insideScale = clamp(
-    (1.02 + insideZoomProgress * 0.08) *
-      (1 - projectedItem.edgeFactor * 0.08),
-    0.84,
-    1.12,
-  );
-  return Math.max(
-    36,
-    projectedItem.item.size * insideScale * insideSceneScale * 0.48,
-  );
-};
-
-const findNearestProjectedItem = <TItem extends SphericalArchiveItemBase,>(
-  clientX: number,
-  clientY: number,
-  projectedItems: ProjectedItem<TItem>[],
-  sceneElement: HTMLDivElement | null,
-) => {
-  if (!sceneElement) return null;
-
-  const rect = sceneElement.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  let nearest: { item: PositionedItem<TItem>; distance: number } | null = null;
-
-  for (const {
-    item,
-    projectedX,
-    projectedY,
-    perspectiveScale,
-  } of projectedItems) {
-    const screenX = centerX + projectedX;
-    const screenY = centerY + projectedY;
-    const distance = Math.hypot(screenX - clientX, screenY - clientY);
-    const hitRadius = Math.max(40, item.size * perspectiveScale * 0.82);
-
-    if (distance <= hitRadius && (!nearest || distance < nearest.distance)) {
-      nearest = { item, distance };
-    }
-  }
-
-  return nearest?.item ?? null;
 };

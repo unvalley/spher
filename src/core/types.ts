@@ -2,14 +2,17 @@ export type SphericalArchiveViewMode = "inside" | "shell";
 export type SphericalArchivePlacement = "fibonacci" | "latitude-longitude-grid";
 export type SphericalArchiveFaceDirection = "inward" | "outward";
 
-export type SphericalArchiveItemBase = {
+export type OrbaItemBase = {
   id: string;
+};
+
+export type SphericalArchiveItemBase = OrbaItemBase & {
   title: string;
   image: string;
   year: number;
 };
 
-export type PositionedItem<TItem extends SphericalArchiveItemBase> = TItem & {
+export type PositionedItem<TItem extends OrbaItemBase> = TItem & {
   longitude: number;
   latitude: number;
   baseX: number;
@@ -20,7 +23,7 @@ export type PositionedItem<TItem extends SphericalArchiveItemBase> = TItem & {
   size: number;
 };
 
-export type ProjectedItem<TItem extends SphericalArchiveItemBase> = {
+export type ProjectedItem<TItem extends OrbaItemBase> = {
   item: PositionedItem<TItem>;
   projectedX: number;
   projectedY: number;

@@ -28,9 +28,10 @@ describe("Orba", () => {
     flushSync(() => {
       root.render(
         <Orba
-          items={[{ id: "front", position: { latitude: 0, longitude: 0 } }]}
+          items={[{ id: "front" }]}
           radius={100}
           perspective={500}
+          getItemPosition={() => ({ latitude: 0, longitude: 0 })}
           renderItem={(item, state) => (
             <button type="button" data-selected={state.selected}>
               {item.id}

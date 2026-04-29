@@ -1,6 +1,5 @@
 import { clamp, toRadians } from "./math.js";
 import type {
-  OrbaArchiveItemBase,
   OrbaItemBase,
   OrbaPlacement,
   PositionedItem,
@@ -12,39 +11,6 @@ export type SphericalPosition = {
   baseX: number;
   baseY: number;
   baseZ: number;
-};
-
-export const positionItems = <TItem extends OrbaArchiveItemBase,>(
-  items: TItem[],
-  sphereRadius: number,
-  placement: OrbaPlacement,
-  getItemSize?: (item: TItem) => number,
-): PositionedItem<TItem>[] => {
-  const sortedItems = [...items].sort((a, b) => a.year - b.year);
-
-  return sortedItems.map((item, index) => {
-    const { longitude, latitude, baseX, baseY, baseZ } =
-      placement === "latitude-longitude-grid"
-        ? getLatitudeLongitudeGridPosition(
-            index,
-            sortedItems.length,
-            sphereRadius,
-          )
-        : getFibonacciSpherePosition(index, sortedItems.length, sphereRadius);
-    const clampedLatitude = clamp(latitude, -82, 82);
-
-    return {
-      ...item,
-      longitude,
-      latitude: clampedLatitude,
-      baseX,
-      baseY,
-      baseZ,
-      radius: sphereRadius,
-      roll: 0,
-      size: getItemSize?.(item) ?? 64,
-    };
-  });
 };
 
 export const getFibonacciSpherePosition = (
@@ -93,7 +59,7 @@ export const placeItems = <TItem extends OrbaItemBase,>(
   items: TItem[],
   sphereRadius: number,
   placement: OrbaPlacement,
-  getItemSize?: (item: TItem) => number,
+  getItemSize?: (item: TItem, index: number, items: TItem[]) => number,
   getItemPosition?: (
     item: TItem,
     index: number,
@@ -122,7 +88,7 @@ export const placeItems = <TItem extends OrbaItemBase,>(
       baseZ,
       radius: sphereRadius,
       roll: 0,
-      size: getItemSize?.(item) ?? 64,
+      size: getItemSize?.(item, index, items) ?? 64,
     };
   });
 };

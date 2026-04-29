@@ -9,19 +9,13 @@ export type OrbaDomPosition = {
   longitude: number;
 };
 
-export type OrbaDomItem = OrbaItemBase & {
-  position?: OrbaDomPosition;
-  latitude?: number;
-  longitude?: number;
-  size?: number;
-};
+export type OrbaDomItem = OrbaItemBase;
 
 export type OrbaDomControls =
   | boolean
   | {
       drag?: boolean;
       wheel?: boolean;
-      keyboard?: boolean;
       preventDocumentScroll?: boolean;
     };
 
@@ -37,6 +31,12 @@ export type OrbaDomOptions<TItem extends OrbaDomItem = OrbaDomItem> = {
   placement?: OrbaPlacement;
   controls?: OrbaDomControls;
   selectedId?: string | null;
+  getItemPosition?: (
+    item: TItem,
+    index: number,
+    items: TItem[],
+  ) => OrbaDomPosition | null | undefined;
+  getItemSize?: (item: TItem, index: number, items: TItem[]) => number;
   getElement?: (item: TItem) => HTMLElement | null;
   renderItem?: (item: TItem, element: HTMLElement) => void;
   onSelect?: (item: TItem) => void;

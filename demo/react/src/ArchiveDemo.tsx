@@ -7,6 +7,11 @@ type ArchiveItem = OrbaDomItem & {
   year: number;
   category: string;
   image: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
+  cardSize: number;
 };
 
 const items: ArchiveItem[] = [
@@ -16,8 +21,8 @@ const items: ArchiveItem[] = [
     year: -470,
     category: "philosophy",
     image: "https://images.unsplash.com/photo-1604076913837-52ab5629fba9?auto=format&fit=crop&w=420&q=80",
-    position: { latitude: 24, longitude: -18 },
-    size: 88,
+    coordinates: { latitude: 24, longitude: -18 },
+    cardSize: 88,
   },
   {
     id: "alexandria",
@@ -25,8 +30,8 @@ const items: ArchiveItem[] = [
     year: -283,
     category: "archive",
     image: "https://images.unsplash.com/photo-1519682577862-22b62b24e493?auto=format&fit=crop&w=420&q=80",
-    position: { latitude: 2, longitude: 26 },
-    size: 96,
+    coordinates: { latitude: 2, longitude: 26 },
+    cardSize: 96,
   },
   {
     id: "astrolabe",
@@ -34,8 +39,8 @@ const items: ArchiveItem[] = [
     year: 150,
     category: "instrument",
     image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=420&q=80",
-    position: { latitude: -18, longitude: 70 },
-    size: 76,
+    coordinates: { latitude: -18, longitude: 70 },
+    cardSize: 76,
   },
   {
     id: "printing",
@@ -43,8 +48,8 @@ const items: ArchiveItem[] = [
     year: 1040,
     category: "archive",
     image: "https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=420&q=80",
-    position: { latitude: 36, longitude: 122 },
-    size: 82,
+    coordinates: { latitude: 36, longitude: 122 },
+    cardSize: 82,
   },
   {
     id: "observatory",
@@ -52,8 +57,8 @@ const items: ArchiveItem[] = [
     year: 1577,
     category: "instrument",
     image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=420&q=80",
-    position: { latitude: -32, longitude: -108 },
-    size: 90,
+    coordinates: { latitude: -32, longitude: -108 },
+    cardSize: 90,
   },
   {
     id: "web",
@@ -61,8 +66,8 @@ const items: ArchiveItem[] = [
     year: 1989,
     category: "network",
     image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=420&q=80",
-    position: { latitude: 10, longitude: -148 },
-    size: 84,
+    coordinates: { latitude: 10, longitude: -148 },
+    cardSize: 84,
   },
 ];
 
@@ -116,6 +121,8 @@ export const ArchiveDemo = () => {
         perspective={860}
         controls={{ drag: true, wheel: true }}
         selectedId={selected?.id ?? null}
+        getItemPosition={(item) => item.coordinates}
+        getItemSize={(item) => item.cardSize}
         onSelect={(item) => setSelectedId(item.id)}
         renderItem={(item, state) => (
           <ArchiveCard item={item} state={state} />
@@ -146,7 +153,6 @@ const ArchiveCard = ({
       className="archive-card"
       data-selected={state.selected}
       style={{ opacity: state.visibility }}
-      onClick={state.select}
     >
       <img src={item.image} alt="" />
       <span>{item.title}</span>

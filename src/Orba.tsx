@@ -7,7 +7,6 @@ import {
   type ReactNode,
   useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -16,6 +15,7 @@ import {
   type OrbaDomControls,
   type OrbaDomInstance,
   type OrbaDomItem,
+  type OrbaDomPosition,
   type OrbaDomProjection,
 } from "./dom/index.js";
 import type { OrbaPlacement } from "./core/index.js";
@@ -44,6 +44,12 @@ export type OrbaProps<TItem extends OrbaDomItem> = {
   defaultSelectedId?: string | null;
   className?: string;
   style?: CSSProperties;
+  getItemPosition?: (
+    item: TItem,
+    index: number,
+    items: TItem[],
+  ) => OrbaDomPosition | null | undefined;
+  getItemSize?: (item: TItem, index: number, items: TItem[]) => number;
   renderItem: (item: TItem, state: OrbaRenderState<TItem>) => ReactNode;
   onSelect?: (item: TItem) => void;
 };
@@ -64,6 +70,8 @@ const OrbaInner = <TItem extends OrbaDomItem>(
     defaultSelectedId = null,
     className,
     style,
+    getItemPosition,
+    getItemSize,
     renderItem,
     onSelect,
   }: OrbaProps<TItem>,
@@ -72,11 +80,14 @@ const OrbaInner = <TItem extends OrbaDomItem>(
   const rootRef = useRef<HTMLDivElement | null>(null);
   const itemElementsRef = useRef(new Map<string, HTMLElement>());
   const instanceRef = useRef<OrbaDomInstance<TItem> | null>(null);
+  const latestSelectRef = useRef({ onSelect, selectedId });
   const [internalSelectedId, setInternalSelectedId] = useState<string | null>(
     defaultSelectedId,
   );
   const [, setRevision] = useState(0);
   const effectiveSelectedId = selectedId ?? internalSelectedId;
+
+  latestSelectRef.current = { onSelect, selectedId };
 
   useImperativeHandle(
     ref,
@@ -97,27 +108,17 @@ const OrbaInner = <TItem extends OrbaDomItem>(
     [],
   );
 
-  const itemIds = useMemo(() => items.map((item) => item.id).join("\u0000"), [
-    items,
-  ]);
-
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
 
     const instance = createOrba<TItem>(root, {
-      items,
-      radius,
-      perspective,
-      rotation,
-      zoom,
-      placement,
-      controls,
-      selectedId: effectiveSelectedId,
+      items: [],
       getElement: (item) => itemElementsRef.current.get(item.id) ?? null,
       onSelect: (item) => {
-        if (selectedId === undefined) setInternalSelectedId(item.id);
-        onSelect?.(item);
+        const latest = latestSelectRef.current;
+        if (latest.selectedId === undefined) setInternalSelectedId(item.id);
+        latest.onSelect?.(item);
       },
     });
 
@@ -132,17 +133,31 @@ const OrbaInner = <TItem extends OrbaDomItem>(
       instance.destroy();
       instanceRef.current = null;
     };
+  }, []);
+
+  useEffect(() => {
+    instanceRef.current?.update({
+      items,
+      radius,
+      perspective,
+      rotation,
+      zoom,
+      placement,
+      controls,
+      selectedId: effectiveSelectedId,
+      getItemPosition,
+      getItemSize,
+    });
   }, [
     controls,
     effectiveSelectedId,
-    itemIds,
+    getItemPosition,
+    getItemSize,
     items,
-    onSelect,
     perspective,
     placement,
     radius,
     rotation,
-    selectedId,
     zoom,
   ]);
 

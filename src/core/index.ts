@@ -6,7 +6,6 @@ export {
   getLatitudeLongitudeGridRowCounts,
   getSphericalPosition,
   placeItems,
-  positionItems,
   type SphericalPosition,
 } from "./placement.js";
 export {
@@ -15,11 +14,8 @@ export {
   type OrbaRotation,
 } from "./projection.js";
 export type {
-  OrbaArchiveItemBase,
-  OrbaFaceDirection,
   OrbaItemBase,
   OrbaPlacement,
-  OrbaViewMode,
   PositionedItem,
   ProjectedItem,
 } from "./types.js";

@@ -4,8 +4,8 @@ import {
   projectItems,
 } from "../core/index.js";
 import { clamp, cssNumber } from "../core/math.js";
+import { normalizeControls } from "./controls.js";
 import type {
-  OrbaDomControls,
   OrbaDomInstance,
   OrbaDomItem,
   OrbaDomListener,
@@ -120,20 +120,9 @@ export const createOrba = <TItem extends OrbaDomItem>(
       state.items,
       state.radius,
       state.placement,
-      (item) => item.size ?? 64,
-      (item) => {
-        if (item.position) return item.position;
-        if (
-          typeof item.latitude === "number" &&
-          typeof item.longitude === "number"
-        ) {
-          return {
-            latitude: item.latitude,
-            longitude: item.longitude,
-          };
-        }
-        return null;
-      },
+      (item, index) => stateOptions.getItemSize?.(item, index, state.items) ?? 64,
+      (item, index) =>
+        stateOptions.getItemPosition?.(item, index, state.items) ?? null,
     );
     const projectedItems = projectItems(
       placedItems,
@@ -312,28 +301,3 @@ const normalizeOptions = <TItem extends OrbaDomItem>(
   placement: options.placement ?? defaultPlacement,
   selectedId: options.selectedId ?? null,
 });
-
-const normalizeControls = (controls: OrbaDomControls | undefined) => {
-  if (controls === true) {
-    return {
-      drag: true,
-      wheel: true,
-      keyboard: false,
-      preventDocumentScroll: false,
-    };
-  }
-  if (!controls) {
-    return {
-      drag: false,
-      wheel: false,
-      keyboard: false,
-      preventDocumentScroll: false,
-    };
-  }
-  return {
-    drag: controls.drag ?? false,
-    wheel: controls.wheel ?? false,
-    keyboard: controls.keyboard ?? false,
-    preventDocumentScroll: controls.preventDocumentScroll ?? false,
-  };
-};

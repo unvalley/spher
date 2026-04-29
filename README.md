@@ -26,20 +26,17 @@ if (root) {
       wheel: true,
     },
     items: [
-      {
-        id: "tokyo",
-        position: { latitude: 35.6762, longitude: 139.6503 },
-        size: 72,
-      },
-      {
-        id: "sf",
-        position: { latitude: 37.7749, longitude: -122.4194 },
-        size: 56,
-      },
+      { id: "tokyo", label: "Tokyo" },
+      { id: "sf", label: "San Francisco" },
     ],
+    getItemPosition: (item) =>
+      item.id === "tokyo"
+        ? { latitude: 35.6762, longitude: 139.6503 }
+        : { latitude: 37.7749, longitude: -122.4194 },
+    getItemSize: (item) => (item.id === "tokyo" ? 72 : 56),
     renderItem: (item, element) => {
       element.className = "city";
-      element.textContent = item.id;
+      element.textContent = item.label;
     },
     onSelect: (item) => {
       console.log("selected", item.id);
@@ -114,15 +111,22 @@ type OrbaDomInstance = {
 
 ### Items
 
-Items only need an `id`. You can provide explicit spherical coordinates or let orba place them.
+Items only need an `id`. Keep your domain data on the item and use resolver options when you want explicit coordinates or sizes.
 
 ```ts
 const items = [
-  { id: "a" },
-  { id: "b", size: 88 },
-  { id: "tokyo", position: { latitude: 35.6762, longitude: 139.6503 } },
-  { id: "sf", latitude: 37.7749, longitude: -122.4194 },
+  { id: "tokyo", label: "Tokyo" },
+  { id: "sf", label: "San Francisco" },
 ];
+
+createOrba(root, {
+  items,
+  getItemPosition: (item) =>
+    item.id === "tokyo"
+      ? { latitude: 35.6762, longitude: 139.6503 }
+      : { latitude: 37.7749, longitude: -122.4194 },
+  getItemSize: (item) => (item.id === "tokyo" ? 72 : 56),
+});
 ```
 
 ### DOM Slots
@@ -174,8 +178,6 @@ const placed = placeItems([{ id: "a" }, { id: "b" }], 320, "fibonacci");
 const projected = projectItems(placed, { x: 0, y: 20 }, 1, 900);
 ```
 
-The older archive-focused `positionItems` export is still available for compatibility.
-
 ## React
 
 The React API exports an unstyled `Orba` component. It renders your elements and lets the DOM engine write projection state to their wrappers.
@@ -184,8 +186,8 @@ The React API exports an unstyled `Orba` component. It renders your elements and
 import { Orba } from "orba/react";
 
 const items = [
-  { id: "tokyo", position: { latitude: 35.6762, longitude: 139.6503 } },
-  { id: "sf", position: { latitude: 37.7749, longitude: -122.4194 } },
+  { id: "tokyo", label: "Tokyo" },
+  { id: "sf", label: "San Francisco" },
 ];
 
 export const Example = () => (
@@ -193,15 +195,19 @@ export const Example = () => (
     className="sphere"
     items={items}
     controls={{ drag: true, wheel: true }}
+    getItemPosition={(item) =>
+      item.id === "tokyo"
+        ? { latitude: 35.6762, longitude: 139.6503 }
+        : { latitude: 37.7749, longitude: -122.4194 }
+    }
     renderItem={(item, state) => (
-      <button data-selected={state.selected}>{item.id}</button>
+      <button data-selected={state.selected}>{item.label}</button>
     )}
   />
 );
 ```
 
 The archive-style UI that used to live in the package is now a demo instead of a library component. See [demo/react](demo/react) for a styled React example built with `Orba`.
-
 
 ## Testing
 

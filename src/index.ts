@@ -9,7 +9,6 @@ export {
   placeItems,
   projectItems,
   selectInsideVisibleItemIds,
-  positionItems,
   toRadians,
   type OrbaItemBase,
   type OrbaRect,

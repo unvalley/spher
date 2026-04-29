@@ -1,3 +1,4 @@
+export { normalizeControls, type ResolvedOrbaDomControls } from "./controls.js";
 export { createOrba } from "./create-orba.js";
 export type {
   OrbaDomControls,

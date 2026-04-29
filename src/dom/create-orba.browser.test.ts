@@ -28,10 +28,10 @@ describe("createOrba", () => {
       items: [
         {
           id: "front",
-          position: { latitude: 0, longitude: 0 },
-          size: 40,
         },
       ],
+      getItemPosition: () => ({ latitude: 0, longitude: 0 }),
+      getItemSize: () => 40,
       renderItem: (item, element) => {
         element.textContent = item.id;
       },
@@ -54,7 +54,8 @@ describe("createOrba", () => {
     const instance = createOrba(root, {
       radius: 100,
       perspective: 500,
-      items: [{ id: "item", position: { latitude: 0, longitude: 0 } }],
+      items: [{ id: "item" }],
+      getItemPosition: () => ({ latitude: 0, longitude: 0 }),
       renderItem: (item, element) => {
         element.textContent = item.id;
       },
@@ -78,7 +79,8 @@ describe("createOrba", () => {
     const instance = createOrba(root, {
       radius: 100,
       perspective: 500,
-      items: [{ id: "selectable", position: { latitude: 0, longitude: 0 } }],
+      items: [{ id: "selectable" }],
+      getItemPosition: () => ({ latitude: 0, longitude: 0 }),
       onSelect: (item) => selectedIds.push(item.id),
       renderItem: (item, element) => {
         element.textContent = item.id;

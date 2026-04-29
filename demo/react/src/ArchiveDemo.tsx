@@ -250,7 +250,6 @@ export const ArchiveDemo = () => {
         perspective={980}
         radius={radius}
         render={(item, state) => <ArchiveCard item={item} state={state} />}
-        rotation={{ x: -10, y: -24 }}
         selectedId={selected?.id ?? null}
         size={52}
       />

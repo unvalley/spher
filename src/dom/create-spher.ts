@@ -26,11 +26,22 @@ export const createSpher = <TItem extends SpherDomItem>(
   const listeners = new Set<SpherDomListener<TItem>>()
   const elements = new Map<string, HTMLElement>()
   const createdElements = new Set<HTMLElement>()
+  const originalElementPositions = new Map<
+    HTMLElement,
+    {
+      parent: Node
+      nextSibling: ChildNode | null
+    }
+  >()
   const projections = new Map<string, SpherDomSurfaceProjection<TItem>>()
   const previousRootPosition = root.style.position
   const previousRootPerspective = root.style.perspective
   const previousRootOverflow = root.style.overflow
-  const layer = document.createElement("div")
+  const internalOptions = options as SpherDomOptions<TItem> & { layer?: HTMLElement | null }
+  const layer = internalOptions.layer ?? document.createElement("div")
+  const ownsLayer = !internalOptions.layer
+  const previousLayerStyle = layer.getAttribute("style")
+  const previousLayerDatasetValue = layer.dataset.spherLayer
   let dragStart: { x: number; y: number } | null = null
   let destroyed = false
   let stateOptions: SpherDomOptions<TItem> = { ...options }
@@ -50,13 +61,25 @@ export const createSpher = <TItem extends SpherDomItem>(
     transformStyle: "preserve-3d",
     willChange: "transform",
   })
-  root.append(layer)
+  if (ownsLayer) root.append(layer)
 
   const emit = () => {
     for (const listener of listeners) listener({ ...state })
   }
 
   const controls = () => normalizeControls(stateOptions.controls)
+
+  const restoreElement = (element: HTMLElement) => {
+    const originalPosition = originalElementPositions.get(element)
+    if (!originalPosition) return
+
+    if (originalPosition.nextSibling?.parentNode === originalPosition.parent) {
+      originalPosition.parent.insertBefore(element, originalPosition.nextSibling)
+    } else {
+      originalPosition.parent.appendChild(element)
+    }
+    originalElementPositions.delete(element)
+  }
 
   const selectItem = (item: TItem) => {
     stateOptions = { ...stateOptions, selectedId: item.id }
@@ -72,7 +95,11 @@ export const createSpher = <TItem extends SpherDomItem>(
     for (const [id, element] of elements) {
       if (nextIds.has(id)) continue
       element.removeEventListener("click", handleItemClick)
-      if (createdElements.has(element)) element.remove()
+      if (createdElements.has(element)) {
+        element.remove()
+      } else {
+        restoreElement(element)
+      }
       elements.delete(id)
       createdElements.delete(element)
     }
@@ -83,7 +110,13 @@ export const createSpher = <TItem extends SpherDomItem>(
         element = document.createElement("div")
         createdElements.add(element)
         layer.append(element)
-      } else if (!element.parentElement) {
+      } else if (element.parentElement !== layer) {
+        if (element.parentNode && !originalElementPositions.has(element)) {
+          originalElementPositions.set(element, {
+            parent: element.parentNode,
+            nextSibling: element.nextSibling,
+          })
+        }
         layer.append(element)
       }
 
@@ -234,10 +267,7 @@ export const createSpher = <TItem extends SpherDomItem>(
 
   const update = (patch: Partial<SpherDomOptions<TItem>>) => {
     stateOptions = { ...stateOptions, ...patch }
-    state = {
-      ...state,
-      ...normalizeOptions(stateOptions),
-    }
+    state = normalizeOptions(stateOptions, state)
     render()
     emit()
   }
@@ -265,14 +295,27 @@ export const createSpher = <TItem extends SpherDomItem>(
     root.removeEventListener("click", handleClick)
     for (const element of elements.values()) {
       element.removeEventListener("click", handleItemClick)
+      if (!createdElements.has(element)) restoreElement(element)
     }
-    layer.remove()
+    if (ownsLayer) {
+      layer.remove()
+    } else if (previousLayerStyle === null) {
+      layer.removeAttribute("style")
+    } else {
+      layer.setAttribute("style", previousLayerStyle)
+    }
+    if (previousLayerDatasetValue === undefined) {
+      delete layer.dataset.spherLayer
+    } else {
+      layer.dataset.spherLayer = previousLayerDatasetValue
+    }
     root.style.position = previousRootPosition
     root.style.perspective = previousRootPerspective
     root.style.overflow = previousRootOverflow
     delete root.dataset.spherRoot
     elements.clear()
     createdElements.clear()
+    originalElementPositions.clear()
     projections.clear()
     listeners.clear()
   }
@@ -314,12 +357,26 @@ export const createSpher = <TItem extends SpherDomItem>(
 
 const normalizeOptions = <TItem extends SpherDomItem>(
   options: SpherDomOptions<TItem>,
-): SpherDomState<TItem> => ({
-  items: options.items,
-  radius: options.radius ?? defaultRadius,
-  perspective: options.perspective ?? defaultPerspective,
-  rotation: options.rotation ?? defaultRotation,
-  zoom: options.zoom ?? defaultZoom,
-  placement: options.placement ?? defaultPlacement,
-  selectedId: options.selectedId ?? null,
-})
+  previous?: SpherDomState<TItem>,
+): SpherDomState<TItem> => {
+  const selectedId = hasOption(options, "selectedId")
+    ? (options.selectedId ?? null)
+    : (previous?.selectedId ?? null)
+
+  return {
+    items: options.items ?? previous?.items ?? [],
+    radius: options.radius ?? previous?.radius ?? defaultRadius,
+    perspective: options.perspective ?? previous?.perspective ?? defaultPerspective,
+    rotation: options.rotation ?? previous?.rotation ?? defaultRotation,
+    zoom: options.zoom ?? previous?.zoom ?? defaultZoom,
+    placement: options.placement ?? previous?.placement ?? defaultPlacement,
+    selectedId,
+  }
+}
+
+const hasOption = <TItem extends SpherDomItem, TKey extends keyof SpherDomOptions<TItem>>(
+  options: SpherDomOptions<TItem>,
+  key: TKey,
+) => objectHasOwnProperty.call(options, key)
+
+const objectHasOwnProperty = Object.prototype.hasOwnProperty

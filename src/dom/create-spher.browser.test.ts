@@ -73,6 +73,21 @@ describe("createSpher", () => {
     instance.destroy()
   })
 
+  it("preserves internal rotation when unrelated options update", () => {
+    const root = createRoot()
+    const instance = createSpher(root, {
+      radius: 100,
+      items: [{ id: "item" }],
+    })
+
+    instance.rotateTo({ x: 5, y: 12 })
+    instance.update({ items: [{ id: "item" }], radius: 120 })
+
+    expect(instance.getState().rotation).toEqual({ x: 5, y: 12 })
+
+    instance.destroy()
+  })
+
   it("preserves non-static positioning from stylesheets", () => {
     const style = document.createElement("style")
     style.textContent = ".fixed-sphere-root { position: fixed; inset: 0; }"

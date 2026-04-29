@@ -5,8 +5,8 @@ import {
   type ForwardedRef,
   forwardRef,
   type ReactNode,
-  useEffect,
   useImperativeHandle,
+  useLayoutEffect,
   useRef,
   useState,
 } from "react"
@@ -17,6 +17,7 @@ import {
   type SpherDomInstance,
   type SpherDomItem,
   type SpherDomItemState,
+  type SpherDomOptions,
   type SpherDomPosition,
 } from "./dom/index.js"
 
@@ -73,6 +74,7 @@ const SpherInner = <TItem extends SpherDomItem>(
   ref: ForwardedRef<SpherHandle<TItem>>,
 ) => {
   const rootRef = useRef<HTMLDivElement | null>(null)
+  const layerRef = useRef<HTMLDivElement | null>(null)
   const itemElementsRef = useRef(new Map<string, HTMLElement>())
   const instanceRef = useRef<SpherDomInstance<TItem> | null>(null)
   const latestSelectRef = useRef({ onSelect, selectedId })
@@ -102,19 +104,23 @@ const SpherInner = <TItem extends SpherDomItem>(
     [],
   )
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = rootRef.current
-    if (!root) return
+    const layer = layerRef.current
+    if (!root || !layer) return
 
-    const instance = createSpher<TItem>(root, {
+    const instanceOptions = {
       items: [],
+      layer,
       element: (item) => itemElementsRef.current.get(item.id) ?? null,
       onSelect: (item) => {
         const latest = latestSelectRef.current
         if (latest.selectedId === undefined) setInternalSelectedId(item.id)
         latest.onSelect?.(item)
       },
-    })
+    } as SpherDomOptions<TItem> & { layer: HTMLElement }
+
+    const instance = createSpher<TItem>(root, instanceOptions)
 
     instanceRef.current = instance
     const unsubscribe = instance.subscribe(() => setRevision((revision) => revision + 1))
@@ -127,7 +133,7 @@ const SpherInner = <TItem extends SpherDomItem>(
     }
   }, [])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     instanceRef.current?.update({
       items,
       radius,
@@ -155,36 +161,38 @@ const SpherInner = <TItem extends SpherDomItem>(
 
   return (
     <div className={className} data-spher-react ref={rootRef} style={style}>
-      {items.map((item) => {
-        const itemState = instanceRef.current?.itemState(item.id) ?? null
-        const itemSelected = effectiveSelectedId === item.id
-        const renderState: SpherRenderState<TItem> = {
-          selected: itemSelected,
-          front: itemState?.front ?? false,
-          visible: itemState?.visible ?? false,
-          visibility: itemState?.visibility ?? 0,
-          itemState,
-          select: () => {
-            instanceRef.current?.select(item.id)
-          },
-        }
+      <div data-spher-react-layer ref={layerRef}>
+        {items.map((item) => {
+          const itemState = instanceRef.current?.itemState(item.id) ?? null
+          const itemSelected = effectiveSelectedId === item.id
+          const renderState: SpherRenderState<TItem> = {
+            selected: itemSelected,
+            front: itemState?.front ?? false,
+            visible: itemState?.visible ?? false,
+            visibility: itemState?.visibility ?? 0,
+            itemState,
+            select: () => {
+              instanceRef.current?.select(item.id)
+            },
+          }
 
-        return (
-          <div
-            data-spher-slot={item.id}
-            key={item.id}
-            ref={(element) => {
-              if (element) {
-                itemElementsRef.current.set(item.id, element)
-              } else {
-                itemElementsRef.current.delete(item.id)
-              }
-            }}
-          >
-            {render(item, renderState)}
-          </div>
-        )
-      })}
+          return (
+            <div
+              data-spher-slot={item.id}
+              key={item.id}
+              ref={(element) => {
+                if (element) {
+                  itemElementsRef.current.set(item.id, element)
+                } else {
+                  itemElementsRef.current.delete(item.id)
+                }
+              }}
+            >
+              {render(item, renderState)}
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }

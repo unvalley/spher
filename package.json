@@ -1,5 +1,5 @@
 {
-  "name": "orba",
+  "name": "spher",
   "version": "0.1.0",
   "description": "Unstyled sphere layout engine for DOM and React components.",
   "license": "MIT",
@@ -14,10 +14,15 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm test:browser && pnpm build && pnpm check:size",
+    "check:size": "node scripts/check-package-size.mjs",
+    "check:write": "biome check --write .",
     "clean": "rm -rf dist",
+    "lint": "biome check .",
     "prepack": "pnpm run clean && pnpm run build",
     "test": "vitest run --config vitest.config.ts",
-    "test:browser": "vitest run --config vitest.browser.config.ts"
+    "test:browser": "vitest run --config vitest.browser.config.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "exports": {
     ".": {
@@ -38,21 +43,22 @@
     }
   },
   "keywords": [
-    "react",
     "sphere",
     "spherical",
-    "archive",
-    "gallery",
+    "dom",
+    "layout",
+    "react",
+    "3d",
     "interactive"
   ],
-  "homepage": "https://github.com/unvalley/orba#readme",
+  "homepage": "https://github.com/unvalley/spher#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/unvalley/orba.git"
+    "url": "git+https://github.com/unvalley/spher.git"
   },
   "peerDependencies": {
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
   },
   "peerDependenciesMeta": {
     "react": {
@@ -63,14 +69,21 @@
     }
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
     "@types/react": "19.2.13",
     "@types/react-dom": "19.2.3",
     "@vitest/browser-playwright": "^4.1.5",
+    "esbuild": "^0.28.0",
     "playwright": "^1.59.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "typescript": "^5.9.3",
     "vitest": "^4.1.5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319"
 }

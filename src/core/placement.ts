@@ -1,64 +1,56 @@
-import { clamp, toRadians } from "./math.js";
-import type {
-  OrbaItemBase,
-  OrbaPlacement,
-  PositionedItem,
-} from "./types.js";
+import { clamp, toRadians } from "./math.js"
+import type { PositionedItem, SpherItemBase, SpherPlacement } from "./types.js"
 
 export type SphericalPosition = {
-  longitude: number;
-  latitude: number;
-  baseX: number;
-  baseY: number;
-  baseZ: number;
-};
+  longitude: number
+  latitude: number
+  baseX: number
+  baseY: number
+  baseZ: number
+}
 
 export const getFibonacciSpherePosition = (
   index: number,
   itemCount: number,
   sphereRadius: number,
 ): SphericalPosition => {
-  const goldenAngle = 137.50776405003785;
-  const y = 1 - (2 * (index + 0.5)) / Math.max(1, itemCount);
-  const longitude = (((index * goldenAngle + 180) % 360) + 360) % 360 - 180;
-  const latitude = Math.asin(clamp(y, -1, 1)) * (180 / Math.PI);
-  const longitudeRadians = toRadians(longitude);
-  const latitudeRadians = toRadians(latitude);
+  const goldenAngle = 137.50776405003785
+  const y = 1 - (2 * (index + 0.5)) / Math.max(1, itemCount)
+  const longitude = ((((index * goldenAngle + 180) % 360) + 360) % 360) - 180
+  const latitude = Math.asin(clamp(y, -1, 1)) * (180 / Math.PI)
+  const longitudeRadians = toRadians(longitude)
+  const latitudeRadians = toRadians(latitude)
 
   return {
     longitude,
     latitude,
-    baseX:
-      -Math.sin(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
+    baseX: -Math.sin(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
     baseY: Math.sin(latitudeRadians) * sphereRadius,
-    baseZ:
-      -Math.cos(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
-  };
-};
+    baseZ: -Math.cos(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
+  }
+}
 
 export const getSphericalPosition = (
   latitude: number,
   longitude: number,
   sphereRadius: number,
 ): SphericalPosition => {
-  const longitudeRadians = toRadians(longitude);
-  const latitudeRadians = toRadians(latitude);
+  const longitudeRadians = toRadians(longitude)
+  const latitudeRadians = toRadians(latitude)
 
   return {
     longitude,
     latitude,
-    baseX:
-      -Math.sin(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
+    baseX: -Math.sin(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
     baseY: Math.sin(latitudeRadians) * sphereRadius,
-    baseZ:
-      -Math.cos(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
-  };
-};
+    baseZ: -Math.cos(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
+  }
+}
 
-export const placeItems = <TItem extends OrbaItemBase,>(
+export const placeItems = <TItem extends SpherItemBase>(
   items: TItem[],
   sphereRadius: number,
-  placement: OrbaPlacement,
+  placement: SpherPlacement,
   getItemSize?: (item: TItem, index: number, items: TItem[]) => number,
   getItemPosition?: (
     item: TItem,
@@ -67,17 +59,13 @@ export const placeItems = <TItem extends OrbaItemBase,>(
   ) => Pick<SphericalPosition, "latitude" | "longitude"> | null | undefined,
 ): PositionedItem<TItem>[] => {
   return items.map((item, index) => {
-    const explicitPosition = getItemPosition?.(item, index, items);
+    const explicitPosition = getItemPosition?.(item, index, items)
     const { longitude, latitude, baseX, baseY, baseZ } = explicitPosition
-      ? getSphericalPosition(
-          explicitPosition.latitude,
-          explicitPosition.longitude,
-          sphereRadius,
-        )
+      ? getSphericalPosition(explicitPosition.latitude, explicitPosition.longitude, sphereRadius)
       : placement === "latitude-longitude-grid"
         ? getLatitudeLongitudeGridPosition(index, items.length, sphereRadius)
-        : getFibonacciSpherePosition(index, items.length, sphereRadius);
-    const clampedLatitude = clamp(latitude, -82, 82);
+        : getFibonacciSpherePosition(index, items.length, sphereRadius)
+    const clampedLatitude = clamp(latitude, -82, 82)
 
     return {
       ...item,
@@ -89,72 +77,64 @@ export const placeItems = <TItem extends OrbaItemBase,>(
       radius: sphereRadius,
       roll: 0,
       size: getItemSize?.(item, index, items) ?? 64,
-    };
-  });
-};
+    }
+  })
+}
 
 export const getLatitudeLongitudeGridPosition = (
   index: number,
   itemCount: number,
   sphereRadius: number,
 ): SphericalPosition => {
-  const ringCount = itemCount % 7 === 0 ? 7 : 9;
-  const rowCounts = getLatitudeLongitudeGridRowCounts(itemCount, ringCount);
-  let row = 0;
-  let indexInRow = index;
+  const ringCount = itemCount % 7 === 0 ? 7 : 9
+  const rowCounts = getLatitudeLongitudeGridRowCounts(itemCount, ringCount)
+  let row = 0
+  let indexInRow = index
   while (row < rowCounts.length - 1 && indexInRow >= rowCounts[row]) {
-    indexInRow -= rowCounts[row];
-    row += 1;
+    indexInRow -= rowCounts[row]
+    row += 1
   }
 
-  const columnCount = rowCounts[row];
-  const latitudeStart = -66;
-  const latitudeEnd = 66;
+  const columnCount = rowCounts[row]
+  const latitudeStart = -66
+  const latitudeEnd = 66
   const latitude =
-    latitudeStart +
-    (row / Math.max(1, ringCount - 1)) * (latitudeEnd - latitudeStart);
-  const longitude = -180 + ((indexInRow + 0.5) / columnCount) * 360;
-  const longitudeRadians = toRadians(longitude);
-  const latitudeRadians = toRadians(latitude);
+    latitudeStart + (row / Math.max(1, ringCount - 1)) * (latitudeEnd - latitudeStart)
+  const longitude = -180 + ((indexInRow + 0.5) / columnCount) * 360
+  const longitudeRadians = toRadians(longitude)
+  const latitudeRadians = toRadians(latitude)
 
   return {
     longitude,
     latitude,
-    baseX:
-      -Math.sin(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
+    baseX: -Math.sin(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
     baseY: Math.sin(latitudeRadians) * sphereRadius,
-    baseZ:
-      -Math.cos(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
-  };
-};
+    baseZ: -Math.cos(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
+  }
+}
 
-export const getLatitudeLongitudeGridRowCounts = (
-  itemCount: number,
-  ringCount: number,
-) => {
+export const getLatitudeLongitudeGridRowCounts = (itemCount: number, ringCount: number) => {
   const rowWeights = Array.from({ length: ringCount }, (_, row) =>
     row === 0 || row === ringCount - 1 ? 0.5 : 1,
-  );
-  const totalWeight = rowWeights.reduce((sum, weight) => sum + weight, 0);
-  const rawCounts = rowWeights.map(
-    (weight) => (itemCount * weight) / totalWeight,
-  );
-  const rowCounts = rawCounts.map((count) => Math.max(1, Math.floor(count)));
-  let assignedCount = rowCounts.reduce((sum, count) => sum + count, 0);
+  )
+  const totalWeight = rowWeights.reduce((sum, weight) => sum + weight, 0)
+  const rawCounts = rowWeights.map((weight) => (itemCount * weight) / totalWeight)
+  const rowCounts = rawCounts.map((count) => Math.max(1, Math.floor(count)))
+  let assignedCount = rowCounts.reduce((sum, count) => sum + count, 0)
 
   while (assignedCount < itemCount) {
-    let targetRow = 0;
-    let largestRemainder = -Infinity;
+    let targetRow = 0
+    let largestRemainder = -Infinity
     for (let row = 0; row < ringCount; row += 1) {
-      const remainder = rawCounts[row] - rowCounts[row];
+      const remainder = rawCounts[row] - rowCounts[row]
       if (remainder > largestRemainder) {
-        largestRemainder = remainder;
-        targetRow = row;
+        largestRemainder = remainder
+        targetRow = row
       }
     }
-    rowCounts[targetRow] += 1;
-    assignedCount += 1;
+    rowCounts[targetRow] += 1
+    assignedCount += 1
   }
 
-  return rowCounts;
-};
+  return rowCounts
+}

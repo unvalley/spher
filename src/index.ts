@@ -6,33 +6,28 @@ export {
   getLatitudeLongitudeGridPosition,
   getLatitudeLongitudeGridRowCounts,
   getSphericalPosition,
-  placeItems,
-  projectItems,
-  selectInsideVisibleItemIds,
-  toRadians,
-  type OrbaItemBase,
-  type OrbaRect,
-  type OrbaRotation,
   type PositionedItem,
   type ProjectedItem,
+  placeItems,
+  projectItems,
+  type SpherItemBase,
   type SphericalPosition,
-} from "./core/index.js";
+  type SpherRect,
+  type SpherRotation,
+  selectInsideVisibleItemIds,
+  toRadians,
+} from "./core/index.js"
 
 export {
-  createOrba,
-  type OrbaDomControls,
-  type OrbaDomInstance,
-  type OrbaDomItem,
-  type OrbaDomListener,
-  type OrbaDomOptions,
-  type OrbaDomPosition,
-  type OrbaDomProjection,
-  type OrbaDomState,
-} from "./dom/index.js";
-
-export {
-  Orba,
-  type OrbaHandle,
-  type OrbaProps,
-  type OrbaRenderState,
-} from "./Orba.js";
+  createSpher,
+  normalizeControls,
+  type ResolvedSpherDomControls,
+  type SpherDomControls,
+  type SpherDomInstance,
+  type SpherDomItem,
+  type SpherDomListener,
+  type SpherDomOptions,
+  type SpherDomPosition,
+  type SpherDomProjection,
+  type SpherDomState,
+} from "./dom/index.js"

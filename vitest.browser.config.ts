@@ -1,7 +1,7 @@
 /// <reference types="@vitest/browser/providers/playwright" />
 
-import { playwright } from "@vitest/browser-playwright";
-import { defineConfig } from "vitest/config";
+import { playwright } from "@vitest/browser-playwright"
+import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   optimizeDeps: {
@@ -16,4 +16,4 @@ export default defineConfig({
       instances: [{ browser: "chromium" }],
     },
   },
-});
+})

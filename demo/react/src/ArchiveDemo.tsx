@@ -1,18 +1,18 @@
-import { useMemo, useState } from "react";
-import { Orba, type OrbaRenderState } from "../../../src/react.js";
-import type { OrbaDomItem } from "../../../src/dom/index.js";
+import { useMemo, useState } from "react"
+import type { SpherDomItem } from "../../../src/dom/index.js"
+import { Spher, type SpherRenderState } from "../../../src/react.js"
 
-type ArchiveItem = OrbaDomItem & {
-  title: string;
-  year: number;
-  category: string;
-  image: string;
+type ArchiveItem = SpherDomItem & {
+  title: string
+  year: number
+  category: string
+  image: string
   coordinates: {
-    latitude: number;
-    longitude: number;
-  };
-  cardSize: number;
-};
+    latitude: number
+    longitude: number
+  }
+  cardSize: number
+}
 
 const items: ArchiveItem[] = [
   {
@@ -20,7 +20,8 @@ const items: ArchiveItem[] = [
     title: "Socrates",
     year: -470,
     category: "philosophy",
-    image: "https://images.unsplash.com/photo-1604076913837-52ab5629fba9?auto=format&fit=crop&w=420&q=80",
+    image:
+      "https://images.unsplash.com/photo-1604076913837-52ab5629fba9?auto=format&fit=crop&w=420&q=80",
     coordinates: { latitude: 24, longitude: -18 },
     cardSize: 88,
   },
@@ -29,7 +30,8 @@ const items: ArchiveItem[] = [
     title: "Library of Alexandria",
     year: -283,
     category: "archive",
-    image: "https://images.unsplash.com/photo-1519682577862-22b62b24e493?auto=format&fit=crop&w=420&q=80",
+    image:
+      "https://images.unsplash.com/photo-1519682577862-22b62b24e493?auto=format&fit=crop&w=420&q=80",
     coordinates: { latitude: 2, longitude: 26 },
     cardSize: 96,
   },
@@ -38,7 +40,8 @@ const items: ArchiveItem[] = [
     title: "Astrolabe",
     year: 150,
     category: "instrument",
-    image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=420&q=80",
+    image:
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=420&q=80",
     coordinates: { latitude: -18, longitude: 70 },
     cardSize: 76,
   },
@@ -47,7 +50,8 @@ const items: ArchiveItem[] = [
     title: "Movable Type",
     year: 1040,
     category: "archive",
-    image: "https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=420&q=80",
+    image:
+      "https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=420&q=80",
     coordinates: { latitude: 36, longitude: 122 },
     cardSize: 82,
   },
@@ -56,7 +60,8 @@ const items: ArchiveItem[] = [
     title: "Observatory",
     year: 1577,
     category: "instrument",
-    image: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=420&q=80",
+    image:
+      "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=420&q=80",
     coordinates: { latitude: -32, longitude: -108 },
     cardSize: 90,
   },
@@ -65,48 +70,43 @@ const items: ArchiveItem[] = [
     title: "World Wide Web",
     year: 1989,
     category: "network",
-    image: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=420&q=80",
+    image:
+      "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=420&q=80",
     coordinates: { latitude: 10, longitude: -148 },
     cardSize: 84,
   },
-];
+]
 
-const categories = ["all", "archive", "instrument", "network", "philosophy"];
+const categories = ["all", "archive", "instrument", "network", "philosophy"]
 
 export const ArchiveDemo = () => {
-  const [category, setCategory] = useState("all");
-  const [selectedId, setSelectedId] = useState(items[0].id);
+  const [category, setCategory] = useState("all")
+  const [selectedId, setSelectedId] = useState(items[0].id)
   const visibleItems = useMemo(
-    () =>
-      category === "all"
-        ? items
-        : items.filter((item) => item.category === category),
+    () => (category === "all" ? items : items.filter((item) => item.category === category)),
     [category],
-  );
-  const selected =
-    visibleItems.find((item) => item.id === selectedId) ?? visibleItems[0];
+  )
+  const selected = visibleItems.find((item) => item.id === selectedId) ?? visibleItems[0]
 
   return (
     <main className="archive-demo">
       <header className="archive-header">
         <div>
-          <p className="archive-kicker">orba React demo</p>
+          <p className="archive-kicker">spher React demo</p>
           <h1>Archive sphere</h1>
         </div>
-        <nav className="archive-filters" aria-label="Filter archive">
+        <nav aria-label="Filter archive" className="archive-filters">
           {categories.map((value) => (
             <button
-              key={value}
-              type="button"
               data-active={category === value}
+              key={value}
               onClick={() => {
-                setCategory(value);
+                setCategory(value)
                 const nextItems =
-                  value === "all"
-                    ? items
-                    : items.filter((item) => item.category === value);
-                setSelectedId(nextItems[0]?.id ?? "");
+                  value === "all" ? items : items.filter((item) => item.category === value)
+                setSelectedId(nextItems[0]?.id ?? "")
               }}
+              type="button"
             >
               {value}
             </button>
@@ -114,19 +114,17 @@ export const ArchiveDemo = () => {
         </nav>
       </header>
 
-      <Orba
+      <Spher
         className="archive-sphere"
-        items={visibleItems}
-        radius={260}
-        perspective={860}
         controls={{ drag: true, wheel: true }}
-        selectedId={selected?.id ?? null}
         getItemPosition={(item) => item.coordinates}
         getItemSize={(item) => item.cardSize}
+        items={visibleItems}
         onSelect={(item) => setSelectedId(item.id)}
-        renderItem={(item, state) => (
-          <ArchiveCard item={item} state={state} />
-        )}
+        perspective={860}
+        radius={260}
+        renderItem={(item, state) => <ArchiveCard item={item} state={state} />}
+        selectedId={selected?.id ?? null}
       />
 
       {selected ? (
@@ -137,25 +135,25 @@ export const ArchiveDemo = () => {
         </aside>
       ) : null}
     </main>
-  );
-};
+  )
+}
 
 const ArchiveCard = ({
   item,
   state,
 }: {
-  item: ArchiveItem;
-  state: OrbaRenderState<ArchiveItem>;
+  item: ArchiveItem
+  state: SpherRenderState<ArchiveItem>
 }) => {
   return (
     <button
-      type="button"
       className="archive-card"
       data-selected={state.selected}
       style={{ opacity: state.visibility }}
+      type="button"
     >
-      <img src={item.image} alt="" />
+      <img alt="" src={item.image} />
       <span>{item.title}</span>
     </button>
-  );
-};
+  )
+}

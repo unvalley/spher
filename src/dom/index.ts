@@ -1,12 +1,12 @@
-export { normalizeControls, type ResolvedOrbaDomControls } from "./controls.js";
-export { createOrba } from "./create-orba.js";
+export { normalizeControls, type ResolvedSpherDomControls } from "./controls.js"
+export { createSpher } from "./create-spher.js"
 export type {
-  OrbaDomControls,
-  OrbaDomInstance,
-  OrbaDomItem,
-  OrbaDomListener,
-  OrbaDomOptions,
-  OrbaDomPosition,
-  OrbaDomProjection,
-  OrbaDomState,
-} from "./types.js";
+  SpherDomControls,
+  SpherDomInstance,
+  SpherDomItem,
+  SpherDomListener,
+  SpherDomOptions,
+  SpherDomPosition,
+  SpherDomProjection,
+  SpherDomState,
+} from "./types.js"

@@ -1,24 +1,24 @@
-# orba
+# spher
 
-`orba` is a small sphere layout engine for DOM and React components.
+`spher` is a small sphere layout engine for DOM and React components.
 
 Use it when you want to place real interface elements on a rotating sphere: cards, labels, buttons, images, links, or any DOM node you control. The low-level API is framework-agnostic, and the React component is unstyled.
 
 ## Install
 
 ```sh
-npm install orba
+npm install spher
 ```
 
 ## Quick Start
 
 ```ts
-import { createOrba } from "orba";
+import { createSpher } from "spher";
 
 const root = document.querySelector<HTMLElement>("#sphere");
 
 if (root) {
-  const sphere = createOrba(root, {
+  const sphere = createSpher(root, {
     radius: 320,
     perspective: 900,
     controls: {
@@ -67,26 +67,26 @@ if (root) {
   border-radius: 999px;
   background: white;
   box-shadow: 0 16px 40px rgb(15 23 42 / 16%);
-  opacity: var(--orba-visibility);
+  opacity: var(--spher-visibility);
   transform:
     translate(-50%, -50%)
-    translate3d(var(--orba-x), var(--orba-y), 0)
-    scale(var(--orba-scale));
+    translate3d(var(--spher-x), var(--spher-y), 0)
+    scale(var(--spher-scale));
 }
 ```
 
 ## API
 
-### `createOrba(root, options)`
+### `createSpher(root, options)`
 
-`createOrba` mounts a DOM sphere engine into an existing element.
+`createSpher` mounts a DOM sphere engine into an existing element.
 
 ```ts
-import { createOrba } from "orba";
+import { createSpher } from "spher";
 ```
 
 ```ts
-const instance = createOrba(root, {
+const instance = createSpher(root, {
   items,
   radius: 320,
   perspective: 900,
@@ -100,11 +100,11 @@ const instance = createOrba(root, {
 The instance exposes:
 
 ```ts
-type OrbaDomInstance = {
+type SpherDomInstance = {
   update: (patch) => void;
   destroy: () => void;
-  project: (id: string) => OrbaDomProjection | null;
-  getState: () => OrbaDomState;
+  project: (id: string) => SpherDomProjection | null;
+  getState: () => SpherDomState;
   subscribe: (listener) => () => void;
 };
 ```
@@ -119,7 +119,7 @@ const items = [
   { id: "sf", label: "San Francisco" },
 ];
 
-createOrba(root, {
+createSpher(root, {
   items,
   getItemPosition: (item) =>
     item.id === "tokyo"
@@ -131,10 +131,10 @@ createOrba(root, {
 
 ### DOM Slots
 
-Use `renderItem` when orba should create item elements for you.
+Use `renderItem` when spher should create item elements for you.
 
 ```ts
-createOrba(root, {
+createSpher(root, {
   items,
   renderItem: (item, element) => {
     element.textContent = item.id;
@@ -145,34 +145,34 @@ createOrba(root, {
 Use `getElement` when you already own the DOM.
 
 ```ts
-createOrba(root, {
+createSpher(root, {
   items,
   getElement: (item) => document.querySelector(`[data-node="${item.id}"]`),
 });
 ```
 
-orba writes projection state to CSS variables and data attributes:
+spher writes projection state to CSS variables and data attributes:
 
 ```txt
---orba-x
---orba-y
---orba-z
---orba-scale
---orba-edge
---orba-visibility
---orba-selected
-data-orba-item
-data-orba-visible
-data-orba-front
-data-orba-selected
+--spher-x
+--spher-y
+--spher-z
+--spher-scale
+--spher-edge
+--spher-visibility
+--spher-selected
+data-spher-item
+data-spher-visible
+data-spher-front
+data-spher-selected
 ```
 
 ## Core Utilities
 
-Pure placement and projection utilities are available from `orba/core`.
+Pure placement and projection utilities are available from `spher/core`.
 
 ```ts
-import { placeItems, projectItems } from "orba/core";
+import { placeItems, projectItems } from "spher/core";
 
 const placed = placeItems([{ id: "a" }, { id: "b" }], 320, "fibonacci");
 const projected = projectItems(placed, { x: 0, y: 20 }, 1, 900);
@@ -180,10 +180,10 @@ const projected = projectItems(placed, { x: 0, y: 20 }, 1, 900);
 
 ## React
 
-The React API exports an unstyled `Orba` component. It renders your elements and lets the DOM engine write projection state to their wrappers.
+The React adapter is available from `spher/react`. It exports an unstyled `Spher` component that renders your elements and lets the DOM engine write projection state to their wrappers.
 
 ```tsx
-import { Orba } from "orba/react";
+import { Spher } from "spher/react";
 
 const items = [
   { id: "tokyo", label: "Tokyo" },
@@ -191,7 +191,7 @@ const items = [
 ];
 
 export const Example = () => (
-  <Orba
+  <Spher
     className="sphere"
     items={items}
     controls={{ drag: true, wheel: true }}
@@ -207,7 +207,7 @@ export const Example = () => (
 );
 ```
 
-The archive-style UI that used to live in the package is now a demo instead of a library component. See [demo/react](demo/react) for a styled React example built with `Orba`.
+The archive-style UI that used to live in the package is now a demo instead of a library component. See [demo/react](demo/react) for a styled React example built with `Spher`.
 
 ## Testing
 

@@ -1,5 +1,5 @@
-export { clamp, cssNumber, toRadians } from "./math.js";
-export { findNearestProjectedItem, type OrbaRect } from "./hit-test.js";
+export { findNearestProjectedItem, type SpherRect } from "./hit-test.js"
+export { clamp, cssNumber, toRadians } from "./math.js"
 export {
   getFibonacciSpherePosition,
   getLatitudeLongitudeGridPosition,
@@ -7,15 +7,15 @@ export {
   getSphericalPosition,
   placeItems,
   type SphericalPosition,
-} from "./placement.js";
+} from "./placement.js"
 export {
   projectItems,
+  type SpherRotation,
   selectInsideVisibleItemIds,
-  type OrbaRotation,
-} from "./projection.js";
+} from "./projection.js"
 export type {
-  OrbaItemBase,
-  OrbaPlacement,
   PositionedItem,
   ProjectedItem,
-} from "./types.js";
+  SpherItemBase,
+  SpherPlacement,
+} from "./types.js"

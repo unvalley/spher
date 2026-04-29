@@ -1,74 +1,69 @@
-import type {
-  OrbaItemBase,
-  OrbaPlacement,
-  ProjectedItem,
-} from "../core/index.js";
+import type { ProjectedItem, SpherItemBase, SpherPlacement } from "../core/index.js"
 
-export type OrbaDomPosition = {
-  latitude: number;
-  longitude: number;
-};
+export type SpherDomPosition = {
+  latitude: number
+  longitude: number
+}
 
-export type OrbaDomItem = OrbaItemBase;
+export type SpherDomItem = SpherItemBase
 
-export type OrbaDomControls =
+export type SpherDomControls =
   | boolean
   | {
-      drag?: boolean;
-      wheel?: boolean;
-      preventDocumentScroll?: boolean;
-    };
+      drag?: boolean
+      wheel?: boolean
+      preventDocumentScroll?: boolean
+    }
 
-export type OrbaDomOptions<TItem extends OrbaDomItem = OrbaDomItem> = {
-  items: TItem[];
-  radius?: number;
-  perspective?: number;
+export type SpherDomOptions<TItem extends SpherDomItem = SpherDomItem> = {
+  items: TItem[]
+  radius?: number
+  perspective?: number
   rotation?: {
-    x: number;
-    y: number;
-  };
-  zoom?: number;
-  placement?: OrbaPlacement;
-  controls?: OrbaDomControls;
-  selectedId?: string | null;
+    x: number
+    y: number
+  }
+  zoom?: number
+  placement?: SpherPlacement
+  controls?: SpherDomControls
+  selectedId?: string | null
   getItemPosition?: (
     item: TItem,
     index: number,
     items: TItem[],
-  ) => OrbaDomPosition | null | undefined;
-  getItemSize?: (item: TItem, index: number, items: TItem[]) => number;
-  getElement?: (item: TItem) => HTMLElement | null;
-  renderItem?: (item: TItem, element: HTMLElement) => void;
-  onSelect?: (item: TItem) => void;
-};
+  ) => SpherDomPosition | null | undefined
+  getItemSize?: (item: TItem, index: number, items: TItem[]) => number
+  getElement?: (item: TItem) => HTMLElement | null
+  renderItem?: (item: TItem, element: HTMLElement) => void
+  onSelect?: (item: TItem) => void
+}
 
-export type OrbaDomState<TItem extends OrbaDomItem = OrbaDomItem> = {
-  items: TItem[];
-  radius: number;
-  perspective: number;
+export type SpherDomState<TItem extends SpherDomItem = SpherDomItem> = {
+  items: TItem[]
+  radius: number
+  perspective: number
   rotation: {
-    x: number;
-    y: number;
-  };
-  zoom: number;
-  placement: OrbaPlacement;
-  selectedId: string | null;
-};
+    x: number
+    y: number
+  }
+  zoom: number
+  placement: SpherPlacement
+  selectedId: string | null
+}
 
-export type OrbaDomProjection<TItem extends OrbaDomItem = OrbaDomItem> =
-  ProjectedItem<TItem> & {
-    front: boolean;
-    visibility: number;
-  };
+export type SpherDomProjection<TItem extends SpherDomItem = SpherDomItem> = ProjectedItem<TItem> & {
+  front: boolean
+  visibility: number
+}
 
-export type OrbaDomListener<TItem extends OrbaDomItem = OrbaDomItem> = (
-  state: OrbaDomState<TItem>,
-) => void;
+export type SpherDomListener<TItem extends SpherDomItem = SpherDomItem> = (
+  state: SpherDomState<TItem>,
+) => void
 
-export type OrbaDomInstance<TItem extends OrbaDomItem = OrbaDomItem> = {
-  update: (patch: Partial<OrbaDomOptions<TItem>>) => void;
-  destroy: () => void;
-  project: (id: string) => OrbaDomProjection<TItem> | null;
-  getState: () => OrbaDomState<TItem>;
-  subscribe: (listener: OrbaDomListener<TItem>) => () => void;
-};
+export type SpherDomInstance<TItem extends SpherDomItem = SpherDomItem> = {
+  update: (patch: Partial<SpherDomOptions<TItem>>) => void
+  destroy: () => void
+  project: (id: string) => SpherDomProjection<TItem> | null
+  getState: () => SpherDomState<TItem>
+  subscribe: (listener: SpherDomListener<TItem>) => () => void
+}

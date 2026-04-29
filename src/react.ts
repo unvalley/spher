@@ -1,6 +1,6 @@
 export {
-  Orba,
-  type OrbaHandle,
-  type OrbaProps,
-  type OrbaRenderState,
-} from "./Orba.js";
+  Spher,
+  type SpherHandle,
+  type SpherProps,
+  type SpherRenderState,
+} from "./Spher.js"

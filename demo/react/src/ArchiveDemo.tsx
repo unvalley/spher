@@ -117,14 +117,14 @@ export const ArchiveDemo = () => {
       <Spher
         className="archive-sphere"
         controls={{ drag: true, wheel: true }}
-        getItemPosition={(item) => item.coordinates}
-        getItemSize={(item) => item.cardSize}
         items={visibleItems}
         onSelect={(item) => setSelectedId(item.id)}
         perspective={860}
+        position={(item) => item.coordinates}
         radius={260}
-        renderItem={(item, state) => <ArchiveCard item={item} state={state} />}
+        render={(item, state) => <ArchiveCard item={item} state={state} />}
         selectedId={selected?.id ?? null}
+        size={(item) => item.cardSize}
       />
 
       {selected ? (

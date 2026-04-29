@@ -9,6 +9,17 @@ export type SphericalPosition = {
   baseZ: number
 }
 
+export type PlaceItemsOptions<TItem extends SpherItemBase> = {
+  radius: number
+  placement?: SpherPlacement
+  size?: number | ((item: TItem, index: number, items: TItem[]) => number)
+  position?: (
+    item: TItem,
+    index: number,
+    items: TItem[],
+  ) => Pick<SphericalPosition, "latitude" | "longitude"> | null | undefined
+}
+
 export const getFibonacciSpherePosition = (
   index: number,
   itemCount: number,
@@ -49,23 +60,17 @@ export const getSphericalPosition = (
 
 export const placeItems = <TItem extends SpherItemBase>(
   items: TItem[],
-  sphereRadius: number,
-  placement: SpherPlacement,
-  getItemSize?: (item: TItem, index: number, items: TItem[]) => number,
-  getItemPosition?: (
-    item: TItem,
-    index: number,
-    items: TItem[],
-  ) => Pick<SphericalPosition, "latitude" | "longitude"> | null | undefined,
+  { radius, placement = "fibonacci", size = 64, position }: PlaceItemsOptions<TItem>,
 ): PositionedItem<TItem>[] => {
   return items.map((item, index) => {
-    const explicitPosition = getItemPosition?.(item, index, items)
+    const explicitPosition = position?.(item, index, items)
     const { longitude, latitude, baseX, baseY, baseZ } = explicitPosition
-      ? getSphericalPosition(explicitPosition.latitude, explicitPosition.longitude, sphereRadius)
+      ? getSphericalPosition(explicitPosition.latitude, explicitPosition.longitude, radius)
       : placement === "latitude-longitude-grid"
-        ? getLatitudeLongitudeGridPosition(index, items.length, sphereRadius)
-        : getFibonacciSpherePosition(index, items.length, sphereRadius)
+        ? getLatitudeLongitudeGridPosition(index, items.length, radius)
+        : getFibonacciSpherePosition(index, items.length, radius)
     const clampedLatitude = clamp(latitude, -82, 82)
+    const itemSize = typeof size === "function" ? size(item, index, items) : size
 
     return {
       ...item,
@@ -74,9 +79,9 @@ export const placeItems = <TItem extends SpherItemBase>(
       baseX,
       baseY,
       baseZ,
-      radius: sphereRadius,
+      radius,
       roll: 0,
-      size: getItemSize?.(item, index, items) ?? 64,
+      size: itemSize,
     }
   })
 }

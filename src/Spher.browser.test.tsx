@@ -28,11 +28,11 @@ describe("Spher", () => {
     flushSync(() => {
       root.render(
         <Spher
-          getItemPosition={() => ({ latitude: 0, longitude: 0 })}
           items={[{ id: "front" }]}
           perspective={500}
+          position={() => ({ latitude: 0, longitude: 0 })}
           radius={100}
-          renderItem={(item, state) => (
+          render={(item, state) => (
             <button data-selected={state.selected} type="button">
               {item.id}
             </button>

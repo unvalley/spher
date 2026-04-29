@@ -29,12 +29,12 @@ if (root) {
       { id: "tokyo", label: "Tokyo" },
       { id: "sf", label: "San Francisco" },
     ],
-    getItemPosition: (item) =>
+    position: (item) =>
       item.id === "tokyo"
         ? { latitude: 35.6762, longitude: 139.6503 }
         : { latitude: 37.7749, longitude: -122.4194 },
-    getItemSize: (item) => (item.id === "tokyo" ? 72 : 56),
-    renderItem: (item, element) => {
+    size: (item) => (item.id === "tokyo" ? 72 : 56),
+    render: (item, element) => {
       element.className = "city";
       element.textContent = item.label;
     },
@@ -43,9 +43,7 @@ if (root) {
     },
   });
 
-  sphere.update({
-    rotation: { x: 8, y: 24 },
-  });
+  sphere.rotateTo({ x: 8, y: 24 });
 
   // Later:
   // sphere.destroy();
@@ -102,6 +100,8 @@ The instance exposes:
 ```ts
 type SpherDomInstance = {
   update: (patch) => void;
+  select: (id: string | null) => void;
+  rotateTo: (rotation) => void;
   destroy: () => void;
   project: (id: string) => SpherDomProjection | null;
   getState: () => SpherDomState;
@@ -121,33 +121,33 @@ const items = [
 
 createSpher(root, {
   items,
-  getItemPosition: (item) =>
+  position: (item) =>
     item.id === "tokyo"
       ? { latitude: 35.6762, longitude: 139.6503 }
       : { latitude: 37.7749, longitude: -122.4194 },
-  getItemSize: (item) => (item.id === "tokyo" ? 72 : 56),
+  size: (item) => (item.id === "tokyo" ? 72 : 56),
 });
 ```
 
 ### DOM Slots
 
-Use `renderItem` when spher should create item elements for you.
+Use `render` when spher should create item elements for you.
 
 ```ts
 createSpher(root, {
   items,
-  renderItem: (item, element) => {
+  render: (item, element) => {
     element.textContent = item.id;
   },
 });
 ```
 
-Use `getElement` when you already own the DOM.
+Use `element` when you already own the DOM.
 
 ```ts
 createSpher(root, {
   items,
-  getElement: (item) => document.querySelector(`[data-node="${item.id}"]`),
+  element: (item) => document.querySelector(`[data-node="${item.id}"]`),
 });
 ```
 
@@ -174,8 +174,14 @@ Pure placement and projection utilities are available from `spher/core`.
 ```ts
 import { placeItems, projectItems } from "spher/core";
 
-const placed = placeItems([{ id: "a" }, { id: "b" }], 320, "fibonacci");
-const projected = projectItems(placed, { x: 0, y: 20 }, 1, 900);
+const placed = placeItems([{ id: "a" }, { id: "b" }], {
+  radius: 320,
+  placement: "fibonacci",
+});
+const projected = projectItems(placed, {
+  rotation: { x: 0, y: 20 },
+  perspective: 900,
+});
 ```
 
 ## React
@@ -195,12 +201,12 @@ export const Example = () => (
     className="sphere"
     items={items}
     controls={{ drag: true, wheel: true }}
-    getItemPosition={(item) =>
+    position={(item) =>
       item.id === "tokyo"
         ? { latitude: 35.6762, longitude: 139.6503 }
         : { latitude: 37.7749, longitude: -122.4194 }
     }
-    renderItem={(item, state) => (
+    render={(item, state) => (
       <button data-selected={state.selected}>{item.label}</button>
     )}
   />

@@ -30,9 +30,9 @@ describe("createSpher", () => {
           id: "front",
         },
       ],
-      getItemPosition: () => ({ latitude: 0, longitude: 0 }),
-      getItemSize: () => 40,
-      renderItem: (item, element) => {
+      position: () => ({ latitude: 0, longitude: 0 }),
+      size: 40,
+      render: (item, element) => {
         element.textContent = item.id
       },
     })
@@ -55,14 +55,14 @@ describe("createSpher", () => {
       radius: 100,
       perspective: 500,
       items: [{ id: "item" }],
-      getItemPosition: () => ({ latitude: 0, longitude: 0 }),
-      renderItem: (item, element) => {
+      position: () => ({ latitude: 0, longitude: 0 }),
+      render: (item, element) => {
         element.textContent = item.id
       },
     })
     const element = root.querySelector<HTMLElement>('[data-spher-item="item"]')
 
-    instance.update({ rotation: { x: 0, y: 180 } })
+    instance.rotateTo({ x: 0, y: 180 })
 
     expect(root.querySelector<HTMLElement>('[data-spher-item="item"]')).toBe(element)
     expect(instance.project("item")?.front).toBe(false)
@@ -78,9 +78,9 @@ describe("createSpher", () => {
       radius: 100,
       perspective: 500,
       items: [{ id: "selectable" }],
-      getItemPosition: () => ({ latitude: 0, longitude: 0 }),
+      position: () => ({ latitude: 0, longitude: 0 }),
       onSelect: (item) => selectedIds.push(item.id),
-      renderItem: (item, element) => {
+      render: (item, element) => {
         element.textContent = item.id
       },
     })

@@ -27,14 +27,10 @@ export type SpherDomOptions<TItem extends SpherDomItem = SpherDomItem> = {
   placement?: SpherPlacement
   controls?: SpherDomControls
   selectedId?: string | null
-  getItemPosition?: (
-    item: TItem,
-    index: number,
-    items: TItem[],
-  ) => SpherDomPosition | null | undefined
-  getItemSize?: (item: TItem, index: number, items: TItem[]) => number
-  getElement?: (item: TItem) => HTMLElement | null
-  renderItem?: (item: TItem, element: HTMLElement) => void
+  position?: (item: TItem, index: number, items: TItem[]) => SpherDomPosition | null | undefined
+  size?: number | ((item: TItem, index: number, items: TItem[]) => number)
+  element?: (item: TItem) => HTMLElement | null
+  render?: (item: TItem, element: HTMLElement) => void
   onSelect?: (item: TItem) => void
 }
 
@@ -62,6 +58,8 @@ export type SpherDomListener<TItem extends SpherDomItem = SpherDomItem> = (
 
 export type SpherDomInstance<TItem extends SpherDomItem = SpherDomItem> = {
   update: (patch: Partial<SpherDomOptions<TItem>>) => void
+  select: (id: string | null) => void
+  rotateTo: (rotation: SpherDomState<TItem>["rotation"]) => void
   destroy: () => void
   project: (id: string) => SpherDomProjection<TItem> | null
   getState: () => SpherDomState<TItem>

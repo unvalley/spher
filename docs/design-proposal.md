@@ -34,9 +34,9 @@ import { createSpher } from "spher";
 
 const instance = createSpher(root, {
   items: [{ id: "tokyo", label: "Tokyo" }],
-  getItemPosition: () => ({ latitude: 35.6762, longitude: 139.6503 }),
+  position: () => ({ latitude: 35.6762, longitude: 139.6503 }),
   controls: { drag: true, wheel: true },
-  renderItem: (item, element) => {
+  render: (item, element) => {
     element.textContent = item.label;
   },
 });
@@ -53,14 +53,14 @@ import { Spher } from "spher/react";
   items={items}
   className="sphere"
   controls={{ drag: true, wheel: true }}
-  getItemPosition={(item) => item.coordinates}
-  renderItem={(item, state) => (
+  position={(item) => item.coordinates}
+  render={(item, state) => (
     <button data-selected={state.selected}>{item.label}</button>
   )}
 />;
 ```
 
-`Spher` is unstyled. It renders wrappers for each item, connects them to `createSpher`, and passes minimal render state to `renderItem`.
+`Spher` is unstyled. It renders wrappers for each item, connects them to `createSpher`, and passes minimal render state to `render`.
 
 ## Item Model
 
@@ -69,8 +69,8 @@ Items only require `id`. Coordinates and sizes are resolved through options:
 ```ts
 createSpher(root, {
   items,
-  getItemPosition: (item) => item.coordinates,
-  getItemSize: (item) => item.cardSize,
+  position: (item) => item.coordinates,
+  size: (item) => item.cardSize,
 });
 ```
 

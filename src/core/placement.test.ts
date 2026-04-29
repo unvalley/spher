@@ -5,7 +5,7 @@ import { projectItems } from "./projection.js"
 
 describe("core sphere projection", () => {
   it("places arbitrary id-only items without archive fields", () => {
-    const placed = placeItems([{ id: "a" }, { id: "b" }], 100, "fibonacci")
+    const placed = placeItems([{ id: "a" }, { id: "b" }], { radius: 100 })
 
     expect(placed).toHaveLength(2)
     expect(placed[0]).toMatchObject({
@@ -19,14 +19,14 @@ describe("core sphere projection", () => {
   })
 
   it("projects an explicit front-facing location to the center", () => {
-    const placed = placeItems(
-      [{ id: "front", position: { latitude: 0, longitude: 0 } }],
-      100,
-      "fibonacci",
-      undefined,
-      (item) => item.position,
-    )
-    const [projected] = projectItems(placed, { x: 0, y: 0 }, 1, 500)
+    const placed = placeItems([{ id: "front", position: { latitude: 0, longitude: 0 } }], {
+      radius: 100,
+      position: (item) => item.position,
+    })
+    const [projected] = projectItems(placed, {
+      rotation: { x: 0, y: 0 },
+      perspective: 500,
+    })
 
     expect(projected.item.id).toBe("front")
     expect(projected.projectedX).toBeCloseTo(0)
@@ -40,12 +40,16 @@ describe("core sphere projection", () => {
         { id: "front", position: { latitude: 0, longitude: 0 }, size: 40 },
         { id: "side", position: { latitude: 0, longitude: 45 }, size: 40 },
       ],
-      100,
-      "fibonacci",
-      (item) => item.size,
-      (item) => item.position,
+      {
+        radius: 100,
+        size: (item) => item.size,
+        position: (item) => item.position,
+      },
     )
-    const projected = projectItems(placed, { x: 0, y: 0 }, 1, 500)
+    const projected = projectItems(placed, {
+      rotation: { x: 0, y: 0 },
+      perspective: 500,
+    })
 
     const nearest = findNearestProjectedItem(200, 200, projected, {
       left: 0,

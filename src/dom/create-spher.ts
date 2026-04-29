@@ -53,6 +53,7 @@ export const createSpher = <TItem extends SpherDomItem>(
   const controls = () => normalizeControls(stateOptions.controls)
 
   const selectItem = (item: TItem) => {
+    stateOptions = { ...stateOptions, selectedId: item.id }
     state = { ...state, selectedId: item.id }
     stateOptions.onSelect?.(item)
     render()
@@ -71,7 +72,7 @@ export const createSpher = <TItem extends SpherDomItem>(
     }
 
     for (const item of state.items) {
-      let element = stateOptions.getElement?.(item) ?? elements.get(item.id)
+      let element = stateOptions.element?.(item) ?? elements.get(item.id)
       if (!element) {
         element = document.createElement("div")
         createdElements.add(element)
@@ -89,7 +90,7 @@ export const createSpher = <TItem extends SpherDomItem>(
         top: "50%",
         willChange: "transform, opacity",
       })
-      stateOptions.renderItem?.(item, element)
+      stateOptions.render?.(item, element)
       elements.set(item.id, element)
     }
   }
@@ -112,14 +113,17 @@ export const createSpher = <TItem extends SpherDomItem>(
     reconcileElements()
     projections.clear()
 
-    const placedItems = placeItems(
-      state.items,
-      state.radius,
-      state.placement,
-      (item, index) => stateOptions.getItemSize?.(item, index, state.items) ?? 64,
-      (item, index) => stateOptions.getItemPosition?.(item, index, state.items) ?? null,
-    )
-    const projectedItems = projectItems(placedItems, state.rotation, state.zoom, state.perspective)
+    const placedItems = placeItems(state.items, {
+      radius: state.radius,
+      placement: state.placement,
+      size: stateOptions.size,
+      position: stateOptions.position,
+    })
+    const projectedItems = projectItems(placedItems, {
+      rotation: state.rotation,
+      zoom: state.zoom,
+      perspective: state.perspective,
+    })
 
     for (const projected of projectedItems) {
       const front = projected.z < 0
@@ -228,6 +232,19 @@ export const createSpher = <TItem extends SpherDomItem>(
     emit()
   }
 
+  const select = (id: string | null) => {
+    const item = id ? state.items.find((candidate) => candidate.id === id) : null
+    stateOptions = { ...stateOptions, selectedId: id }
+    state = { ...state, selectedId: id }
+    if (item) stateOptions.onSelect?.(item)
+    render()
+    emit()
+  }
+
+  const rotateTo = (rotation: SpherDomState<TItem>["rotation"]) => {
+    update({ rotation })
+  }
+
   const destroy = () => {
     destroyed = true
     root.removeEventListener("pointerdown", handlePointerDown)
@@ -260,6 +277,8 @@ export const createSpher = <TItem extends SpherDomItem>(
 
   return {
     update,
+    select,
+    rotateTo,
     destroy,
     project: (id) => projections.get(id) ?? null,
     getState: () => ({ ...state }),

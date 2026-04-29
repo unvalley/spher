@@ -44,13 +44,9 @@ export type SpherProps<TItem extends SpherDomItem> = {
   defaultSelectedId?: string | null
   className?: string
   style?: CSSProperties
-  getItemPosition?: (
-    item: TItem,
-    index: number,
-    items: TItem[],
-  ) => SpherDomPosition | null | undefined
-  getItemSize?: (item: TItem, index: number, items: TItem[]) => number
-  renderItem: (item: TItem, state: SpherRenderState<TItem>) => ReactNode
+  position?: (item: TItem, index: number, items: TItem[]) => SpherDomPosition | null | undefined
+  size?: number | ((item: TItem, index: number, items: TItem[]) => number)
+  render: (item: TItem, state: SpherRenderState<TItem>) => ReactNode
   onSelect?: (item: TItem) => void
 }
 
@@ -69,9 +65,9 @@ const SpherInner = <TItem extends SpherDomItem>(
     defaultSelectedId = null,
     className,
     style,
-    getItemPosition,
-    getItemSize,
-    renderItem,
+    position,
+    size,
+    render,
     onSelect,
   }: SpherProps<TItem>,
   ref: ForwardedRef<SpherHandle<TItem>>,
@@ -90,6 +86,8 @@ const SpherInner = <TItem extends SpherDomItem>(
     ref,
     () => ({
       update: (patch) => instanceRef.current?.update(patch),
+      select: (id) => instanceRef.current?.select(id),
+      rotateTo: (rotation) => instanceRef.current?.rotateTo(rotation),
       destroy: () => instanceRef.current?.destroy(),
       project: (id) => instanceRef.current?.project(id) ?? null,
       getState: () => {
@@ -110,7 +108,7 @@ const SpherInner = <TItem extends SpherDomItem>(
 
     const instance = createSpher<TItem>(root, {
       items: [],
-      getElement: (item) => itemElementsRef.current.get(item.id) ?? null,
+      element: (item) => itemElementsRef.current.get(item.id) ?? null,
       onSelect: (item) => {
         const latest = latestSelectRef.current
         if (latest.selectedId === undefined) setInternalSelectedId(item.id)
@@ -139,14 +137,14 @@ const SpherInner = <TItem extends SpherDomItem>(
       placement,
       controls,
       selectedId: effectiveSelectedId,
-      getItemPosition,
-      getItemSize,
+      position,
+      size,
     })
   }, [
     controls,
     effectiveSelectedId,
-    getItemPosition,
-    getItemSize,
+    position,
+    size,
     items,
     perspective,
     placement,
@@ -167,9 +165,7 @@ const SpherInner = <TItem extends SpherDomItem>(
           visibility: projection?.visibility ?? 0,
           projection,
           select: () => {
-            if (selectedId === undefined) setInternalSelectedId(item.id)
-            instanceRef.current?.update({ selectedId: item.id })
-            onSelect?.(item)
+            instanceRef.current?.select(item.id)
           },
         }
 
@@ -185,7 +181,7 @@ const SpherInner = <TItem extends SpherDomItem>(
               }
             }}
           >
-            {renderItem(item, renderState)}
+            {render(item, renderState)}
           </div>
         )
       })}

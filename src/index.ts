@@ -1,27 +1,6 @@
-export {
-  clamp,
-  cssNumber,
-  findNearestProjectedItem,
-  getFibonacciSpherePosition,
-  getLatitudeLongitudeGridPosition,
-  getLatitudeLongitudeGridRowCounts,
-  getSphericalPosition,
-  type PositionedItem,
-  type ProjectedItem,
-  placeItems,
-  projectItems,
-  type SpherItemBase,
-  type SphericalPosition,
-  type SpherRect,
-  type SpherRotation,
-  selectInsideVisibleItemIds,
-  toRadians,
-} from "./core/index.js"
-
+export type { SpherItemBase, SpherPlacement } from "./core/index.js"
 export {
   createSpher,
-  normalizeControls,
-  type ResolvedSpherDomControls,
   type SpherDomControls,
   type SpherDomInstance,
   type SpherDomItem,

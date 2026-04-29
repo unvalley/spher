@@ -6,11 +6,15 @@ export type SpherRotation = {
   y: number
 }
 
+export type ProjectItemsOptions = {
+  rotation: SpherRotation
+  zoom?: number
+  perspective: number
+}
+
 export const projectItems = <TItem extends SpherItemBase>(
   items: PositionedItem<TItem>[],
-  rotation: SpherRotation,
-  zoom: number,
-  scenePerspective: number,
+  { rotation, zoom = 1, perspective }: ProjectItemsOptions,
 ): ProjectedItem<TItem>[] => {
   return items.map((item) => {
     const rotationX = toRadians(rotation.x)
@@ -35,7 +39,7 @@ export const projectItems = <TItem extends SpherItemBase>(
     y *= zoom
     z *= zoom
 
-    const perspectiveScale = scenePerspective / (scenePerspective - z)
+    const perspectiveScale = perspective / (perspective - z)
     const angularDistance = Math.atan2(Math.hypot(x, y), Math.max(1, -z))
     const edgeFactor = clamp(angularDistance / (Math.PI / 2), 0, 1)
 

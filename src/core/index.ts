@@ -5,10 +5,12 @@ export {
   getLatitudeLongitudeGridPosition,
   getLatitudeLongitudeGridRowCounts,
   getSphericalPosition,
+  type PlaceItemsOptions,
   placeItems,
   type SphericalPosition,
 } from "./placement.js"
 export {
+  type ProjectItemsOptions,
   projectItems,
   type SpherRotation,
   selectInsideVisibleItemIds,

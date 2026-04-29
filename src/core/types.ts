@@ -1,12 +1,12 @@
-export type SphericalArchiveViewMode = "inside" | "shell";
-export type SphericalArchivePlacement = "fibonacci" | "latitude-longitude-grid";
-export type SphericalArchiveFaceDirection = "inward" | "outward";
+export type OrbaViewMode = "inside" | "shell";
+export type OrbaPlacement = "fibonacci" | "latitude-longitude-grid";
+export type OrbaFaceDirection = "inward" | "outward";
 
 export type OrbaItemBase = {
   id: string;
 };
 
-export type SphericalArchiveItemBase = OrbaItemBase & {
+export type OrbaArchiveItemBase = OrbaItemBase & {
   title: string;
   image: string;
   year: number;

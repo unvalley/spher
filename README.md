@@ -2,7 +2,7 @@
 
 `orba` is a small sphere layout engine for DOM and React components.
 
-Use it when you want to place real interface elements on a rotating sphere: cards, labels, buttons, images, links, or any DOM node you control. The low-level API is framework-agnostic, and the React archive component is kept as a higher-level experience.
+Use it when you want to place real interface elements on a rotating sphere: cards, labels, buttons, images, links, or any DOM node you control. The low-level API is framework-agnostic, and the React component is unstyled.
 
 ## Install
 
@@ -178,40 +178,30 @@ The older archive-focused `positionItems` export is still available for compatib
 
 ## React
 
-The existing React archive experience is available from `orba/react`.
+The React API exports an unstyled `Orba` component. It renders your elements and lets the DOM engine write projection state to their wrappers.
 
 ```tsx
-import { SphericalArchive } from "orba/react";
+import { Orba } from "orba/react";
 
 const items = [
-  {
-    id: "socrates",
-    title: "Socrates",
-    image: "/images/socrates.jpg",
-    year: -470,
-  },
+  { id: "tokyo", position: { latitude: 35.6762, longitude: 139.6503 } },
+  { id: "sf", position: { latitude: 37.7749, longitude: -122.4194 } },
 ];
 
 export const Example = () => (
-  <SphericalArchive
+  <Orba
+    className="sphere"
     items={items}
-    title="Archive"
-    renderDetail={(selected) => <div>{selected.title}</div>}
+    controls={{ drag: true, wheel: true }}
+    renderItem={(item, state) => (
+      <button data-selected={state.selected}>{item.id}</button>
+    )}
   />
 );
 ```
 
-This component is intentionally higher-level than the DOM engine. It still uses Tailwind class names internally, so apps that purge Tailwind classes should include the package output:
+The archive-style UI that used to live in the package is now a demo instead of a library component. See [demo/react](demo/react) for a styled React example built with `Orba`.
 
-```js
-export default {
-  content: [
-    "./app/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./node_modules/orba/dist/**/*.{js,mjs}",
-  ],
-};
-```
 
 ## Testing
 

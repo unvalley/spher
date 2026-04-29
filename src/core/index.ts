@@ -15,11 +15,11 @@ export {
   type OrbaRotation,
 } from "./projection.js";
 export type {
+  OrbaArchiveItemBase,
+  OrbaFaceDirection,
   OrbaItemBase,
+  OrbaPlacement,
+  OrbaViewMode,
   PositionedItem,
   ProjectedItem,
-  SphericalArchiveFaceDirection,
-  SphericalArchiveItemBase,
-  SphericalArchivePlacement,
-  SphericalArchiveViewMode,
 } from "./types.js";

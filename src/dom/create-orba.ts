@@ -203,6 +203,7 @@ export const createOrba = <TItem extends OrbaDomItem>(
       },
     };
     render();
+    emit();
   };
 
   const handlePointerUp = (event: PointerEvent) => {
@@ -231,6 +232,7 @@ export const createOrba = <TItem extends OrbaDomItem>(
       };
     }
     render();
+    emit();
   };
 
   const handleClick = (event: MouseEvent) => {

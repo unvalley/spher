@@ -1,7 +1,7 @@
 import type {
   OrbaItemBase,
+  OrbaPlacement,
   ProjectedItem,
-  SphericalArchivePlacement,
 } from "../core/index.js";
 
 export type OrbaDomPosition = {
@@ -34,7 +34,7 @@ export type OrbaDomOptions<TItem extends OrbaDomItem = OrbaDomItem> = {
     y: number;
   };
   zoom?: number;
-  placement?: SphericalArchivePlacement;
+  placement?: OrbaPlacement;
   controls?: OrbaDomControls;
   selectedId?: string | null;
   getElement?: (item: TItem) => HTMLElement | null;
@@ -51,7 +51,7 @@ export type OrbaDomState<TItem extends OrbaDomItem = OrbaDomItem> = {
     y: number;
   };
   zoom: number;
-  placement: SphericalArchivePlacement;
+  placement: OrbaPlacement;
   selectedId: string | null;
 };
 

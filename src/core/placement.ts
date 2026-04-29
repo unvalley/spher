@@ -1,9 +1,9 @@
 import { clamp, toRadians } from "./math.js";
 import type {
+  OrbaArchiveItemBase,
   OrbaItemBase,
+  OrbaPlacement,
   PositionedItem,
-  SphericalArchiveItemBase,
-  SphericalArchivePlacement,
 } from "./types.js";
 
 export type SphericalPosition = {
@@ -14,10 +14,10 @@ export type SphericalPosition = {
   baseZ: number;
 };
 
-export const positionItems = <TItem extends SphericalArchiveItemBase,>(
+export const positionItems = <TItem extends OrbaArchiveItemBase,>(
   items: TItem[],
   sphereRadius: number,
-  placement: SphericalArchivePlacement,
+  placement: OrbaPlacement,
   getItemSize?: (item: TItem) => number,
 ): PositionedItem<TItem>[] => {
   const sortedItems = [...items].sort((a, b) => a.year - b.year);
@@ -92,7 +92,7 @@ export const getSphericalPosition = (
 export const placeItems = <TItem extends OrbaItemBase,>(
   items: TItem[],
   sphereRadius: number,
-  placement: SphericalArchivePlacement,
+  placement: OrbaPlacement,
   getItemSize?: (item: TItem) => number,
   getItemPosition?: (
     item: TItem,

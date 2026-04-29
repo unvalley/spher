@@ -1,7 +1,7 @@
 {
   "name": "orba",
   "version": "0.1.0",
-  "description": "Core spherical archive utilities with an optional React explorer component.",
+  "description": "Unstyled sphere layout engine for DOM and React components.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,

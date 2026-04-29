@@ -1,4 +1,8 @@
-import type { ProjectedItem, SpherItemBase, SpherPlacement } from "../core/types.js"
+import type { PositionedItem, ProjectedItem, SpherItemBase, SpherPlacement } from "../core/types.js"
+
+export type SpherDomFaceDirection = "inward" | "outward"
+
+export type SpherDomViewMode = "inside" | "shell"
 
 export type SpherDomPosition = {
   latitude: number
@@ -11,6 +15,7 @@ export type SpherDomControls =
   | boolean
   | {
       drag?: boolean
+      keyboard?: boolean
       wheel?: boolean
       preventDocumentScroll?: boolean
     }
@@ -19,11 +24,15 @@ export type SpherDomOptions<TItem extends SpherDomItem = SpherDomItem> = {
   items: TItem[]
   radius?: number
   perspective?: number
+  insideZoomThreshold?: number
+  minZoom?: number
+  maxZoom?: number
   rotation?: {
     x: number
     y: number
   }
   zoom?: number
+  faceDirection?: SpherDomFaceDirection
   placement?: SpherPlacement
   controls?: SpherDomControls
   selectedId?: string | null
@@ -38,27 +47,45 @@ export type SpherDomState<TItem extends SpherDomItem = SpherDomItem> = {
   items: TItem[]
   radius: number
   perspective: number
+  insideZoomProgress: number
+  insideZoomThreshold: number
+  insideSceneScale: number
+  minZoom: number
+  maxZoom: number
   rotation: {
     x: number
     y: number
   }
+  sceneZoom: number
   zoom: number
+  faceDirection: SpherDomFaceDirection
   placement: SpherPlacement
   selectedId: string | null
+  viewMode: SpherDomViewMode
 }
 
 export type SpherDomSurfaceProjection<TItem extends SpherDomItem = SpherDomItem> =
   ProjectedItem<TItem> & {
+    faceOutExterior: boolean
     front: boolean
+    insideScale: number
+    surfaceVisible: boolean
     visibility: number
   }
 
 export type SpherDomItemState<TItem extends SpherDomItem = SpherDomItem> = {
-  item: TItem
+  item: PositionedItem<TItem>
+  edgeFactor: number
+  faceDirection: SpherDomFaceDirection
   front: boolean
+  insideScale: number
+  interactive: boolean
+  normalY: number
+  perspectiveScale: number
   visible: boolean
   visibility: number
   selected: boolean
+  viewMode: SpherDomViewMode
 }
 
 export type SpherDomListener<TItem extends SpherDomItem = SpherDomItem> = (

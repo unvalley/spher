@@ -2,6 +2,7 @@ export type { SpherItemBase, SpherPlacement } from "./core/index.js"
 export {
   createSpher,
   type SpherDomControls,
+  type SpherDomFaceDirection,
   type SpherDomInstance,
   type SpherDomItem,
   type SpherDomItemState,
@@ -9,4 +10,5 @@ export {
   type SpherDomOptions,
   type SpherDomPosition,
   type SpherDomState,
+  type SpherDomViewMode,
 } from "./dom/index.js"

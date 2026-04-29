@@ -106,10 +106,49 @@ describe("Spher", () => {
     )
     spherRoot.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 1 }))
 
-    await new Promise((resolve) => requestAnimationFrame(resolve))
+    await waitFrames(24)
 
-    expect(spherRef.current?.getState().rotation).toEqual({ x: 1, y: 4 })
-    expect(layer?.style.transform).toContain("rotateX(1deg)")
-    expect(layer?.style.transform).toContain("rotateY(4deg)")
+    expect(spherRef.current?.getState().rotation.x).toBeCloseTo(0.8, 1)
+    expect(spherRef.current?.getState().rotation.y).toBeCloseTo(3.2, 1)
+    expect(layer?.style.transform).toContain("rotateX")
+    expect(layer?.style.transform).toContain("rotateY")
+  })
+
+  it("rotates with arrow keys when keyboard controls are enabled", async () => {
+    const element = document.createElement("div")
+    Object.assign(element.style, {
+      width: "400px",
+      height: "400px",
+    })
+    document.body.append(element)
+
+    const root = createRoot(element)
+    const spherRef = createRef<SpherHandle>()
+    mounted.push({ root, element })
+
+    flushSync(() => {
+      root.render(
+        <Spher
+          controls={{ keyboard: true }}
+          items={[{ id: "front" }]}
+          perspective={500}
+          position={() => ({ latitude: 0, longitude: 0 })}
+          radius={100}
+          ref={spherRef}
+          render={(item) => <button type="button">{item.id}</button>}
+        />,
+      )
+    })
+
+    window.dispatchEvent(new KeyboardEvent("keydown", { bubbles: true, key: "ArrowRight" }))
+    await waitFrames(24)
+
+    expect(spherRef.current?.getState().rotation.y).toBeCloseTo(1, 1)
   })
 })
+
+const waitFrames = async (count: number) => {
+  for (let index = 0; index < count; index += 1) {
+    await new Promise((resolve) => requestAnimationFrame(resolve))
+  }
+}

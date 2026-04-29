@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { type CSSProperties, useEffect, useMemo, useState } from "react"
 import type { SpherDomItem } from "../../../src/dom/index.js"
 import { Spher, type SpherRenderState } from "../../../src/react.js"
 
@@ -214,8 +214,7 @@ export const ArchiveDemo = () => {
     () => (category === "all" ? items : items.filter((item) => item.category === category)),
     [category],
   )
-  const selected = visibleItems.find((item) => item.id === selectedId) ?? visibleItems[0]
-
+  const visibleSelectedId = visibleItems.some((item) => item.id === selectedId) ? selectedId : null
   return (
     <main className="archive-demo">
       <header className="archive-header">
@@ -244,23 +243,18 @@ export const ArchiveDemo = () => {
 
       <Spher
         className="archive-sphere"
-        controls={{ drag: true, wheel: true }}
+        controls={{ drag: true, keyboard: true, wheel: true }}
+        insideZoomThreshold={1.32}
         items={visibleItems}
+        maxZoom={4.4}
+        minZoom={0.66}
         onSelect={(item) => setSelectedId(item.id)}
         perspective={980}
         radius={radius}
         render={(item, state) => <ArchiveCard item={item} state={state} />}
-        selectedId={selected?.id ?? null}
+        selectedId={visibleSelectedId}
         size={52}
       />
-
-      {selected ? (
-        <aside className="archive-detail">
-          <p>{selected.category}</p>
-          <h2>{selected.title}</h2>
-          <span>{selected.year}</span>
-        </aside>
-      ) : null}
     </main>
   )
 }
@@ -290,15 +284,49 @@ const ArchiveCard = ({
   item: ArchiveItem
   state: SpherRenderState<ArchiveItem>
 }) => {
+  const imageParallaxY = state.viewMode === "inside" ? clamp(state.normalY * 1.4, -2, 2) : 0
+  const imageScale = state.viewMode === "inside" ? 1.05 + state.edgeFactor * 0.04 : 1
+  const imageLightOpacity =
+    state.viewMode === "inside" && state.faceDirection !== "outward"
+      ? clamp(state.edgeFactor * 0.24, 0, 0.24)
+      : 0
+
   return (
     <button
       aria-label={item.title}
       className="archive-card"
+      data-face-direction={state.faceDirection}
+      data-interactive={state.interactive}
       data-selected={state.selected}
+      data-view-mode={state.viewMode}
+      style={
+        {
+          "--archive-image-y": `${cssNumber(imageParallaxY)}px`,
+          "--archive-image-scale": cssNumber(imageScale),
+          "--archive-light-opacity": cssNumber(imageLightOpacity),
+          filter: state.interactive
+            ? `drop-shadow(0 ${Math.round(10 * state.perspectiveScale)}px ${Math.round(
+                12 * state.perspectiveScale,
+              )}px rgb(15 23 42 / 22%))`
+            : undefined,
+        } as CSSProperties
+      }
       type="button"
     >
-      <img alt="" src={item.image} />
+      <div className="archive-card-media">
+        <img
+          alt=""
+          decoding="async"
+          fetchPriority={state.interactive ? "high" : "auto"}
+          src={item.image}
+        />
+        <div aria-hidden="true" className="archive-card-light" />
+      </div>
       <span>{item.title}</span>
     </button>
   )
 }
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))
+
+const cssNumber = (value: number) => Number(value.toFixed(6)).toString()

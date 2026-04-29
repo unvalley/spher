@@ -66,9 +66,31 @@ describe("createSpher", () => {
 
     expect(root.querySelector<HTMLElement>('[data-spher-item="item"]')).toBe(element)
     expect(instance.itemState("item")?.front).toBe(false)
+    expect(instance.itemState("item")?.visible).toBe(false)
     expect(element?.dataset.spherVisible).toBe("true")
     expect(element?.dataset.spherFront).toBe("false")
-    expect(element?.style.opacity).toBe("0.34")
+    expect(element?.style.opacity).toBe("0.033676")
+
+    instance.destroy()
+  })
+
+  it("reduces overlapping visible surface items", () => {
+    const root = createRoot()
+    const instance = createSpher(root, {
+      radius: 100,
+      perspective: 500,
+      zoom: 2,
+      items: [{ id: "first" }, { id: "second" }],
+      position: () => ({ latitude: 0, longitude: 0 }),
+      size: 64,
+    })
+
+    const first = instance.itemState("first")
+    const second = instance.itemState("second")
+
+    expect(first?.front).toBe(true)
+    expect(second?.front).toBe(true)
+    expect([first?.visible, second?.visible].filter(Boolean)).toHaveLength(1)
 
     instance.destroy()
   })

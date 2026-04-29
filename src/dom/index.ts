@@ -2,6 +2,7 @@ export { normalizeControls, type ResolvedSpherDomControls } from "./controls.js"
 export { createSpher } from "./create-spher.js"
 export type {
   SpherDomControls,
+  SpherDomFaceDirection,
   SpherDomInstance,
   SpherDomItem,
   SpherDomItemState,
@@ -9,4 +10,5 @@ export type {
   SpherDomOptions,
   SpherDomPosition,
   SpherDomState,
+  SpherDomViewMode,
 } from "./types.js"

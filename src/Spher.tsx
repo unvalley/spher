@@ -14,6 +14,7 @@ import type { SpherPlacement } from "./core/types.js"
 import {
   createSpher,
   type SpherDomControls,
+  type SpherDomFaceDirection,
   type SpherDomInstance,
   type SpherDomItem,
   type SpherDomItemState,
@@ -23,10 +24,17 @@ import {
 
 export type SpherRenderState<TItem extends SpherDomItem> = {
   selected: boolean
+  edgeFactor: number
+  faceDirection: SpherDomFaceDirection
   front: boolean
+  insideScale: number
+  interactive: boolean
+  normalY: number
+  perspectiveScale: number
   visible: boolean
   visibility: number
   itemState: SpherDomItemState<TItem> | null
+  viewMode: SpherDomItemState<TItem>["viewMode"]
   select: () => void
 }
 
@@ -34,11 +42,15 @@ export type SpherProps<TItem extends SpherDomItem> = {
   items: TItem[]
   radius?: number
   perspective?: number
+  insideZoomThreshold?: number
+  minZoom?: number
+  maxZoom?: number
   rotation?: {
     x: number
     y: number
   }
   zoom?: number
+  faceDirection?: SpherDomFaceDirection
   placement?: SpherPlacement
   controls?: SpherDomControls
   selectedId?: string | null
@@ -58,8 +70,12 @@ const SpherInner = <TItem extends SpherDomItem>(
     items,
     radius,
     perspective,
+    insideZoomThreshold,
+    minZoom,
+    maxZoom,
     rotation,
     zoom,
+    faceDirection,
     placement,
     controls = true,
     selectedId,
@@ -138,8 +154,12 @@ const SpherInner = <TItem extends SpherDomItem>(
       items,
       radius,
       perspective,
+      insideZoomThreshold,
+      minZoom,
+      maxZoom,
       rotation,
       zoom,
+      faceDirection,
       placement,
       controls,
       selectedId: effectiveSelectedId,
@@ -152,6 +172,10 @@ const SpherInner = <TItem extends SpherDomItem>(
     position,
     size,
     items,
+    faceDirection,
+    insideZoomThreshold,
+    maxZoom,
+    minZoom,
     perspective,
     placement,
     radius,
@@ -167,10 +191,17 @@ const SpherInner = <TItem extends SpherDomItem>(
           const itemSelected = effectiveSelectedId === item.id
           const renderState: SpherRenderState<TItem> = {
             selected: itemSelected,
+            edgeFactor: itemState?.edgeFactor ?? 0,
+            faceDirection: itemState?.faceDirection ?? "inward",
             front: itemState?.front ?? false,
+            insideScale: itemState?.insideScale ?? 1,
+            interactive: itemState?.interactive ?? false,
+            normalY: itemState?.normalY ?? 0,
+            perspectiveScale: itemState?.perspectiveScale ?? 1,
             visible: itemState?.visible ?? false,
             visibility: itemState?.visibility ?? 0,
             itemState,
+            viewMode: itemState?.viewMode ?? "shell",
             select: () => {
               instanceRef.current?.select(item.id)
             },

@@ -103,6 +103,30 @@ export const selectInsideVisibleItemIds = <TItem extends SpherItemBase>(
   return selectedIds
 }
 
+export type SelectVisibleSurfaceItemIdsOptions<TItem extends SpherItemBase> = {
+  projectedItems: ProjectedItem<TItem>[]
+  radius: number
+  zoom?: number
+  sceneScale?: number
+  prioritizeIds?: Set<string>
+}
+
+export const selectVisibleSurfaceItemIds = <TItem extends SpherItemBase>({
+  projectedItems,
+  radius,
+  zoom = 1,
+  sceneScale = 1,
+  prioritizeIds = new Set(),
+}: SelectVisibleSurfaceItemIdsOptions<TItem>) =>
+  selectInsideVisibleItemIds(
+    projectedItems,
+    Math.max(0, zoom - 1),
+    sceneScale,
+    radius,
+    true,
+    prioritizeIds,
+  )
+
 const getInsideCollisionRadius = <TItem extends SpherItemBase>(
   projectedItem: ProjectedItem<TItem>,
   insideZoomProgress: number,

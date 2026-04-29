@@ -9,11 +9,11 @@ import {
   useRef,
   useState,
 } from "react";
-import { ArchiveCard } from "./sphericalArchive/ArchiveCard.js";
-import { FilterRow } from "./sphericalArchive/FilterRow.js";
-import { preloadArchiveImages } from "./sphericalArchive/imagePreload.js";
-import { clamp, cssNumber, toRadians } from "./sphericalArchive/math.js";
-import { positionItems } from "./sphericalArchive/placement.js";
+import { ArchiveCard } from "./orba/ArchiveCard.js";
+import { FilterRow } from "./orba/FilterRow.js";
+import { preloadArchiveImages } from "./orba/imagePreload.js";
+import { clamp, cssNumber, toRadians } from "./orba/math.js";
+import { positionItems } from "./orba/placement.js";
 import type {
   PositionedItem,
   ProjectedItem,
@@ -22,7 +22,7 @@ import type {
   SphericalArchivePlacement,
   SphericalArchiveProps,
   SphericalArchiveViewMode,
-} from "./sphericalArchive/types.js";
+} from "./orba/types.js";
 
 export type {
   SphericalArchiveDetailContext,
@@ -32,7 +32,7 @@ export type {
   SphericalArchivePlacement,
   SphericalArchiveProps,
   SphericalArchiveViewMode,
-} from "./sphericalArchive/types.js";
+} from "./orba/types.js";
 
 const defaultSphereRadius = 560;
 const defaultScenePerspective = 980;

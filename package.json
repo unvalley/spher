@@ -1,7 +1,7 @@
 {
   "name": "orba",
   "version": "0.1.0",
-  "description": "A React component for exploring image cards on an interactive spherical archive.",
+  "description": "Core spherical archive utilities with an optional React explorer component.",
   "license": "MIT",
   "type": "module",
   "sideEffects": false,
@@ -21,6 +21,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/core/index.js"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.js"
     }
   },
   "keywords": [
@@ -39,6 +47,14 @@
   "peerDependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/react": "19.2.13",

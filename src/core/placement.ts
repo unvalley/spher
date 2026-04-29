@@ -46,7 +46,7 @@ export const positionItems = <TItem extends SphericalArchiveItemBase,>(
   });
 };
 
-const getFibonacciSpherePosition = (
+export const getFibonacciSpherePosition = (
   index: number,
   itemCount: number,
   sphereRadius: number,
@@ -69,7 +69,7 @@ const getFibonacciSpherePosition = (
   };
 };
 
-const getLatitudeLongitudeGridPosition = (
+export const getLatitudeLongitudeGridPosition = (
   index: number,
   itemCount: number,
   sphereRadius: number,
@@ -104,7 +104,7 @@ const getLatitudeLongitudeGridPosition = (
   };
 };
 
-const getLatitudeLongitudeGridRowCounts = (
+export const getLatitudeLongitudeGridRowCounts = (
   itemCount: number,
   ringCount: number,
 ) => {

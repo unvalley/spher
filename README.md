@@ -1,6 +1,6 @@
 # orba
 
-`orba` is a React component for exploring image cards on an interactive spherical archive.
+`orba` provides framework-agnostic spherical archive placement utilities with an optional React component for exploring image cards.
 
 ## Install
 
@@ -10,8 +10,29 @@ npm install orba
 
 ## Usage
 
+### Core
+
+```ts
+import { positionItems } from "orba/core";
+
+const positioned = positionItems(
+  [
+    {
+      id: "socrates",
+      title: "Socrates",
+      image: "/images/socrates.jpg",
+      year: -470,
+    },
+  ],
+  560,
+  "fibonacci",
+);
+```
+
+### React
+
 ```tsx
-import { SphericalArchive } from "orba";
+import { SphericalArchive } from "orba/react";
 
 const items = [
   {

@@ -1,16 +1,4 @@
 export {
-  clamp,
-  cssNumber,
-  getFibonacciSpherePosition,
-  getLatitudeLongitudeGridPosition,
-  getLatitudeLongitudeGridRowCounts,
-  positionItems,
-  toRadians,
-  type PositionedItem,
-  type ProjectedItem,
-} from "./core/index.js";
-
-export {
   SphericalArchive,
   type SphericalArchiveDetailContext,
   type SphericalArchiveFilter,

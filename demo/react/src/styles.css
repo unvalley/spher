@@ -69,6 +69,12 @@ button {
   text-align: right;
 }
 
+.demo-control-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
 .demo-face-control {
   display: inline-flex;
   gap: 0;
@@ -96,6 +102,18 @@ button {
   background: #111827;
 }
 
+.demo-reset-button {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 12px;
+  color: #111827;
+  cursor: pointer;
+  background: rgb(255 255 255 / 78%);
+  border: 1px solid rgb(148 163 184 / 36%);
+  border-radius: 8px;
+  box-shadow: 0 10px 28px rgb(15 23 42 / 8%);
+}
+
 .demo-header h1 {
   margin: 0;
   font-size: 40px;
@@ -111,6 +129,14 @@ button {
   width: 100vw;
   height: 100vh;
   touch-action: none;
+}
+
+.sphere-canvas[data-over-sphere="true"] {
+  cursor: grab;
+}
+
+.sphere-canvas[data-dragging-sphere="true"] {
+  cursor: grabbing;
 }
 
 @media (max-width: 720px) {

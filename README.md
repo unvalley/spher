@@ -125,6 +125,25 @@ createSpher(canvas, {
 });
 ```
 
+For responsive cards, pass `"auto"` to derive the size from the resolved sphere diameter, or pass a ratio when the card should scale with the displayed sphere.
+
+```ts
+createSpher(canvas, {
+  items,
+  radius: "auto",
+  size: { ratio: 0.09 },
+});
+```
+
+Use `faceMode` to choose which side of each card carries the main image. `face-out` shows the image on the exterior-facing side; `face-in` shows the image on the interior-facing side.
+
+```ts
+createSpher(canvas, {
+  items,
+  faceMode: "face-in",
+});
+```
+
 ### Canvas Rendering
 
 Use `render` to draw each projected item. The canvas transform is already positioned on the sphere surface before your function runs, so draw around `(0, 0)`.

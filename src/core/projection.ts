@@ -36,7 +36,7 @@ export const projectItems = <TItem extends SpherItemBase>(
     y *= zoom
     z *= zoom
 
-    const perspectiveScale = perspective / (perspective - z)
+    const perspectiveScale = perspective / Math.max(1, perspective + z)
     const angularDistance = Math.atan2(Math.hypot(x, y), Math.max(1, -z))
     const edgeFactor = clamp(angularDistance / (Math.PI / 2), 0, 1)
 

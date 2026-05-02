@@ -5,6 +5,7 @@ import { projectItems } from "../core/projection.js"
 import type { PositionedItem } from "../core/types.js"
 import { normalizeCanvasControls } from "./controls.js"
 import type {
+  SpherCanvasFaceMode,
   SpherCanvasInstance,
   SpherCanvasItem,
   SpherCanvasListener,
@@ -12,6 +13,8 @@ import type {
   SpherCanvasProjection,
   SpherCanvasRenderState,
   SpherCanvasState,
+  SpherCanvasSurfaceSide,
+  SpherCanvasViewMode,
 } from "./types.js"
 
 const defaultRadius = 320
@@ -21,9 +24,10 @@ const defaultZoom = 1
 const defaultInsideZoomThreshold = 1.32
 const defaultMinZoom = 0.66
 const defaultMaxZoom = 4.4
+const defaultFaceMode = "face-out" as const
 const defaultPlacement = "fibonacci" as const
 const autoRadiusRatio = 0.42
-const autoSizeRatio = 0.2
+const autoSizeRatio = 0.1
 const dragClickThreshold = 6
 const dragRotationScale = {
   x: 180 / (Math.PI * 1000),
@@ -86,7 +90,7 @@ export const createSpherCanvas = <TItem extends SpherCanvasItem>(
   const resolvedSize = ():
     | number
     | ((item: TItem, index: number, items: TItem[]) => number)
-    | undefined => (stateOptions.size === "auto" ? state.radius * autoSizeRatio : stateOptions.size)
+    | undefined => resolveSizeOption(stateOptions.size, state.radius)
 
   const getPlacedItems = () => {
     const size = resolvedSize()
@@ -256,19 +260,32 @@ export const createSpherCanvas = <TItem extends SpherCanvasItem>(
       rotation: state.rotation,
       zoom: state.sceneZoom,
       perspective: state.perspective,
-    }).sort((a, b) => b.z - a.z)
+    })
+      .map((item, index) => ({ item, index }))
+      .sort((a, b) => b.item.z - a.item.z || a.index - b.index)
+      .map(({ item }) => item)
 
     for (const projected of projectedItems) {
       const selected = projected.item.id === state.selectedId
       const front = state.viewMode === "inside" ? projected.z < 0 : projected.z < -30
+      const visibleSide = getVisibleSide(projected.z, state.viewMode)
+      const imageVisible = isImageVisible(state.faceMode, visibleSide)
       const visibility = getVisibility({
         edgeFactor: projected.edgeFactor,
-        front,
         selected,
         state,
         z: projected.z,
       })
-      const projection = { ...projected, front, selected, visibility, viewMode: state.viewMode }
+      const projection = {
+        ...projected,
+        faceMode: state.faceMode,
+        front,
+        imageVisible,
+        selected,
+        visibleSide,
+        visibility,
+        viewMode: state.viewMode,
+      }
       projections.set(projected.item.id, projection)
       if (visibility <= 0) continue
 
@@ -549,6 +566,7 @@ const normalizeOptions = <TItem extends SpherCanvasItem>(
       options.insideZoomThreshold ?? previous?.insideZoomThreshold ?? defaultInsideZoomThreshold,
     minZoom: options.minZoom ?? previous?.minZoom ?? defaultMinZoom,
     maxZoom: options.maxZoom ?? previous?.maxZoom ?? defaultMaxZoom,
+    faceMode: options.faceMode ?? previous?.faceMode ?? defaultFaceMode,
     placement: options.placement ?? previous?.placement ?? defaultPlacement,
     selectedId: objectHasOwnProperty.call(options, "selectedId")
       ? (options.selectedId ?? null)
@@ -586,9 +604,32 @@ const withDerivedState = <TItem extends SpherCanvasItem>(
 
 const objectHasOwnProperty = Object.prototype.hasOwnProperty
 
+const getVisibleSide = (z: number, viewMode: SpherCanvasViewMode): SpherCanvasSurfaceSide => {
+  if (viewMode === "inside") return "inside"
+  return z < 0 ? "outside" : "inside"
+}
+
+const isImageVisible = (faceMode: SpherCanvasFaceMode, visibleSide: SpherCanvasSurfaceSide) =>
+  visibleSide === (faceMode === "face-out" ? "outside" : "inside")
+
+const resolveSizeOption = <TItem extends SpherCanvasItem>(
+  size: SpherCanvasOptions<TItem>["size"],
+  radius: number,
+): number | ((item: TItem, index: number, items: TItem[]) => number) | undefined => {
+  const diameter = radius * 2
+  if (size === "auto") return diameter * autoSizeRatio
+  if (size === undefined) return undefined
+  if (typeof size === "number") return size
+  if (typeof size === "function") return size
+
+  const ratio = size.ratio ?? autoSizeRatio
+  const min = size.min ?? 0
+  const max = size.max ?? Number.POSITIVE_INFINITY
+  return clamp(diameter * ratio, min, max)
+}
+
 type GetVisibilityOptions<TItem extends SpherCanvasItem> = {
   edgeFactor: number
-  front: boolean
   selected: boolean
   state: SpherCanvasState<TItem>
   z: number
@@ -596,20 +637,39 @@ type GetVisibilityOptions<TItem extends SpherCanvasItem> = {
 
 const getVisibility = <TItem extends SpherCanvasItem>({
   edgeFactor,
-  front,
   selected,
   state,
   z,
 }: GetVisibilityOptions<TItem>) => {
+  const normalizedDepth = Math.abs(z) / Math.max(1, state.radius * state.sceneZoom)
+  const sideVisibility = smoothstep(0.02, 0.18, normalizedDepth)
+
   if (state.viewMode === "inside") {
     const insideVisibleDepth = -state.radius * state.insideSceneScale * 0.02
-    if (z >= insideVisibleDepth) return 0
-    return clamp(1 - edgeFactor * 0.28, 0.62, 1)
+    const fadeRange = state.radius * state.insideSceneScale * 0.12
+    const depthVisibility =
+      1 - smoothstep(insideVisibleDepth - fadeRange, insideVisibleDepth + fadeRange, z)
+    if (depthVisibility <= 0) return 0
+    return clamp((1 - edgeFactor * 0.16) * depthVisibility * sideVisibility, 0, 1)
   }
 
   if (selected) return 1
-  if (front) return clamp((-z + 260) / 620, 0.02, 1)
-  return clamp((-z + 260) / 620, 0.1, 0.34)
+  if (state.faceMode === "face-in") {
+    const insideDepth = z / Math.max(1, state.radius * state.sceneZoom)
+    const insideVisibility = smoothstep(-0.74, 0.88, insideDepth)
+    const baseVisibility = 0.18 + insideVisibility * 0.66
+    return clamp(baseVisibility * sideVisibility, 0, 0.84)
+  }
+
+  const depth = -z / Math.max(1, state.radius * state.sceneZoom)
+  const depthVisibility = smoothstep(-0.18, 0.78, depth)
+  const baseVisibility = 0.16 + depthVisibility * 0.84
+  return clamp(baseVisibility * sideVisibility, 0, 1)
+}
+
+const smoothstep = (edge0: number, edge1: number, value: number) => {
+  const t = clamp((value - edge0) / Math.max(0.0001, edge1 - edge0), 0, 1)
+  return t * t * (3 - 2 * t)
 }
 
 type Point3D = { x: number; y: number; z: number }
@@ -703,7 +763,7 @@ const projectPoint = <TItem extends SpherCanvasItem>(
   y *= sceneZoom
   z *= sceneZoom
 
-  const perspectiveScale = perspective / (perspective - z)
+  const perspectiveScale = perspective / Math.max(1, perspective + z)
   return {
     x: x * perspectiveScale,
     y: y * perspectiveScale,
@@ -713,31 +773,41 @@ const projectPoint = <TItem extends SpherCanvasItem>(
 
 const toRenderState = <TItem extends SpherCanvasItem>({
   edgeFactor,
+  faceMode,
   front,
+  imageVisible,
   item,
   normalY,
   perspectiveScale,
   selected,
+  visibleSide,
   visibility,
   viewMode,
 }: SpherCanvasProjection<TItem>): SpherCanvasRenderState<TItem> => ({
   item,
   edgeFactor,
+  faceMode,
   front,
+  imageVisible,
   normalY,
   perspectiveScale,
   selected,
+  visibleSide,
   visibility,
   viewMode,
 })
 
 const renderDefaultItem = <TItem extends SpherCanvasItem>(
   context: CanvasRenderingContext2D,
-  { item, selected }: SpherCanvasRenderState<TItem>,
+  { imageVisible, item, selected }: SpherCanvasRenderState<TItem>,
 ) => {
   const width = item.size
   const height = item.size * 1.28
-  context.fillStyle = "rgba(255, 255, 255, 0.86)"
+  context.fillStyle = selected
+    ? "rgba(255, 255, 255, 0.92)"
+    : imageVisible
+      ? "rgba(255, 255, 255, 0.86)"
+      : "rgba(15, 23, 42, 0.64)"
   context.strokeStyle = selected ? "rgba(17, 24, 39, 0.96)" : "rgba(15, 23, 42, 0.18)"
   context.lineWidth = selected ? 2 : 1
   context.beginPath()

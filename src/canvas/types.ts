@@ -9,6 +9,10 @@ export type SpherCanvasItem = SpherItemBase
 
 export type SpherCanvasViewMode = "inside" | "shell"
 
+export type SpherCanvasFaceMode = "face-out" | "face-in"
+
+export type SpherCanvasSurfaceSide = "outside" | "inside"
+
 export type SpherCanvasControls =
   | boolean
   | {
@@ -22,12 +26,24 @@ export type SpherCanvasControls =
 export type SpherCanvasRenderState<TItem extends SpherCanvasItem = SpherCanvasItem> = {
   item: PositionedItem<TItem>
   edgeFactor: number
+  faceMode: SpherCanvasFaceMode
   front: boolean
+  imageVisible: boolean
   normalY: number
   perspectiveScale: number
   selected: boolean
+  visibleSide: SpherCanvasSurfaceSide
   visibility: number
   viewMode: SpherCanvasViewMode
+}
+
+export type SpherCanvasAutoSize = {
+  /** Size-to-diameter ratio used for responsive card sizing. Defaults to 0.1. */
+  ratio?: number
+  /** Minimum resolved card size in CSS pixels. */
+  min?: number
+  /** Maximum resolved card size in CSS pixels. */
+  max?: number
 }
 
 export type SpherCanvasOptions<TItem extends SpherCanvasItem = SpherCanvasItem> = {
@@ -43,13 +59,19 @@ export type SpherCanvasOptions<TItem extends SpherCanvasItem = SpherCanvasItem> 
   insideZoomThreshold?: number
   minZoom?: number
   maxZoom?: number
+  /** Which side of each card shows the main image. */
+  faceMode?: SpherCanvasFaceMode
   placement?: SpherPlacement
   controls?: SpherCanvasControls
   selectedId?: string | null
   devicePixelRatio?: number
   position?: (item: TItem, index: number, items: TItem[]) => SpherCanvasPosition | null | undefined
   /** Card size in CSS pixels. `"auto"` derives from the resolved radius. */
-  size?: number | "auto" | ((item: TItem, index: number, items: TItem[]) => number)
+  size?:
+    | number
+    | "auto"
+    | SpherCanvasAutoSize
+    | ((item: TItem, index: number, items: TItem[]) => number)
   render?: (
     context: CanvasRenderingContext2D,
     item: TItem,
@@ -76,13 +98,17 @@ export type SpherCanvasState<TItem extends SpherCanvasItem = SpherCanvasItem> = 
   placement: SpherPlacement
   selectedId: string | null
   devicePixelRatio: number
+  faceMode: SpherCanvasFaceMode
   viewMode: SpherCanvasViewMode
 }
 
 export type SpherCanvasProjection<TItem extends SpherCanvasItem = SpherCanvasItem> =
   ProjectedItem<TItem> & {
+    faceMode: SpherCanvasFaceMode
     front: boolean
+    imageVisible: boolean
     selected: boolean
+    visibleSide: SpherCanvasSurfaceSide
     visibility: number
     viewMode: SpherCanvasViewMode
   }

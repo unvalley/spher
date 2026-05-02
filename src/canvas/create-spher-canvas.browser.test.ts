@@ -171,6 +171,134 @@ describe("createSpherCanvas", () => {
     instance.destroy()
   })
 
+  it("resolves responsive card sizes with ratio bounds", () => {
+    const canvas = createCanvas()
+    const instance = createSpherCanvas(canvas, {
+      items: [{ id: "bounded" }],
+      position: () => ({ latitude: 0, longitude: 0 }),
+      radius: "auto",
+      size: { max: 72, min: 48, ratio: 0.5 },
+    })
+
+    expect(instance.itemState("bounded")?.item.size).toBe(72)
+
+    instance.destroy()
+  })
+
+  it("scales ratio card sizes from the sphere diameter", () => {
+    const canvas = createCanvas()
+    const instance = createSpherCanvas(canvas, {
+      items: [{ id: "responsive" }],
+      position: () => ({ latitude: 0, longitude: 0 }),
+      radius: 100,
+      size: { ratio: 0.1 },
+    })
+
+    expect(instance.itemState("responsive")?.item.size).toBe(20)
+
+    instance.update({ radius: 160 })
+
+    expect(instance.itemState("responsive")?.item.size).toBe(32)
+
+    instance.destroy()
+  })
+
+  it("draws farther items before nearer items", () => {
+    const canvas = createCanvas()
+    const renderedIds: string[] = []
+    const instance = createSpherCanvas(canvas, {
+      items: [{ id: "near" }, { id: "far" }],
+      position: (item) =>
+        item.id === "near" ? { latitude: 0, longitude: 0 } : { latitude: 0, longitude: 180 },
+      radius: 100,
+      render: (_context, item) => {
+        renderedIds.push(item.id)
+      },
+    })
+
+    expect(renderedIds).toEqual(["far", "near"])
+
+    instance.destroy()
+  })
+
+  it("reports whether the configured card image side is visible", () => {
+    const canvas = createCanvas()
+    const instance = createSpherCanvas(canvas, {
+      items: [{ id: "near" }, { id: "far" }],
+      position: (item) =>
+        item.id === "near" ? { latitude: 0, longitude: 0 } : { latitude: 0, longitude: 180 },
+      radius: 100,
+    })
+
+    expect(instance.itemState("near")?.visibleSide).toBe("outside")
+    expect(instance.itemState("near")?.imageVisible).toBe(true)
+    expect(instance.itemState("far")?.visibleSide).toBe("inside")
+    expect(instance.itemState("far")?.imageVisible).toBe(false)
+
+    instance.update({ faceMode: "face-in" })
+
+    expect(instance.itemState("near")?.imageVisible).toBe(false)
+    expect(instance.itemState("far")?.imageVisible).toBe(true)
+
+    instance.destroy()
+  })
+
+  it("keeps visibility continuous around the sphere edge", () => {
+    const canvas = createCanvas()
+    const instance = createSpherCanvas(canvas, {
+      items: [{ id: "edge-a" }, { id: "edge-b" }],
+      position: (item) =>
+        item.id === "edge-a" ? { latitude: 0, longitude: 72 } : { latitude: 0, longitude: 73 },
+      radius: 100,
+    })
+
+    const firstVisibility = instance.itemState("edge-a")?.visibility ?? 0
+    const secondVisibility = instance.itemState("edge-b")?.visibility ?? 0
+    expect(Math.abs(firstVisibility - secondVisibility)).toBeLessThan(0.04)
+
+    instance.destroy()
+  })
+
+  it("fades edge-on cards fully out to avoid side flicker", () => {
+    const canvas = createCanvas()
+    const instance = createSpherCanvas(canvas, {
+      items: [{ id: "edge" }],
+      position: () => ({ latitude: 0, longitude: 90 }),
+      radius: 100,
+    })
+
+    expect(instance.itemState("edge")?.visibility).toBeLessThan(0.01)
+
+    instance.update({ faceMode: "face-in" })
+
+    expect(instance.itemState("edge")?.visibility).toBeLessThan(0.01)
+
+    instance.destroy()
+  })
+
+  it("keeps rear cards visible while fading only side-on cards", () => {
+    const canvas = createCanvas()
+    const instance = createSpherCanvas(canvas, {
+      items: [{ id: "front" }, { id: "side" }, { id: "rear" }],
+      position: (item) => {
+        if (item.id === "front") return { latitude: 0, longitude: 0 }
+        if (item.id === "side") return { latitude: 0, longitude: 90 }
+        return { latitude: 0, longitude: 180 }
+      },
+      radius: 100,
+    })
+
+    expect(instance.itemState("side")?.visibility).toBeLessThan(0.01)
+    expect(instance.itemState("rear")?.visibility).toBeGreaterThan(0.1)
+
+    instance.update({ faceMode: "face-in" })
+
+    expect(instance.itemState("side")?.visibility).toBeLessThan(0.01)
+    expect(instance.itemState("rear")?.visibility).toBeGreaterThan(0.5)
+
+    instance.destroy()
+  })
+
   it("hides near-side items after zooming inside the sphere", () => {
     const canvas = createCanvas()
     const renderedIds: string[] = []

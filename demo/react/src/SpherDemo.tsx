@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
   createSpher,
+  type SpherCanvasFaceMode,
   type SpherCanvasInstance,
   type SpherCanvasItem,
   type SpherCanvasRenderState,
@@ -210,6 +211,8 @@ const items: Item[] = Array.from({ length: 4 }, (_, pass) =>
 
 export const SpherDemo = () => {
   const [selectedId, setSelectedId] = useState(items[0].id)
+  const [cardSizeRatio, setCardSizeRatio] = useState(0.09)
+  const [faceMode, setFaceMode] = useState<SpherCanvasFaceMode>("face-out")
 
   const visibleSelectedId = items.some((item) => item.id === selectedId) ? selectedId : null
   const handleSelect = useCallback((item: Item) => setSelectedId(item.id), [])
@@ -219,18 +222,56 @@ export const SpherDemo = () => {
       <header className="archive-header">
         <div>
           <p className="archive-kicker">Spher canvas demo</p>
+          <label className="archive-size-control">
+            <span>Size ratio</span>
+            <input
+              aria-label="Card size ratio"
+              max="0.14"
+              min="0.05"
+              onChange={(event) => setCardSizeRatio(Number(event.currentTarget.value))}
+              step="0.01"
+              type="range"
+              value={cardSizeRatio}
+            />
+            <output>{Math.round(cardSizeRatio * 100)}%</output>
+          </label>
+          <fieldset aria-label="Card face mode" className="archive-face-control">
+            <button
+              data-active={faceMode === "face-out"}
+              onClick={() => setFaceMode("face-out")}
+              type="button"
+            >
+              Face out
+            </button>
+            <button
+              data-active={faceMode === "face-in"}
+              onClick={() => setFaceMode("face-in")}
+              type="button"
+            >
+              Face in
+            </button>
+          </fieldset>
         </div>
       </header>
 
-      <CanvasArchiveSphere onSelect={handleSelect} selectedId={visibleSelectedId} />
+      <CanvasArchiveSphere
+        cardSizeRatio={cardSizeRatio}
+        faceMode={faceMode}
+        onSelect={handleSelect}
+        selectedId={visibleSelectedId}
+      />
     </main>
   )
 }
 
 const CanvasArchiveSphere = ({
+  cardSizeRatio,
+  faceMode,
   onSelect,
   selectedId,
 }: {
+  cardSizeRatio: number
+  faceMode: SpherCanvasFaceMode
   onSelect: (item: Item) => void
   selectedId: string | null
 }) => {
@@ -263,6 +304,7 @@ const CanvasArchiveSphere = ({
 
     const instance = createSpher(canvasRef.current, {
       controls: { autoRotate: true, drag: true, keyboard: true, wheel: true },
+      faceMode: "face-out",
       items,
       maxZoom: 4.4,
       minZoom: 0.66,
@@ -272,7 +314,7 @@ const CanvasArchiveSphere = ({
       render: (context, item, state) =>
         renderCanvasArchiveCard(context, item, state, imagesRef.current),
       selectedId: null,
-      size: "auto",
+      size: { ratio: 0.09 },
     })
     instanceRef.current = instance
 
@@ -285,6 +327,14 @@ const CanvasArchiveSphere = ({
   useEffect(() => {
     instanceRef.current?.update({ selectedId })
   }, [selectedId])
+
+  useEffect(() => {
+    instanceRef.current?.update({ size: { ratio: cardSizeRatio } })
+  }, [cardSizeRatio])
+
+  useEffect(() => {
+    instanceRef.current?.update({ faceMode })
+  }, [faceMode])
 
   return (
     <canvas
@@ -317,15 +367,23 @@ const renderCanvasArchiveCard = (
   const y = -height / 2
   const image = images.get(item.id)
   const colors = categoryColors[item.category] ?? ["#e5e7eb", "#94a3b8"]
+  const faceIn = state.faceMode === "face-in"
+  const drawMainImage = state.imageVisible || faceIn
+  const surfaceAlpha = faceIn ? (state.visibleSide === "outside" ? 0.2 : 0.78) : 1
 
   context.save()
+  context.globalAlpha *= surfaceAlpha
   if (state.selected) {
     context.shadowBlur = 18
     context.shadowColor = "rgba(15, 23, 42, 0.24)"
   }
 
-  context.fillStyle = "rgba(255, 255, 255, 0.86)"
-  context.strokeStyle = state.selected ? "rgba(17, 24, 39, 0.96)" : "rgba(15, 23, 42, 0.16)"
+  context.fillStyle = drawMainImage ? "rgba(255, 255, 255, 0.72)" : "rgba(15, 23, 42, 0.72)"
+  context.strokeStyle = state.selected
+    ? "rgba(17, 24, 39, 0.96)"
+    : drawMainImage
+      ? "rgba(15, 23, 42, 0.16)"
+      : "rgba(255, 255, 255, 0.28)"
   context.lineWidth = state.selected ? 2 : 1
   roundedRect(context, x, y, width, height, 4)
   context.fill()
@@ -338,7 +396,21 @@ const renderCanvasArchiveCard = (
   roundedRect(context, mediaX, mediaY, mediaWidth, mediaHeight, 2)
   context.clip()
 
-  if (image?.complete && image.naturalWidth > 0) {
+  if (!drawMainImage) {
+    const cardBack = context.createLinearGradient(
+      mediaX,
+      mediaY,
+      mediaX + mediaWidth,
+      mediaY + mediaHeight,
+    )
+    cardBack.addColorStop(0, "rgba(30, 41, 59, 0.98)")
+    cardBack.addColorStop(0.52, colors[1])
+    cardBack.addColorStop(1, "rgba(2, 6, 23, 0.98)")
+    context.fillStyle = cardBack
+    context.fillRect(mediaX, mediaY, mediaWidth, mediaHeight)
+    context.fillStyle = "rgba(2, 6, 23, 0.52)"
+    context.fillRect(mediaX, mediaY, mediaWidth, mediaHeight)
+  } else if (image?.complete && image.naturalWidth > 0) {
     drawCoverImage(context, image, mediaX, mediaY, mediaWidth, mediaHeight)
   } else {
     const fallback = context.createLinearGradient(
@@ -362,8 +434,10 @@ const renderCanvasArchiveCard = (
   light.addColorStop(0, "rgba(255, 255, 255, 0.42)")
   light.addColorStop(0.48, "rgba(255, 255, 255, 0)")
   light.addColorStop(1, "rgba(15, 23, 42, 0.16)")
-  context.fillStyle = light
-  context.fillRect(mediaX, mediaY, mediaWidth, mediaHeight)
+  if (drawMainImage) {
+    context.fillStyle = light
+    context.fillRect(mediaX, mediaY, mediaWidth, mediaHeight)
+  }
   context.restore()
   context.restore()
 }

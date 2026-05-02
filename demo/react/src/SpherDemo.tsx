@@ -210,7 +210,6 @@ const items: Item[] = Array.from({ length: 4 }, (_, pass) =>
 
 export const SpherDemo = () => {
   const [selectedId, setSelectedId] = useState(items[0].id)
-  const radius = useSphereRadius()
 
   const visibleSelectedId = items.some((item) => item.id === selectedId) ? selectedId : null
   const handleSelect = useCallback((item: Item) => setSelectedId(item.id), [])
@@ -223,18 +222,16 @@ export const SpherDemo = () => {
         </div>
       </header>
 
-      <CanvasArchiveSphere onSelect={handleSelect} radius={radius} selectedId={visibleSelectedId} />
+      <CanvasArchiveSphere onSelect={handleSelect} selectedId={visibleSelectedId} />
     </main>
   )
 }
 
 const CanvasArchiveSphere = ({
   onSelect,
-  radius,
   selectedId,
 }: {
   onSelect: (item: Item) => void
-  radius: number
   selectedId: string | null
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
@@ -271,11 +268,11 @@ const CanvasArchiveSphere = ({
       minZoom: 0.66,
       onSelect,
       perspective: 980,
-      radius: 280,
+      radius: "auto",
       render: (context, item, state) =>
         renderCanvasArchiveCard(context, item, state, imagesRef.current),
       selectedId: null,
-      size: 52,
+      size: "auto",
     })
     instanceRef.current = instance
 
@@ -286,8 +283,8 @@ const CanvasArchiveSphere = ({
   }, [onSelect])
 
   useEffect(() => {
-    instanceRef.current?.update({ radius, selectedId })
-  }, [radius, selectedId])
+    instanceRef.current?.update({ selectedId })
+  }, [selectedId])
 
   return (
     <canvas
@@ -296,24 +293,6 @@ const CanvasArchiveSphere = ({
       ref={canvasRef}
     />
   )
-}
-
-const useSphereRadius = () => {
-  const [radius, setRadius] = useState(280)
-
-  useEffect(() => {
-    const updateRadius = () => {
-      setRadius(
-        Math.min(360, Math.max(180, Math.min(window.innerWidth * 0.3, window.innerHeight * 0.4))),
-      )
-    }
-
-    updateRadius()
-    window.addEventListener("resize", updateRadius)
-    return () => window.removeEventListener("resize", updateRadius)
-  }, [])
-
-  return radius
 }
 
 const categoryColors: Record<string, [string, string]> = {

@@ -2,7 +2,7 @@
 
 `spher` is a small canvas-first sphere layout engine.
 
-Use it when you want to draw image surfaces, labels, or custom marks on a rotating sphere. It targets `<canvas>` for smooth dense scenes.
+https://github.com/user-attachments/assets/6a565152-496f-4e65-be00-85b8d7e74f42
 
 ## Install
 
@@ -273,20 +273,6 @@ const placed = placeItems([{ id: "a" }, { id: "b" }], {
   radius: 320,
   placement: "fibonacci",
 });
-```
-
-## Demo
-
-See [demo/react](demo/react) for a styled React example built on `createSpher`.
-
-## Testing
-
-The project uses Node-based Vitest tests for pure core utilities and Vitest browser mode with Playwright for canvas behavior.
-
-```sh
-pnpm run build
-pnpm test
-pnpm test:browser
 ```
 
 ## Design Notes

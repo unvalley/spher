@@ -276,6 +276,12 @@ const placed = placeItems([{ id: "a" }, { id: "b" }], {
 });
 ```
 
+## Demo
+
+See [demo/react](demo/react) for a styled React example built on `createImageSurfaceSpher`.
+The demo uses local philosophy archive images and lets you hide the controls with the `Hide`
+button. Press `h` to show the controls again.
+
 ## Design Notes
 
 The current design direction is documented in [docs/design-proposal.md](docs/design-proposal.md).

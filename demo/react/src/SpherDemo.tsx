@@ -13,190 +13,305 @@ type Item = SpherCanvasItem & {
   year: number
 }
 
-const sourceItems: Item[] = [
+type SourceItem = Omit<Item, "image">
+
+const philosophyImages = [
+  new URL("../../../research/image/philosophy/archive/items/abelard-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/abelard.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/adam-smith.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/adorno.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/ai-ethics.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/al-ghazali-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/al-kindi-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/al-kindi.png", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/alexandria-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/alexandria.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/analects-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/analects.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/aquinas-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/arendt-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/aristotle.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/ashoka.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/augustine.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/averroes.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/avicenna-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/bacon-photo.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/bacon.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/bacon.png", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/beauvoir-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/beauvoir.png", import.meta.url).href,
+  new URL(
+    "../../../research/image/philosophy/archive/items/being-and-time-photo.jpg",
+    import.meta.url,
+  ).href,
+  new URL("../../../research/image/philosophy/archive/items/benjamin-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/benjamin.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/bentham-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/bentham.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/boethius.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/buddha.png", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/butler-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/butler.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/camus-photo.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/capital-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/comte-photo.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/dai-zhen-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/daodejing.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/daodejing.png", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/darwin-photo.jpg", import.meta.url)
+    .href,
+  new URL(
+    "../../../research/image/philosophy/archive/items/death-of-socrates-photo.jpg",
+    import.meta.url,
+  ).href,
+  new URL("../../../research/image/philosophy/archive/items/death-of-socrates.jpg", import.meta.url)
+    .href,
+  new URL(
+    "../../../research/image/philosophy/archive/items/declaration-rights-photo.jpg",
+    import.meta.url,
+  ).href,
+  new URL(
+    "../../../research/image/philosophy/archive/items/declaration-rights.jpg",
+    import.meta.url,
+  ).href,
+  new URL("../../../research/image/philosophy/archive/items/derrida-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/derrida.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/dewey-photo.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/dewey.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/diderot-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/diderot.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/diogenes-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/diogenes.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/dogen-photo.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/dogen.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/du-bois-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/du-bois.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/duns-scotus-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/duns-scotus.jpg", import.meta.url).href,
+  new URL(
+    "../../../research/image/philosophy/archive/items/encyclopedie-photo.jpg",
+    import.meta.url,
+  ).href,
+  new URL("../../../research/image/philosophy/archive/items/encyclopedie.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/epicurus.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/fanon-photo.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/fanon.webp", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/foucault-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/foucault.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/four-books-photo.jpg", import.meta.url)
+    .href,
+  new URL(
+    "../../../research/image/philosophy/archive/items/frankfurt-school-photo.jpg",
+    import.meta.url,
+  ).href,
+  new URL("../../../research/image/philosophy/archive/items/frege-photo.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/frege.jpg", import.meta.url).href,
+  new URL(
+    "../../../research/image/philosophy/archive/items/french-revolution-photo.jpg",
+    import.meta.url,
+  ).href,
+  new URL("../../../research/image/philosophy/archive/items/french-revolution.jpg", import.meta.url)
+    .href,
+  new URL(
+    "../../../research/image/philosophy/archive/items/fukuzawa-yukichi-photo.jpg",
+    import.meta.url,
+  ).href,
+  new URL("../../../research/image/philosophy/archive/items/fukuzawa-yukichi.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/galileo-trial.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/galileo-trial.png", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/great-wave-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/great-wave.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/guernica-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/habermas-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/habermas.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/han-feizi-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/han-feizi.png", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/hegel-photo.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/hegel.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/heidegger-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/heraclitus-photo.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/heraclitus.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/hildegard.jpg", import.meta.url).href,
+  new URL("../../../research/image/philosophy/archive/items/hobbes-photo.jpg", import.meta.url)
+    .href,
+  new URL(
+    "../../../research/image/philosophy/archive/items/house-of-wisdom-photo.jpg",
+    import.meta.url,
+  ).href,
+  new URL("../../../research/image/philosophy/archive/items/house-of-wisdom.jpg", import.meta.url)
+    .href,
+  new URL("../../../research/image/philosophy/archive/items/huineng-photo.jpg", import.meta.url)
+    .href,
+]
+
+const sourceItems: SourceItem[] = [
   {
     id: "socrates",
     title: "Socrates",
     year: -470,
     category: "philosophy",
-    image:
-      "https://images.unsplash.com/photo-1604076913837-52ab5629fba9?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "alexandria",
     title: "Library of Alexandria",
     year: -283,
     category: "archive",
-    image:
-      "https://images.unsplash.com/photo-1519682577862-22b62b24e493?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "astrolabe",
     title: "Astrolabe",
     year: 150,
     category: "instrument",
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "printing",
     title: "Movable Type",
     year: 1040,
     category: "archive",
-    image:
-      "https://images.unsplash.com/photo-1495020689067-958852a7765e?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "observatory",
     title: "Observatory",
     year: 1577,
     category: "instrument",
-    image:
-      "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "web",
     title: "World Wide Web",
     year: 1989,
     category: "network",
-    image:
-      "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "rosetta",
     title: "Rosetta Stone",
     year: -196,
     category: "archive",
-    image:
-      "https://images.unsplash.com/photo-1590086783191-a0694c7d1e6e?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "antikythera",
     title: "Antikythera",
     year: -87,
     category: "instrument",
-    image:
-      "https://images.unsplash.com/photo-1517976487492-5750f3195933?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "silk-road",
     title: "Silk Road",
     year: 130,
     category: "network",
-    image:
-      "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "hypatia",
     title: "Hypatia",
     year: 355,
     category: "philosophy",
-    image:
-      "https://images.unsplash.com/photo-1544967082-d9d25d867d66?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "codex",
     title: "Codex",
     year: 400,
     category: "archive",
-    image:
-      "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "compass",
     title: "Compass",
     year: 1044,
     category: "instrument",
-    image:
-      "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "telegraph",
     title: "Telegraph",
     year: 1844,
     category: "network",
-    image:
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "nietzsche",
     title: "Nietzsche",
     year: 1844,
     category: "philosophy",
-    image:
-      "https://images.unsplash.com/photo-1526243741027-444d633d7365?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "phonograph",
     title: "Phonograph",
     year: 1877,
     category: "archive",
-    image:
-      "https://images.unsplash.com/photo-1516280440614-37939bbacd81?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "radio",
     title: "Radio",
     year: 1895,
     category: "network",
-    image:
-      "https://images.unsplash.com/photo-1478737270239-2f02b77fc618?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "enigma",
     title: "Enigma",
     year: 1918,
     category: "instrument",
-    image:
-      "https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "turing",
     title: "Turing",
     year: 1912,
     category: "philosophy",
-    image:
-      "https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "magnetic-tape",
     title: "Magnetic Tape",
     year: 1928,
     category: "archive",
-    image:
-      "https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "satellite",
     title: "Satellite",
     year: 1957,
     category: "network",
-    image:
-      "https://images.unsplash.com/photo-1446776653964-20c1d3a81b06?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "microchip",
     title: "Microchip",
     year: 1959,
     category: "instrument",
-    image:
-      "https://images.unsplash.com/photo-1518779578993-ec3579fee39f?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "internet",
     title: "ARPANET",
     year: 1969,
     category: "network",
-    image:
-      "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&w=420&q=80",
   },
   {
     id: "notebook",
     title: "Field Notes",
     year: 1986,
     category: "archive",
-    image:
-      "https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&w=420&q=80",
   },
 ]
 
@@ -204,6 +319,7 @@ const items: Item[] = Array.from({ length: 4 }, (_, pass) =>
   sourceItems.map((item, index) => ({
     ...item,
     id: `${item.id}-${pass}`,
+    image: philosophyImages[pass * sourceItems.length + index],
     year: item.year + pass * 11 + index,
   })),
 ).flat()
@@ -225,6 +341,7 @@ export const SpherDemo = () => {
   const [faceMode, setFaceMode] = useState<SpherCanvasFaceMode>("face-out")
   const [tiltPitch, setTiltPitch] = useState(defaultTiltPitch)
   const [tiltRoll, setTiltRoll] = useState(defaultTiltRoll)
+  const [controlsVisible, setControlsVisible] = useState(true)
 
   const visibleSelectedId = items.some((item) => item.id === selectedId) ? selectedId : null
   const handleSelect = useCallback((item: Item) => setSelectedId(item.id), [])
@@ -234,73 +351,92 @@ export const SpherDemo = () => {
     setTiltRoll(defaultTiltRoll)
   }, [])
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key.toLowerCase() === "h") {
+        setControlsVisible((visible) => !visible)
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [])
+
   return (
     <main className="demo">
-      <header className="demo-header">
-        <div>
-          <p className="demo-kicker">Spher canvas demo</p>
-          <label className="demo-range-control">
-            <span>Size ratio</span>
-            <input
-              aria-label="Surface size ratio"
-              max="0.12"
-              min="0.03"
-              onChange={(event) => setSurfaceSizeRatio(Number(event.currentTarget.value))}
-              step="0.01"
-              type="range"
-              value={surfaceSizeRatio}
-            />
-            <output>{Math.round(surfaceSizeRatio * 100)}%</output>
-          </label>
-          <label className="demo-range-control">
-            <span>Pitch</span>
-            <input
-              aria-label="Sphere pitch"
-              max="36"
-              min="-36"
-              onChange={(event) => setTiltPitch(Number(event.currentTarget.value))}
-              step="1"
-              type="range"
-              value={tiltPitch}
-            />
-            <output>{tiltPitch}deg</output>
-          </label>
-          <label className="demo-range-control">
-            <span>Roll</span>
-            <input
-              aria-label="Sphere roll"
-              max="30"
-              min="-30"
-              onChange={(event) => setTiltRoll(Number(event.currentTarget.value))}
-              step="1"
-              type="range"
-              value={tiltRoll}
-            />
-            <output>{tiltRoll}deg</output>
-          </label>
-          <div className="demo-control-row">
-            <fieldset aria-label="Surface face mode" className="demo-face-control">
-              <button
-                data-active={faceMode === "face-out"}
-                onClick={() => setFaceMode("face-out")}
-                type="button"
-              >
-                Face out
+      {controlsVisible ? (
+        <header className="demo-header">
+          <div>
+            <p className="demo-kicker">Spher canvas demo</p>
+            <label className="demo-range-control">
+              <span>Size ratio</span>
+              <input
+                aria-label="Surface size ratio"
+                max="0.12"
+                min="0.03"
+                onChange={(event) => setSurfaceSizeRatio(Number(event.currentTarget.value))}
+                step="0.01"
+                type="range"
+                value={surfaceSizeRatio}
+              />
+              <output>{Math.round(surfaceSizeRatio * 100)}%</output>
+            </label>
+            <label className="demo-range-control">
+              <span>Pitch</span>
+              <input
+                aria-label="Sphere pitch"
+                max="36"
+                min="-36"
+                onChange={(event) => setTiltPitch(Number(event.currentTarget.value))}
+                step="1"
+                type="range"
+                value={tiltPitch}
+              />
+              <output>{tiltPitch}deg</output>
+            </label>
+            <label className="demo-range-control">
+              <span>Roll</span>
+              <input
+                aria-label="Sphere roll"
+                max="30"
+                min="-30"
+                onChange={(event) => setTiltRoll(Number(event.currentTarget.value))}
+                step="1"
+                type="range"
+                value={tiltRoll}
+              />
+              <output>{tiltRoll}deg</output>
+            </label>
+            <div className="demo-control-row">
+              <fieldset aria-label="Surface face mode" className="demo-face-control">
+                <button
+                  data-active={faceMode === "face-out"}
+                  onClick={() => setFaceMode("face-out")}
+                  type="button"
+                >
+                  Face out
+                </button>
+                <button
+                  data-active={faceMode === "face-in"}
+                  onClick={() => setFaceMode("face-in")}
+                  type="button"
+                >
+                  Face in
+                </button>
+              </fieldset>
+              <button className="demo-control-button" onClick={handleResetView} type="button">
+                Reset
               </button>
               <button
-                data-active={faceMode === "face-in"}
-                onClick={() => setFaceMode("face-in")}
+                className="demo-control-button"
+                onClick={() => setControlsVisible(false)}
                 type="button"
               >
-                Face in
+                Hide
               </button>
-            </fieldset>
-            <button className="demo-reset-button" onClick={handleResetView} type="button">
-              Reset
-            </button>
+            </div>
           </div>
-        </div>
-      </header>
+        </header>
+      ) : null}
 
       <CanvasSphere
         faceMode={faceMode}

@@ -211,7 +211,7 @@ const items: Item[] = Array.from({ length: 4 }, (_, pass) =>
 
 export const SpherDemo = () => {
   const [selectedId, setSelectedId] = useState(items[0].id)
-  const [cardSizeRatio, setCardSizeRatio] = useState(0.09)
+  const [cardSizeRatio, setCardSizeRatio] = useState(0.06)
   const [faceMode, setFaceMode] = useState<SpherCanvasFaceMode>("face-out")
 
   const visibleSelectedId = items.some((item) => item.id === selectedId) ? selectedId : null
@@ -226,8 +226,8 @@ export const SpherDemo = () => {
             <span>Size ratio</span>
             <input
               aria-label="Card size ratio"
-              max="0.14"
-              min="0.05"
+              max="0.12"
+              min="0.03"
               onChange={(event) => setCardSizeRatio(Number(event.currentTarget.value))}
               step="0.01"
               type="range"
@@ -314,7 +314,7 @@ const CanvasArchiveSphere = ({
       render: (context, item, state) =>
         renderCanvasArchiveCard(context, item, state, imagesRef.current),
       selectedId: null,
-      size: { ratio: 0.09 },
+      size: { ratio: 0.06 },
     })
     instanceRef.current = instance
 
@@ -368,8 +368,15 @@ const renderCanvasArchiveCard = (
   const image = images.get(item.id)
   const colors = categoryColors[item.category] ?? ["#e5e7eb", "#94a3b8"]
   const faceIn = state.faceMode === "face-in"
-  const drawMainImage = state.imageVisible || faceIn
-  const surfaceAlpha = faceIn ? (state.visibleSide === "outside" ? 0.2 : 0.78) : 1
+  const insideView = state.viewMode === "inside"
+  const drawMainImage = state.imageVisible || faceIn || insideView
+  const surfaceAlpha = insideView
+    ? 0.86
+    : faceIn
+      ? state.visibleSide === "outside"
+        ? 0.4
+        : 0.78
+      : 1
 
   context.save()
   context.globalAlpha *= surfaceAlpha
@@ -397,19 +404,7 @@ const renderCanvasArchiveCard = (
   context.clip()
 
   if (!drawMainImage) {
-    const cardBack = context.createLinearGradient(
-      mediaX,
-      mediaY,
-      mediaX + mediaWidth,
-      mediaY + mediaHeight,
-    )
-    cardBack.addColorStop(0, "rgba(30, 41, 59, 0.98)")
-    cardBack.addColorStop(0.52, colors[1])
-    cardBack.addColorStop(1, "rgba(2, 6, 23, 0.98)")
-    context.fillStyle = cardBack
-    context.fillRect(mediaX, mediaY, mediaWidth, mediaHeight)
-    context.fillStyle = "rgba(2, 6, 23, 0.52)"
-    context.fillRect(mediaX, mediaY, mediaWidth, mediaHeight)
+    drawCardBack(context, image, mediaX, mediaY, mediaWidth, mediaHeight, colors)
   } else if (image?.complete && image.naturalWidth > 0) {
     drawCoverImage(context, image, mediaX, mediaY, mediaWidth, mediaHeight)
   } else {
@@ -440,6 +435,42 @@ const renderCanvasArchiveCard = (
   }
   context.restore()
   context.restore()
+}
+
+const drawCardBack = (
+  context: CanvasRenderingContext2D,
+  image: HTMLImageElement | undefined,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  colors: [string, string],
+) => {
+  if (image?.complete && image.naturalWidth > 0) {
+    context.save()
+    context.translate(x + width / 2, y + height / 2)
+    context.scale(-1, 1)
+    context.filter = "saturate(0.42) contrast(0.82) brightness(0.64)"
+    drawCoverImage(context, image, -width / 2, -height / 2, width, height)
+    context.restore()
+  } else {
+    const fallback = context.createLinearGradient(x, y, x + width, y + height)
+    fallback.addColorStop(0, colors[0])
+    fallback.addColorStop(1, colors[1])
+    context.fillStyle = fallback
+    context.fillRect(x, y, width, height)
+  }
+
+  const backing = context.createLinearGradient(x, y, x + width, y + height)
+  backing.addColorStop(0, "rgba(15, 23, 42, 0.72)")
+  backing.addColorStop(0.5, "rgba(15, 23, 42, 0.36)")
+  backing.addColorStop(1, "rgba(2, 6, 23, 0.78)")
+  context.fillStyle = backing
+  context.fillRect(x, y, width, height)
+
+  context.strokeStyle = "rgba(255, 255, 255, 0.2)"
+  context.lineWidth = 1
+  context.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1)
 }
 
 const roundedRect = (

@@ -321,6 +321,29 @@ describe("createSpherCanvas", () => {
 
     instance.destroy()
   })
+
+  it("keeps inside-view item transforms bounded after zooming into the sphere", () => {
+    const canvas = createCanvas()
+    const transforms: DOMMatrix[] = []
+    const instance = createSpherCanvas(canvas, {
+      devicePixelRatio: 1,
+      items: [{ id: "inside" }],
+      position: () => ({ latitude: 0, longitude: 0 }),
+      radius: 180,
+      render: (context) => {
+        transforms.push(context.getTransform())
+        context.fillRect(-10, -10, 20, 20)
+      },
+      size: 40,
+      zoom: 4.4,
+    })
+
+    expect(instance.getState().viewMode).toBe("inside")
+    expect(Math.abs(transforms[0].a)).toBeLessThan(2)
+    expect(Math.abs(transforms[0].d)).toBeLessThan(2)
+
+    instance.destroy()
+  })
 })
 
 const waitFrames = async (count: number) => {

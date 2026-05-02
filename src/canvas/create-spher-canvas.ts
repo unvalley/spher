@@ -260,6 +260,7 @@ export const createSpherCanvas = <TItem extends SpherCanvasItem>(
       rotation: state.rotation,
       zoom: state.sceneZoom,
       perspective: state.perspective,
+      perspectiveMode: state.viewMode === "inside" ? "inside" : "outside",
     })
       .map((item, index) => ({ item, index }))
       .sort((a, b) => b.item.z - a.item.z || a.index - b.index)
@@ -745,7 +746,7 @@ const getPlaneBasis = <TItem extends SpherCanvasItem>(item: PositionedItem<TItem
 
 const projectPoint = <TItem extends SpherCanvasItem>(
   point: Point3D,
-  { perspective, rotation, sceneZoom }: SpherCanvasState<TItem>,
+  { perspective, rotation, sceneZoom, viewMode }: SpherCanvasState<TItem>,
 ): ProjectedPoint => {
   // cobe parity: RotX(theta) · RotY(phi) · p.
   const theta = toRadians(rotation.x)
@@ -763,7 +764,7 @@ const projectPoint = <TItem extends SpherCanvasItem>(
   y *= sceneZoom
   z *= sceneZoom
 
-  const perspectiveScale = perspective / Math.max(1, perspective + z)
+  const perspectiveScale = perspective / Math.max(1, perspective + (viewMode === "inside" ? -z : z))
   return {
     x: x * perspectiveScale,
     y: y * perspectiveScale,

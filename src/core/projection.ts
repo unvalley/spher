@@ -10,11 +10,12 @@ export type ProjectItemsOptions = {
   rotation: SpherRotation
   zoom?: number
   perspective: number
+  perspectiveMode?: "inside" | "outside"
 }
 
 export const projectItems = <TItem extends SpherItemBase>(
   items: PositionedItem<TItem>[],
-  { rotation, zoom = 1, perspective }: ProjectItemsOptions,
+  { rotation, zoom = 1, perspective, perspectiveMode = "outside" }: ProjectItemsOptions,
 ): ProjectedItem<TItem>[] => {
   // cobe parity: apply RotX(theta) · RotY(phi) · p, where phi = yaw (rotation.y)
   // and theta = pitch (rotation.x). Same matrix form as cobe's marker/arc shaders.
@@ -36,7 +37,7 @@ export const projectItems = <TItem extends SpherItemBase>(
     y *= zoom
     z *= zoom
 
-    const perspectiveScale = perspective / Math.max(1, perspective + z)
+    const perspectiveScale = getPerspectiveScale(z, perspective, perspectiveMode)
     const angularDistance = Math.atan2(Math.hypot(x, y), Math.max(1, -z))
     const edgeFactor = clamp(angularDistance / (Math.PI / 2), 0, 1)
 
@@ -51,6 +52,12 @@ export const projectItems = <TItem extends SpherItemBase>(
     }
   })
 }
+
+const getPerspectiveScale = (
+  z: number,
+  perspective: number,
+  perspectiveMode: ProjectItemsOptions["perspectiveMode"],
+) => perspective / Math.max(1, perspective + (perspectiveMode === "inside" ? -z : z))
 
 export const selectInsideVisibleItemIds = <TItem extends SpherItemBase>(
   projectedItems: ProjectedItem<TItem>[],

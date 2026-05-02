@@ -16,162 +16,98 @@ type Item = SpherCanvasItem & {
 type SourceItem = Omit<Item, "image">
 
 const philosophyImages = [
-  new URL("../../../research/image/philosophy/archive/items/abelard-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/abelard.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/adam-smith.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/adorno.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/ai-ethics.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/al-ghazali-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/al-kindi-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/al-kindi.png", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/alexandria-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/alexandria.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/analects-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/analects.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/aquinas-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/arendt-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/aristotle.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/ashoka.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/augustine.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/averroes.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/avicenna-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/bacon-photo.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/bacon.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/bacon.png", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/beauvoir-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/beauvoir.png", import.meta.url).href,
-  new URL(
-    "../../../research/image/philosophy/archive/items/being-and-time-photo.jpg",
-    import.meta.url,
-  ).href,
-  new URL("../../../research/image/philosophy/archive/items/benjamin-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/benjamin.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/bentham-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/bentham.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/boethius.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/buddha.png", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/butler-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/butler.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/camus-photo.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/capital-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/comte-photo.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/dai-zhen-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/daodejing.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/daodejing.png", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/darwin-photo.jpg", import.meta.url)
-    .href,
-  new URL(
-    "../../../research/image/philosophy/archive/items/death-of-socrates-photo.jpg",
-    import.meta.url,
-  ).href,
-  new URL("../../../research/image/philosophy/archive/items/death-of-socrates.jpg", import.meta.url)
-    .href,
-  new URL(
-    "../../../research/image/philosophy/archive/items/declaration-rights-photo.jpg",
-    import.meta.url,
-  ).href,
-  new URL(
-    "../../../research/image/philosophy/archive/items/declaration-rights.jpg",
-    import.meta.url,
-  ).href,
-  new URL("../../../research/image/philosophy/archive/items/derrida-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/derrida.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/dewey-photo.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/dewey.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/diderot-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/diderot.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/diogenes-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/diogenes.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/dogen-photo.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/dogen.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/du-bois-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/du-bois.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/duns-scotus-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/duns-scotus.jpg", import.meta.url).href,
-  new URL(
-    "../../../research/image/philosophy/archive/items/encyclopedie-photo.jpg",
-    import.meta.url,
-  ).href,
-  new URL("../../../research/image/philosophy/archive/items/encyclopedie.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/epicurus.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/fanon-photo.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/fanon.webp", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/foucault-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/foucault.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/four-books-photo.jpg", import.meta.url)
-    .href,
-  new URL(
-    "../../../research/image/philosophy/archive/items/frankfurt-school-photo.jpg",
-    import.meta.url,
-  ).href,
-  new URL("../../../research/image/philosophy/archive/items/frege-photo.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/frege.jpg", import.meta.url).href,
-  new URL(
-    "../../../research/image/philosophy/archive/items/french-revolution-photo.jpg",
-    import.meta.url,
-  ).href,
-  new URL("../../../research/image/philosophy/archive/items/french-revolution.jpg", import.meta.url)
-    .href,
-  new URL(
-    "../../../research/image/philosophy/archive/items/fukuzawa-yukichi-photo.jpg",
-    import.meta.url,
-  ).href,
-  new URL("../../../research/image/philosophy/archive/items/fukuzawa-yukichi.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/galileo-trial.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/galileo-trial.png", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/great-wave-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/great-wave.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/guernica-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/habermas-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/habermas.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/han-feizi-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/han-feizi.png", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/hegel-photo.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/hegel.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/heidegger-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/heraclitus-photo.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/heraclitus.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/hildegard.jpg", import.meta.url).href,
-  new URL("../../../research/image/philosophy/archive/items/hobbes-photo.jpg", import.meta.url)
-    .href,
-  new URL(
-    "../../../research/image/philosophy/archive/items/house-of-wisdom-photo.jpg",
-    import.meta.url,
-  ).href,
-  new URL("../../../research/image/philosophy/archive/items/house-of-wisdom.jpg", import.meta.url)
-    .href,
-  new URL("../../../research/image/philosophy/archive/items/huineng-photo.jpg", import.meta.url)
-    .href,
+  new URL("./assets/philosophy/abelard-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/abelard.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/adam-smith.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/adorno.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/ai-ethics.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/al-ghazali-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/al-kindi-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/al-kindi.png", import.meta.url).href,
+  new URL("./assets/philosophy/alexandria-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/alexandria.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/analects-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/analects.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/aquinas-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/arendt-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/aristotle.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/ashoka.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/augustine.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/averroes.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/avicenna-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/bacon-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/bacon.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/bacon.png", import.meta.url).href,
+  new URL("./assets/philosophy/beauvoir-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/beauvoir.png", import.meta.url).href,
+  new URL("./assets/philosophy/being-and-time-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/benjamin-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/benjamin.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/bentham-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/bentham.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/boethius.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/buddha.png", import.meta.url).href,
+  new URL("./assets/philosophy/butler-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/butler.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/camus-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/capital-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/comte-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/dai-zhen-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/daodejing.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/daodejing.png", import.meta.url).href,
+  new URL("./assets/philosophy/darwin-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/death-of-socrates-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/death-of-socrates.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/declaration-rights-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/declaration-rights.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/derrida-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/derrida.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/dewey-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/dewey.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/diderot-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/diderot.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/diogenes-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/diogenes.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/dogen-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/dogen.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/du-bois-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/du-bois.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/duns-scotus-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/duns-scotus.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/encyclopedie-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/encyclopedie.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/epicurus.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/fanon-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/fanon.webp", import.meta.url).href,
+  new URL("./assets/philosophy/foucault-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/foucault.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/four-books-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/frankfurt-school-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/frege-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/frege.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/french-revolution-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/french-revolution.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/fukuzawa-yukichi-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/fukuzawa-yukichi.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/galileo-trial.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/galileo-trial.png", import.meta.url).href,
+  new URL("./assets/philosophy/great-wave-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/great-wave.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/guernica-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/habermas-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/habermas.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/han-feizi-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/han-feizi.png", import.meta.url).href,
+  new URL("./assets/philosophy/hegel-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/hegel.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/heidegger-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/heraclitus-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/heraclitus.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/hildegard.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/hobbes-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/house-of-wisdom-photo.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/house-of-wisdom.jpg", import.meta.url).href,
+  new URL("./assets/philosophy/huineng-photo.jpg", import.meta.url).href,
 ]
 
 const sourceItems: SourceItem[] = [

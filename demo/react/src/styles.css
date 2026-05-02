@@ -43,9 +43,9 @@ button {
   letter-spacing: 0.08em;
 }
 
-.archive-size-control {
+.archive-range-control {
   display: grid;
-  grid-template-columns: auto minmax(120px, 180px) 44px;
+  grid-template-columns: 64px minmax(120px, 180px) 52px;
   gap: 10px;
   align-items: center;
   padding: 8px 10px;
@@ -58,12 +58,12 @@ button {
   box-shadow: 0 10px 28px rgb(15 23 42 / 8%);
 }
 
-.archive-size-control input {
+.archive-range-control input {
   width: 100%;
   accent-color: #111827;
 }
 
-.archive-size-control output {
+.archive-range-control output {
   font-variant-numeric: tabular-nums;
   color: #111827;
   text-align: right;
@@ -270,8 +270,8 @@ button {
     font-size: 32px;
   }
 
-  .archive-size-control {
-    grid-template-columns: auto minmax(100px, 1fr) 40px;
+  .archive-range-control {
+    grid-template-columns: 64px minmax(100px, 1fr) 52px;
   }
 
   .archive-card {

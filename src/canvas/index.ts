@@ -10,6 +10,8 @@ export type {
   SpherCanvasPosition,
   SpherCanvasProjection,
   SpherCanvasRenderState,
+  SpherCanvasResolvedTilt,
   SpherCanvasState,
   SpherCanvasSurfaceSide,
+  SpherCanvasTilt,
 } from "./types.js"

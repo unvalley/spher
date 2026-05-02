@@ -213,6 +213,8 @@ export const SpherDemo = () => {
   const [selectedId, setSelectedId] = useState(items[0].id)
   const [cardSizeRatio, setCardSizeRatio] = useState(0.06)
   const [faceMode, setFaceMode] = useState<SpherCanvasFaceMode>("face-out")
+  const [tiltPitch, setTiltPitch] = useState(12)
+  const [tiltRoll, setTiltRoll] = useState(0)
 
   const visibleSelectedId = items.some((item) => item.id === selectedId) ? selectedId : null
   const handleSelect = useCallback((item: Item) => setSelectedId(item.id), [])
@@ -222,7 +224,7 @@ export const SpherDemo = () => {
       <header className="archive-header">
         <div>
           <p className="archive-kicker">Spher canvas demo</p>
-          <label className="archive-size-control">
+          <label className="archive-range-control">
             <span>Size ratio</span>
             <input
               aria-label="Card size ratio"
@@ -234,6 +236,32 @@ export const SpherDemo = () => {
               value={cardSizeRatio}
             />
             <output>{Math.round(cardSizeRatio * 100)}%</output>
+          </label>
+          <label className="archive-range-control">
+            <span>Pitch</span>
+            <input
+              aria-label="Sphere pitch"
+              max="36"
+              min="-36"
+              onChange={(event) => setTiltPitch(Number(event.currentTarget.value))}
+              step="1"
+              type="range"
+              value={tiltPitch}
+            />
+            <output>{tiltPitch}deg</output>
+          </label>
+          <label className="archive-range-control">
+            <span>Roll</span>
+            <input
+              aria-label="Sphere roll"
+              max="30"
+              min="-30"
+              onChange={(event) => setTiltRoll(Number(event.currentTarget.value))}
+              step="1"
+              type="range"
+              value={tiltRoll}
+            />
+            <output>{tiltRoll}deg</output>
           </label>
           <fieldset aria-label="Card face mode" className="archive-face-control">
             <button
@@ -259,6 +287,8 @@ export const SpherDemo = () => {
         faceMode={faceMode}
         onSelect={handleSelect}
         selectedId={visibleSelectedId}
+        tiltPitch={tiltPitch}
+        tiltRoll={tiltRoll}
       />
     </main>
   )
@@ -269,11 +299,15 @@ const CanvasArchiveSphere = ({
   faceMode,
   onSelect,
   selectedId,
+  tiltPitch,
+  tiltRoll,
 }: {
   cardSizeRatio: number
   faceMode: SpherCanvasFaceMode
   onSelect: (item: Item) => void
   selectedId: string | null
+  tiltPitch: number
+  tiltRoll: number
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const instanceRef = useRef<SpherCanvasInstance<Item> | null>(null)
@@ -335,6 +369,10 @@ const CanvasArchiveSphere = ({
   useEffect(() => {
     instanceRef.current?.update({ faceMode })
   }, [faceMode])
+
+  useEffect(() => {
+    instanceRef.current?.update({ tilt: { x: tiltPitch, z: tiltRoll } })
+  }, [tiltPitch, tiltRoll])
 
   return (
     <canvas

@@ -86,6 +86,7 @@ const instance = createSpher(canvas, {
   radius: 320,
   perspective: 900,
   rotation: { x: 0, y: 0 },
+  tilt: { x: 12 },
   zoom: 1,
   placement: "fibonacci",
   controls: true,
@@ -142,6 +143,16 @@ Use `faceMode` when your renderer treats cards as having a main image side. `fac
 createSpher(canvas, {
   items,
   faceMode: "face-in",
+});
+```
+
+Use `tilt` when the sphere should have a fixed base angle while controls continue to own `rotation`. Pass a number for pitch-only tilt, or pass `{ x, y, z }` for pitch, yaw, and roll offsets in degrees.
+
+```ts
+createSpher(canvas, {
+  items,
+  tilt: { x: 12 },
+  controls: { autoRotate: true, drag: true },
 });
 ```
 

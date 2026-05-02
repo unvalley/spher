@@ -171,6 +171,31 @@ describe("createSpherCanvas", () => {
     instance.destroy()
   })
 
+  it("keeps tilt separate from interactive rotation", () => {
+    const canvas = createCanvas()
+    const instance = createSpherCanvas(canvas, {
+      items: [{ id: "front" }],
+      position: () => ({ latitude: 0, longitude: 0 }),
+      radius: 100,
+      tilt: { x: 12, z: -8 },
+    })
+
+    expect(instance.getState().rotation).toEqual({ x: 0, y: 0 })
+    expect(instance.getState().tilt).toEqual({ x: 12, y: 0, z: -8 })
+    expect(instance.itemState("front")?.item.id).toBe("front")
+
+    instance.update({ rotation: { x: 4, y: 24 }, tilt: -6 })
+
+    expect(instance.getState().rotation).toEqual({ x: 4, y: 24 })
+    expect(instance.getState().tilt).toEqual({ x: -6, y: 0, z: 0 })
+
+    instance.update({ tilt: { z: 4 } })
+
+    expect(instance.getState().tilt).toEqual({ x: -6, y: 0, z: 4 })
+
+    instance.destroy()
+  })
+
   it("resolves responsive card sizes with ratio bounds", () => {
     const canvas = createCanvas()
     const instance = createSpherCanvas(canvas, {

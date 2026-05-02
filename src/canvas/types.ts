@@ -13,6 +13,23 @@ export type SpherCanvasFaceMode = "face-out" | "face-in"
 
 export type SpherCanvasSurfaceSide = "outside" | "inside"
 
+export type SpherCanvasTilt =
+  | number
+  | {
+      /** Pitch offset in degrees, applied before user rotation. */
+      x?: number
+      /** Yaw offset in degrees, applied before user rotation. */
+      y?: number
+      /** Roll offset in degrees, useful for visually leaning the sphere. */
+      z?: number
+    }
+
+export type SpherCanvasResolvedTilt = {
+  x: number
+  y: number
+  z: number
+}
+
 export type SpherCanvasControls =
   | boolean
   | {
@@ -55,6 +72,7 @@ export type SpherCanvasOptions<TItem extends SpherCanvasItem = SpherCanvasItem> 
     x: number
     y: number
   }
+  tilt?: SpherCanvasTilt
   zoom?: number
   insideZoomThreshold?: number
   minZoom?: number
@@ -88,6 +106,7 @@ export type SpherCanvasState<TItem extends SpherCanvasItem = SpherCanvasItem> = 
     x: number
     y: number
   }
+  tilt: SpherCanvasResolvedTilt
   zoom: number
   insideZoomProgress: number
   insideZoomThreshold: number

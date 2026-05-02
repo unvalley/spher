@@ -34,6 +34,22 @@ describe("core sphere projection", () => {
     expect(projected.z).toBeLessThan(0)
   })
 
+  it("applies tilt as a base projection offset", () => {
+    const placed = placeItems([{ id: "front", position: { latitude: 0, longitude: 0 } }], {
+      radius: 100,
+      position: (item) => item.position,
+    })
+    const [projected] = projectItems(placed, {
+      rotation: { x: 0, y: 0 },
+      tilt: { x: 12, y: 0, z: 0 },
+      perspective: 500,
+    })
+
+    expect(projected.projectedX).toBeCloseTo(0)
+    expect(projected.projectedY).toBeGreaterThan(15)
+    expect(projected.z).toBeLessThan(0)
+  })
+
   it("finds the nearest projected item inside the hit radius", () => {
     const placed = placeItems(
       [

@@ -20,6 +20,7 @@ import type {
 const defaultRadius = 320
 const defaultPerspective = 900
 const defaultRotation = { x: 0, y: 0 }
+const defaultTilt = { x: 0, y: 0, z: 0 }
 const defaultZoom = 1
 const defaultInsideZoomThreshold = 1.32
 const defaultMinZoom = 0.66
@@ -258,6 +259,7 @@ export const createSpherCanvas = <TItem extends SpherCanvasItem>(
 
     const projectedItems = projectItems(getPlacedItems(), {
       rotation: state.rotation,
+      tilt: state.tilt,
       zoom: state.sceneZoom,
       perspective: state.perspective,
       perspectiveMode: state.viewMode === "inside" ? "inside" : "outside",
@@ -562,6 +564,7 @@ const normalizeOptions = <TItem extends SpherCanvasItem>(
     radius: resolveRadius(options.radius, viewport, previous?.radius),
     perspective: options.perspective ?? previous?.perspective ?? defaultPerspective,
     rotation: options.rotation ?? previous?.rotation ?? defaultRotation,
+    tilt: resolveTilt(options.tilt, previous?.tilt),
     zoom: options.zoom ?? previous?.zoom ?? defaultZoom,
     insideZoomThreshold:
       options.insideZoomThreshold ?? previous?.insideZoomThreshold ?? defaultInsideZoomThreshold,
@@ -627,6 +630,19 @@ const resolveSizeOption = <TItem extends SpherCanvasItem>(
   const min = size.min ?? 0
   const max = size.max ?? Number.POSITIVE_INFINITY
   return clamp(diameter * ratio, min, max)
+}
+
+const resolveTilt = (
+  tilt: SpherCanvasOptions["tilt"],
+  previous: SpherCanvasState["tilt"] | undefined,
+) => {
+  if (tilt === undefined) return previous ?? defaultTilt
+  if (typeof tilt === "number") return { x: tilt, y: 0, z: 0 }
+  return {
+    x: tilt.x ?? previous?.x ?? 0,
+    y: tilt.y ?? previous?.y ?? 0,
+    z: tilt.z ?? previous?.z ?? 0,
+  }
 }
 
 type GetVisibilityOptions<TItem extends SpherCanvasItem> = {
@@ -736,19 +752,28 @@ const getPlaneBasis = <TItem extends SpherCanvasItem>(item: PositionedItem<TItem
 
 const projectPoint = <TItem extends SpherCanvasItem>(
   point: Point3D,
-  { perspective, rotation, sceneZoom, viewMode }: SpherCanvasState<TItem>,
+  { perspective, rotation, sceneZoom, tilt, viewMode }: SpherCanvasState<TItem>,
 ): ProjectedPoint => {
   // cobe parity: RotX(theta) · RotY(phi) · p.
-  const theta = toRadians(rotation.x)
-  const phi = toRadians(rotation.y)
+  const theta = toRadians(rotation.x + tilt.x)
+  const phi = toRadians(rotation.y + tilt.y)
+  const roll = toRadians(tilt.z)
   const cx = Math.cos(theta)
   const cy = Math.cos(phi)
   const sx = Math.sin(theta)
   const sy = Math.sin(phi)
+  const cz = Math.cos(roll)
+  const sz = Math.sin(roll)
 
   let x = cy * point.x + sy * point.z
   let y = sy * sx * point.x + cx * point.y - cy * sx * point.z
   let z = -sy * cx * point.x + sx * point.y + cy * cx * point.z
+
+  if (roll !== 0) {
+    const rolledX = cz * x - sz * y
+    y = sz * x + cz * y
+    x = rolledX
+  }
 
   x *= sceneZoom
   y *= sceneZoom

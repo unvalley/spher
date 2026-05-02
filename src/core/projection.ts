@@ -6,8 +6,15 @@ export type SpherRotation = {
   y: number
 }
 
+export type SpherTilt = {
+  x: number
+  y: number
+  z: number
+}
+
 export type ProjectItemsOptions = {
   rotation: SpherRotation
+  tilt?: SpherTilt
   zoom?: number
   perspective: number
   perspectiveMode?: "inside" | "outside"
@@ -15,21 +22,30 @@ export type ProjectItemsOptions = {
 
 export const projectItems = <TItem extends SpherItemBase>(
   items: PositionedItem<TItem>[],
-  { rotation, zoom = 1, perspective, perspectiveMode = "outside" }: ProjectItemsOptions,
+  { rotation, tilt, zoom = 1, perspective, perspectiveMode = "outside" }: ProjectItemsOptions,
 ): ProjectedItem<TItem>[] => {
   // cobe parity: apply RotX(theta) · RotY(phi) · p, where phi = yaw (rotation.y)
   // and theta = pitch (rotation.x). Same matrix form as cobe's marker/arc shaders.
-  const theta = toRadians(rotation.x)
-  const phi = toRadians(rotation.y)
+  const theta = toRadians(rotation.x + (tilt?.x ?? 0))
+  const phi = toRadians(rotation.y + (tilt?.y ?? 0))
+  const roll = toRadians(tilt?.z ?? 0)
   const cx = Math.cos(theta)
   const cy = Math.cos(phi)
   const sx = Math.sin(theta)
   const sy = Math.sin(phi)
+  const cz = Math.cos(roll)
+  const sz = Math.sin(roll)
 
   return items.map((item) => {
     let x = cy * item.baseX + sy * item.baseZ
     let y = sy * sx * item.baseX + cx * item.baseY - cy * sx * item.baseZ
     let z = -sy * cx * item.baseX + sx * item.baseY + cy * cx * item.baseZ
+
+    if (roll !== 0) {
+      const rolledX = cz * x - sz * y
+      y = sz * x + cz * y
+      x = rolledX
+    }
 
     const normalY = clamp(y / item.radius, -1, 1)
 

@@ -2,7 +2,8 @@
 
 `spher` is a small canvas-first sphere layout engine.
 
-https://github.com/user-attachments/assets/6a565152-496f-4e65-be00-85b8d7e74f42
+https://github.com/user-attachments/assets/bba92d72-e591-4eaf-aacc-83f8977fd6d0
+
 
 ## Install
 

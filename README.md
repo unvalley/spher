@@ -13,11 +13,34 @@ npm install spher
 ## Quick Start
 
 ```ts
-import { createSpher } from "spher";
+import { createImageCardRenderer, createSpher } from "spher";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#sphere");
 
 if (canvas) {
+  const items = [
+    {
+      id: "tokyo",
+      image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=420",
+      label: "Tokyo",
+      tone: "city",
+    },
+    {
+      id: "sf",
+      image: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=420",
+      label: "San Francisco",
+      tone: "coast",
+    },
+  ];
+  const renderer = createImageCardRenderer({
+    colors: {
+      city: ["#dbeafe", "#60a5fa"],
+      coast: ["#dcfce7", "#34d399"],
+    },
+    image: (item) => item.image,
+    tone: (item) => item.tone,
+  });
+
   const sphere = createSpher(canvas, {
     radius: 320,
     perspective: 900,
@@ -26,35 +49,19 @@ if (canvas) {
       drag: true,
       wheel: true,
     },
-    items: [
-      { id: "tokyo", label: "Tokyo" },
-      { id: "sf", label: "San Francisco" },
-    ],
+    items,
     position: (item) =>
       item.id === "tokyo"
         ? { latitude: 35.6762, longitude: 139.6503 }
         : { latitude: 37.7749, longitude: -122.4194 },
-    size: (item) => (item.id === "tokyo" ? 72 : 56),
-    render: (context, item, state) => {
-      const size = state.item.size;
-      context.fillStyle = state.selected ? "#111827" : "#ffffff";
-      context.strokeStyle = "rgba(15, 23, 42, 0.18)";
-      context.lineWidth = 1;
-      context.beginPath();
-      context.roundRect(-size / 2, -size / 2, size, size, 12);
-      context.fill();
-      context.stroke();
-      context.fillStyle = state.selected ? "#ffffff" : "#111827";
-      context.font = "12px sans-serif";
-      context.textAlign = "center";
-      context.textBaseline = "middle";
-      context.fillText(item.label, 0, 0);
-    },
+    size: { ratio: 0.1 },
+    render: renderer,
     onSelect: (item) => {
       console.log("selected", item.id);
     },
   });
 
+  renderer.preload(items, () => sphere.update({}));
   sphere.rotateTo({ x: 8, y: 24 });
 
   // Later:
@@ -175,6 +182,32 @@ The same canvas API is also available from `spher/canvas`.
 
 ```ts
 import { createSpherCanvas } from "spher/canvas";
+```
+
+### Canvas Renderers
+
+Use `createImageCardRenderer` when you want image cards like the demo without writing canvas drawing code by hand.
+
+```ts
+import { createImageCardRenderer, createSpher } from "spher";
+
+const renderer = createImageCardRenderer({
+  image: (item) => item.image,
+  tone: (item) => item.category,
+  colors: {
+    archive: ["#dbeafe", "#60a5fa"],
+    network: ["#fee2e2", "#fb7185"],
+  },
+});
+
+const sphere = createSpher(canvas, {
+  items,
+  radius: "auto",
+  size: { ratio: 0.06 },
+  render: renderer,
+});
+
+renderer.preload(items, () => sphere.update({}));
 ```
 
 ## Core Utilities

@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react"
 import {
+  createImageCardRenderer,
   createSpher,
   type SpherCanvasFaceMode,
   type SpherCanvasInstance,
   type SpherCanvasItem,
-  type SpherCanvasRenderState,
 } from "../../../src/index.js"
 
 type Item = SpherCanvasItem & {
@@ -311,31 +311,15 @@ const CanvasArchiveSphere = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const instanceRef = useRef<SpherCanvasInstance<Item> | null>(null)
-  const imagesRef = useRef(new Map<string, HTMLImageElement>())
-
-  useEffect(() => {
-    let active = true
-
-    for (const item of items) {
-      if (imagesRef.current.has(item.id)) continue
-
-      const image = new Image()
-      image.decoding = "async"
-      image.onload = () => {
-        if (active) instanceRef.current?.update({})
-      }
-      image.src = item.image
-      imagesRef.current.set(item.id, image)
-    }
-
-    return () => {
-      active = false
-    }
-  }, [])
 
   useEffect(() => {
     if (!canvasRef.current) return
 
+    const renderer = createImageCardRenderer<Item>({
+      colors: categoryColors,
+      image: (item) => item.image,
+      tone: (item) => item.category,
+    })
     const instance = createSpher(canvasRef.current, {
       controls: { autoRotate: true, drag: true, keyboard: true, wheel: true },
       faceMode: "face-out",
@@ -345,12 +329,12 @@ const CanvasArchiveSphere = ({
       onSelect,
       perspective: 980,
       radius: "auto",
-      render: (context, item, state) =>
-        renderCanvasArchiveCard(context, item, state, imagesRef.current),
+      render: renderer,
       selectedId: null,
       size: { ratio: 0.06 },
     })
     instanceRef.current = instance
+    renderer.preload(items, () => instance.update({}))
 
     return () => {
       instance.destroy()
@@ -359,20 +343,13 @@ const CanvasArchiveSphere = ({
   }, [onSelect])
 
   useEffect(() => {
-    instanceRef.current?.update({ selectedId })
-  }, [selectedId])
-
-  useEffect(() => {
-    instanceRef.current?.update({ size: { ratio: cardSizeRatio } })
-  }, [cardSizeRatio])
-
-  useEffect(() => {
-    instanceRef.current?.update({ faceMode })
-  }, [faceMode])
-
-  useEffect(() => {
-    instanceRef.current?.update({ tilt: { x: tiltPitch, z: tiltRoll } })
-  }, [tiltPitch, tiltRoll])
+    instanceRef.current?.update({
+      faceMode,
+      selectedId,
+      size: { ratio: cardSizeRatio },
+      tilt: { x: tiltPitch, z: tiltRoll },
+    })
+  }, [cardSizeRatio, faceMode, selectedId, tiltPitch, tiltRoll])
 
   return (
     <canvas
@@ -388,165 +365,4 @@ const categoryColors: Record<string, [string, string]> = {
   instrument: ["#dcfce7", "#34d399"],
   network: ["#fee2e2", "#fb7185"],
   philosophy: ["#f3e8ff", "#a78bfa"],
-}
-
-const renderCanvasArchiveCard = (
-  context: CanvasRenderingContext2D,
-  item: Item,
-  state: SpherCanvasRenderState<Item>,
-  images: Map<string, HTMLImageElement>,
-) => {
-  const width = state.item.size + 4
-  const inset = 3
-  const mediaWidth = width - inset * 2
-  const mediaHeight = (mediaWidth * 4) / 3
-  const height = mediaHeight + inset * 2
-  const x = -width / 2
-  const y = -height / 2
-  const image = images.get(item.id)
-  const colors = categoryColors[item.category] ?? ["#e5e7eb", "#94a3b8"]
-  const faceIn = state.faceMode === "face-in"
-  const faceOutBack = state.faceMode === "face-out" && state.visibleSide === "inside"
-  const insideView = state.viewMode === "inside"
-  const drawMainImage = state.imageVisible || faceIn || insideView
-  const surfaceAlpha = insideView
-    ? 0.86
-    : faceOutBack
-      ? 0.54
-      : faceIn
-        ? state.visibleSide === "outside"
-          ? 0.4
-          : 0.72
-        : 1
-
-  context.save()
-  context.globalAlpha *= surfaceAlpha
-  if (state.selected) {
-    context.shadowBlur = 18
-    context.shadowColor = "rgba(15, 23, 42, 0.24)"
-  }
-
-  context.fillStyle = drawMainImage ? "rgba(255, 255, 255, 0.72)" : "rgba(255, 255, 255, 0.46)"
-  context.strokeStyle = state.selected
-    ? "rgba(17, 24, 39, 0.96)"
-    : drawMainImage
-      ? "rgba(15, 23, 42, 0.16)"
-      : "rgba(15, 23, 42, 0.2)"
-  context.lineWidth = state.selected ? 2 : 1
-  roundedRect(context, x, y, width, height, 4)
-  context.fill()
-  context.stroke()
-
-  const mediaX = x + inset
-  const mediaY = y + inset
-
-  context.save()
-  roundedRect(context, mediaX, mediaY, mediaWidth, mediaHeight, 2)
-  context.clip()
-
-  if (!drawMainImage) {
-    drawCardBack(context, image, mediaX, mediaY, mediaWidth, mediaHeight, colors)
-  } else if (image?.complete && image.naturalWidth > 0) {
-    drawCoverImage(context, image, mediaX, mediaY, mediaWidth, mediaHeight)
-  } else {
-    const fallback = context.createLinearGradient(
-      mediaX,
-      mediaY,
-      mediaX + mediaWidth,
-      mediaY + mediaHeight,
-    )
-    fallback.addColorStop(0, colors[0])
-    fallback.addColorStop(1, colors[1])
-    context.fillStyle = fallback
-    context.fillRect(mediaX, mediaY, mediaWidth, mediaHeight)
-  }
-
-  const light = context.createLinearGradient(
-    mediaX,
-    mediaY,
-    mediaX + mediaWidth,
-    mediaY + mediaHeight,
-  )
-  light.addColorStop(0, "rgba(255, 255, 255, 0.42)")
-  light.addColorStop(0.48, "rgba(255, 255, 255, 0)")
-  light.addColorStop(1, "rgba(15, 23, 42, 0.16)")
-  if (drawMainImage) {
-    context.fillStyle = light
-    context.fillRect(mediaX, mediaY, mediaWidth, mediaHeight)
-  }
-  context.restore()
-  context.restore()
-}
-
-const drawCardBack = (
-  context: CanvasRenderingContext2D,
-  image: HTMLImageElement | undefined,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  colors: [string, string],
-) => {
-  if (image?.complete && image.naturalWidth > 0) {
-    context.save()
-    context.translate(x + width / 2, y + height / 2)
-    context.scale(-1, 1)
-    context.filter = "saturate(0.68) contrast(0.94) brightness(0.92)"
-    drawCoverImage(context, image, -width / 2, -height / 2, width, height)
-    context.restore()
-  } else {
-    const fallback = context.createLinearGradient(x, y, x + width, y + height)
-    fallback.addColorStop(0, colors[0])
-    fallback.addColorStop(1, colors[1])
-    context.fillStyle = fallback
-    context.fillRect(x, y, width, height)
-  }
-
-  const backing = context.createLinearGradient(x, y, x + width, y + height)
-  backing.addColorStop(0, "rgba(255, 255, 255, 0.3)")
-  backing.addColorStop(0.5, "rgba(15, 23, 42, 0.06)")
-  backing.addColorStop(1, "rgba(15, 23, 42, 0.16)")
-  context.fillStyle = backing
-  context.fillRect(x, y, width, height)
-
-  context.strokeStyle = "rgba(15, 23, 42, 0.18)"
-  context.lineWidth = 1
-  context.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1)
-}
-
-const roundedRect = (
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) => {
-  context.beginPath()
-  context.moveTo(x + radius, y)
-  context.lineTo(x + width - radius, y)
-  context.quadraticCurveTo(x + width, y, x + width, y + radius)
-  context.lineTo(x + width, y + height - radius)
-  context.quadraticCurveTo(x + width, y + height, x + width - radius, y + height)
-  context.lineTo(x + radius, y + height)
-  context.quadraticCurveTo(x, y + height, x, y + height - radius)
-  context.lineTo(x, y + radius)
-  context.quadraticCurveTo(x, y, x + radius, y)
-  context.closePath()
-}
-
-const drawCoverImage = (
-  context: CanvasRenderingContext2D,
-  image: HTMLImageElement,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-) => {
-  const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight)
-  const sourceWidth = width / scale
-  const sourceHeight = height / scale
-  const sourceX = (image.naturalWidth - sourceWidth) / 2
-  const sourceY = (image.naturalHeight - sourceHeight) / 2
-  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height)
 }

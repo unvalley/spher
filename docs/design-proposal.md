@@ -2,7 +2,7 @@
 
 ## Direction
 
-spher should be a small, unstyled sphere layout engine. The package should provide the mechanics for placing real DOM and React components on a rotating sphere, while product-specific styling lives in userland or demos.
+spher should be a small sphere layout engine with low-level rendering hooks and a few first-party canvas renderers. The package should provide the mechanics for placing cards, labels, images, or custom marks on a rotating sphere, while product-specific application UI lives in userland or demos.
 
 The public surface is now centered on:
 
@@ -12,7 +12,7 @@ The public surface is now centered on:
 
 The root `spher` entry should stay framework-agnostic. Framework adapters are exported only from subpaths such as `spher/react`.
 
-Styled archive UI is intentionally not part of the library API. An archive-style example lives in `demo/react`.
+Styled archive UI is intentionally not part of the library API. Reusable primitives such as an image-card canvas renderer can live in the package, and an archive-style composition lives in `demo/react`.
 
 ## Package Layers
 
@@ -93,11 +93,11 @@ data-spher-front
 data-spher-selected
 ```
 
-The package should not ship Tailwind-based component styling. Demos can use any styling they need.
+The package should not ship Tailwind-based component styling. Demos can use any styling they need, while reusable canvas drawing primitives should be exposed as renderer helpers instead of copied into each demo.
 
 ## Demo Strategy
 
-`demo/react` contains a styled archive example built with `Spher`. This keeps the package API generic while still showing a rich archive experience.
+`demo/react` contains a styled archive example built with `createSpher` and first-party canvas renderers. This keeps the package API generic while still showing a rich archive experience with a small amount of userland code.
 
 ## Test Strategy
 

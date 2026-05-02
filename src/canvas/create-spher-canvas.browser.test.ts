@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest"
 import { createSpherCanvas } from "./create-spher-canvas.js"
+import { createImageCardRenderer } from "./renderers.js"
 
 const canvases: HTMLCanvasElement[] = []
 
@@ -38,6 +39,28 @@ describe("createSpherCanvas", () => {
     expect(canvas.height).toBe(800)
     expect(instance.itemState("front")?.front).toBe(true)
     expect(instance.itemState("front")?.selected).toBe(true)
+
+    instance.destroy()
+  })
+
+  it("renders image cards with the preset renderer", () => {
+    const canvas = createCanvas()
+    const renderer = createImageCardRenderer({
+      colors: { archive: ["#dbeafe", "#60a5fa"] },
+      image: () => undefined,
+      tone: () => "archive",
+    })
+    const instance = createSpherCanvas(canvas, {
+      devicePixelRatio: 1,
+      items: [{ id: "card" }],
+      position: () => ({ latitude: 0, longitude: 0 }),
+      radius: 100,
+      render: renderer,
+      size: 60,
+    })
+    const context = canvas.getContext("2d")
+
+    expect(context?.getImageData(200, 200, 1, 1).data[3]).toBeGreaterThan(0)
 
     instance.destroy()
   })

@@ -1,8 +1,8 @@
 # spher
 
-`spher` is a small sphere layout engine for DOM and React components.
+`spher` is a small canvas-first sphere layout engine.
 
-Use it when you want to place real interface elements on a rotating sphere: cards, labels, buttons, images, links, or any DOM node you control. The low-level API is framework-agnostic, and the React component is unstyled.
+Use it when you want to draw cards, labels, images, or custom marks on a rotating sphere. It targets `<canvas>` for smooth dense scenes.
 
 ## Install
 
@@ -15,13 +15,14 @@ npm install spher
 ```ts
 import { createSpher } from "spher";
 
-const root = document.querySelector<HTMLElement>("#sphere");
+const canvas = document.querySelector<HTMLCanvasElement>("#sphere");
 
-if (root) {
-  const sphere = createSpher(root, {
+if (canvas) {
+  const sphere = createSpher(canvas, {
     radius: 320,
     perspective: 900,
     controls: {
+      autoRotate: { speed: 0.18 },
       drag: true,
       wheel: true,
     },
@@ -34,9 +35,19 @@ if (root) {
         ? { latitude: 35.6762, longitude: 139.6503 }
         : { latitude: 37.7749, longitude: -122.4194 },
     size: (item) => (item.id === "tokyo" ? 72 : 56),
-    render: (item, element) => {
-      element.className = "city";
-      element.textContent = item.label;
+    render: (context, item, state) => {
+      context.fillStyle = state.selected ? "#111827" : "#ffffff";
+      context.strokeStyle = "rgba(15, 23, 42, 0.18)";
+      context.lineWidth = 1;
+      context.beginPath();
+      context.roundRect(-item.size / 2, -item.size / 2, item.size, item.size, 12);
+      context.fill();
+      context.stroke();
+      context.fillStyle = state.selected ? "#ffffff" : "#111827";
+      context.font = "12px sans-serif";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(item.label, 0, 0);
     },
     onSelect: (item) => {
       console.log("selected", item.id);
@@ -54,33 +65,22 @@ if (root) {
 #sphere {
   width: 480px;
   height: 480px;
-}
-
-.city {
-  display: grid;
-  place-items: center;
-  width: 72px;
-  height: 72px;
-  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-  border-radius: 999px;
-  background: white;
-  box-shadow: 0 16px 40px rgb(15 23 42 / 16%);
-  opacity: var(--spher-visibility);
+  touch-action: none;
 }
 ```
 
 ## API
 
-### `createSpher(root, options)`
+### `createSpher(canvas, options)`
 
-`createSpher` mounts a DOM sphere engine into an existing element.
+The main `createSpher` export is an alias of `createSpherCanvas`. It draws into an existing `<canvas>` and owns pointer, wheel, and keyboard controls when enabled.
 
 ```ts
 import { createSpher } from "spher";
 ```
 
 ```ts
-const instance = createSpher(root, {
+const instance = createSpher(canvas, {
   items,
   radius: 320,
   perspective: 900,
@@ -94,13 +94,13 @@ const instance = createSpher(root, {
 The instance exposes:
 
 ```ts
-type SpherDomInstance = {
+type SpherCanvasInstance = {
   update: (patch) => void;
   select: (id: string | null) => void;
   rotateTo: (rotation) => void;
   destroy: () => void;
-  itemState: (id: string) => SpherDomItemState | null;
-  getState: () => SpherDomState;
+  itemState: (id: string) => SpherCanvasRenderState | null;
+  getState: () => SpherCanvasState;
   subscribe: (listener) => () => void;
 };
 ```
@@ -115,7 +115,7 @@ const items = [
   { id: "sf", label: "San Francisco" },
 ];
 
-createSpher(root, {
+createSpher(canvas, {
   items,
   position: (item) =>
     item.id === "tokyo"
@@ -125,41 +125,24 @@ createSpher(root, {
 });
 ```
 
-### DOM Slots
+### Canvas Rendering
 
-Use `render` when spher should create item elements for you.
+Use `render` to draw each projected item. The canvas transform is already positioned on the sphere surface before your function runs, so draw around `(0, 0)`.
 
 ```ts
-createSpher(root, {
+createSpher(canvas, {
   items,
-  render: (item, element) => {
-    element.textContent = item.id;
+  render: (context, item, state) => {
+    context.fillStyle = state.selected ? "#111827" : "#ffffff";
+    context.fillRect(-item.size / 2, -item.size / 2, item.size, item.size);
   },
 });
 ```
 
-Use `element` when you already own the DOM.
+The same canvas API is also available from `spher/canvas`.
 
 ```ts
-createSpher(root, {
-  items,
-  element: (item) => document.querySelector(`[data-node="${item.id}"]`),
-});
-```
-
-spher owns the CSS 3D transform on each slot and writes surface state to CSS variables and data attributes:
-
-```txt
---spher-visibility
---spher-selected
---spher-longitude
---spher-latitude
---spher-radius
---spher-roll
-data-spher-item
-data-spher-visible
-data-spher-front
-data-spher-selected
+import { createSpherCanvas } from "spher/canvas";
 ```
 
 ## Core Utilities
@@ -175,40 +158,13 @@ const placed = placeItems([{ id: "a" }, { id: "b" }], {
 });
 ```
 
-## React
+## Demo
 
-The React adapter is available from `spher/react`. It exports an unstyled `Spher` component that renders your elements and lets the DOM engine write surface state to their wrappers.
-
-```tsx
-import { Spher } from "spher/react";
-
-const items = [
-  { id: "tokyo", label: "Tokyo" },
-  { id: "sf", label: "San Francisco" },
-];
-
-export const Example = () => (
-  <Spher
-    className="sphere"
-    items={items}
-    controls={{ drag: true, wheel: true }}
-    position={(item) =>
-      item.id === "tokyo"
-        ? { latitude: 35.6762, longitude: 139.6503 }
-        : { latitude: 37.7749, longitude: -122.4194 }
-    }
-    render={(item, state) => (
-      <button data-selected={state.selected}>{item.label}</button>
-    )}
-  />
-);
-```
-
-The archive-style UI that used to live in the package is now a demo instead of a library component. See [demo/react](demo/react) for a styled React example built with `Spher`.
+See [demo/react](demo/react) for a styled React example built on `createSpher`.
 
 ## Testing
 
-The project uses Node-based Vitest tests for pure core utilities and Vitest browser mode with Playwright for DOM behavior.
+The project uses Node-based Vitest tests for pure core utilities and Vitest browser mode with Playwright for canvas behavior.
 
 ```sh
 pnpm run build

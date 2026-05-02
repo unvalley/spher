@@ -20,6 +20,25 @@ export type PlaceItemsOptions<TItem extends SpherItemBase> = {
   ) => Pick<SphericalPosition, "latitude" | "longitude"> | null | undefined
 }
 
+// cobe parity: positions follow `[-cosLat·cos(lon'), sin(lat), cosLat·sin(lon')]`.
+// cobe shifts longitude by -π so lon=0 sits at +X. Spher uses -π/2 so lon=0 sits at
+// -Z (front of the camera at default rotation).
+const longitudeOffsetRadians = -Math.PI / 2
+
+const sphereCoordinates = (
+  latitudeRadians: number,
+  longitudeRadians: number,
+  sphereRadius: number,
+) => {
+  const lon = longitudeRadians + longitudeOffsetRadians
+  const cosLat = Math.cos(latitudeRadians)
+  return {
+    baseX: -cosLat * Math.cos(lon) * sphereRadius,
+    baseY: Math.sin(latitudeRadians) * sphereRadius,
+    baseZ: cosLat * Math.sin(lon) * sphereRadius,
+  }
+}
+
 export const getFibonacciSpherePosition = (
   index: number,
   itemCount: number,
@@ -29,15 +48,11 @@ export const getFibonacciSpherePosition = (
   const y = 1 - (2 * (index + 0.5)) / Math.max(1, itemCount)
   const longitude = ((((index * goldenAngle + 180) % 360) + 360) % 360) - 180
   const latitude = Math.asin(clamp(y, -1, 1)) * (180 / Math.PI)
-  const longitudeRadians = toRadians(longitude)
-  const latitudeRadians = toRadians(latitude)
 
   return {
     longitude,
     latitude,
-    baseX: -Math.sin(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
-    baseY: Math.sin(latitudeRadians) * sphereRadius,
-    baseZ: -Math.cos(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
+    ...sphereCoordinates(toRadians(latitude), toRadians(longitude), sphereRadius),
   }
 }
 
@@ -45,18 +60,11 @@ export const getSphericalPosition = (
   latitude: number,
   longitude: number,
   sphereRadius: number,
-): SphericalPosition => {
-  const longitudeRadians = toRadians(longitude)
-  const latitudeRadians = toRadians(latitude)
-
-  return {
-    longitude,
-    latitude,
-    baseX: -Math.sin(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
-    baseY: Math.sin(latitudeRadians) * sphereRadius,
-    baseZ: -Math.cos(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
-  }
-}
+): SphericalPosition => ({
+  longitude,
+  latitude,
+  ...sphereCoordinates(toRadians(latitude), toRadians(longitude), sphereRadius),
+})
 
 export const placeItems = <TItem extends SpherItemBase>(
   items: TItem[],
@@ -106,15 +114,11 @@ export const getLatitudeLongitudeGridPosition = (
   const latitude =
     latitudeStart + (row / Math.max(1, ringCount - 1)) * (latitudeEnd - latitudeStart)
   const longitude = -180 + ((indexInRow + 0.5) / columnCount) * 360
-  const longitudeRadians = toRadians(longitude)
-  const latitudeRadians = toRadians(latitude)
 
   return {
     longitude,
     latitude,
-    baseX: -Math.sin(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
-    baseY: Math.sin(latitudeRadians) * sphereRadius,
-    baseZ: -Math.cos(longitudeRadians) * Math.cos(latitudeRadians) * sphereRadius,
+    ...sphereCoordinates(toRadians(latitude), toRadians(longitude), sphereRadius),
   }
 }
 

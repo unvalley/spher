@@ -16,22 +16,19 @@ export const projectItems = <TItem extends SpherItemBase>(
   items: PositionedItem<TItem>[],
   { rotation, zoom = 1, perspective }: ProjectItemsOptions,
 ): ProjectedItem<TItem>[] => {
+  // cobe parity: apply RotX(theta) · RotY(phi) · p, where phi = yaw (rotation.y)
+  // and theta = pitch (rotation.x). Same matrix form as cobe's marker/arc shaders.
+  const theta = toRadians(rotation.x)
+  const phi = toRadians(rotation.y)
+  const cx = Math.cos(theta)
+  const cy = Math.cos(phi)
+  const sx = Math.sin(theta)
+  const sy = Math.sin(phi)
+
   return items.map((item) => {
-    const rotationX = toRadians(rotation.x)
-    const rotationY = toRadians(rotation.y)
-    let x = item.baseX
-    let y = item.baseY
-    let z = item.baseZ
-
-    const xAfterY = x * Math.cos(rotationY) + z * Math.sin(rotationY)
-    const zAfterY = -x * Math.sin(rotationY) + z * Math.cos(rotationY)
-    x = xAfterY
-    z = zAfterY
-
-    const yAfterX = y * Math.cos(rotationX) - z * Math.sin(rotationX)
-    const zAfterX = y * Math.sin(rotationX) + z * Math.cos(rotationX)
-    y = yAfterX
-    z = zAfterX
+    let x = cy * item.baseX + sy * item.baseZ
+    let y = sy * sx * item.baseX + cx * item.baseY - cy * sx * item.baseZ
+    let z = -sy * cx * item.baseX + sx * item.baseY + cy * cx * item.baseZ
 
     const normalY = clamp(y / item.radius, -1, 1)
 

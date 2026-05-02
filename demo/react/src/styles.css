@@ -73,11 +73,39 @@ button {
   border-color: #111827;
 }
 
+.archive-renderers {
+  display: flex;
+  gap: 8px;
+  padding-top: 2px;
+}
+
+.archive-renderers button {
+  min-height: 34px;
+  padding: 0 13px;
+  color: #475569;
+  text-transform: uppercase;
+  background: rgb(255 255 255 / 72%);
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+}
+
+.archive-renderers button[data-active="true"] {
+  color: white;
+  background: #111827;
+  border-color: #111827;
+}
+
 .archive-sphere {
   position: fixed;
   inset: 0;
   z-index: 10;
   touch-action: none;
+}
+
+.archive-canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
 }
 
 .archive-card {

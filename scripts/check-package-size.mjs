@@ -18,15 +18,9 @@ const entryPoints = [
     limit: 5 * 1024,
   },
   {
-    name: "spher/dom",
-    path: "dist/dom/index.js",
+    name: "spher/canvas",
+    path: "dist/canvas/index.js",
     limit: 7 * 1024,
-  },
-  {
-    name: "spher/react",
-    path: "dist/react.js",
-    limit: 8 * 1024,
-    external: ["react"],
   },
 ]
 

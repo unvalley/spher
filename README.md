@@ -2,7 +2,7 @@
 
 `spher` is a small canvas-first sphere layout engine.
 
-Use it when you want to draw cards, labels, images, or custom marks on a rotating sphere. It targets `<canvas>` for smooth dense scenes.
+Use it when you want to draw image surfaces, labels, or custom marks on a rotating sphere. It targets `<canvas>` for smooth dense scenes.
 
 ## Install
 
@@ -13,7 +13,7 @@ npm install spher
 ## Quick Start
 
 ```ts
-import { createImageCardRenderer, createSpher } from "spher";
+import { createSurfaceSpher } from "spher";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#sphere");
 
@@ -21,47 +21,47 @@ if (canvas) {
   const items = [
     {
       id: "tokyo",
-      image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=420",
       label: "Tokyo",
       tone: "city",
     },
     {
       id: "sf",
-      image: "https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=420",
       label: "San Francisco",
       tone: "coast",
     },
   ];
-  const renderer = createImageCardRenderer({
+
+  const sphere = createSurfaceSpher(canvas, {
     colors: {
       city: ["#dbeafe", "#60a5fa"],
       coast: ["#dcfce7", "#34d399"],
     },
-    image: (item) => item.image,
-    tone: (item) => item.tone,
-  });
-
-  const sphere = createSpher(canvas, {
-    radius: 320,
-    perspective: 900,
     controls: {
       autoRotate: { speed: 0.18 },
       drag: true,
       wheel: true,
     },
     items,
+    perspective: 900,
     position: (item) =>
       item.id === "tokyo"
         ? { latitude: 35.6762, longitude: 139.6503 }
         : { latitude: 37.7749, longitude: -122.4194 },
+    radius: 320,
+    render: (context, item, _state, frame) => {
+      context.fillStyle = "#0f172a";
+      context.font = "600 12px system-ui";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(item.label, 0, frame.mediaY + frame.mediaHeight / 2);
+    },
     size: { ratio: 0.1 },
-    render: renderer,
+    tone: (item) => item.tone,
     onSelect: (item) => {
       console.log("selected", item.id);
     },
   });
 
-  renderer.preload(items, () => sphere.update({}));
   sphere.rotateTo({ x: 8, y: 24 });
 
   // Later:
@@ -71,9 +71,14 @@ if (canvas) {
 
 ```css
 #sphere {
+  cursor: grab;
   width: 480px;
   height: 480px;
   touch-action: none;
+}
+
+#sphere:active {
+  cursor: grabbing;
 }
 ```
 
@@ -134,7 +139,7 @@ createSpher(canvas, {
 });
 ```
 
-For responsive cards, pass `"auto"` to derive the size from the resolved sphere diameter, or pass a ratio when the card should scale with the displayed sphere.
+For responsive surfaces, pass `"auto"` to derive the size from the resolved sphere diameter, or pass a ratio when the surface should scale with the displayed sphere.
 
 ```ts
 createSpher(canvas, {
@@ -144,7 +149,7 @@ createSpher(canvas, {
 });
 ```
 
-Use `faceMode` when your renderer treats cards as having a main image side. `face-out` marks the exterior-facing side as the image side; `face-in` marks the interior-facing side as the image side. Read `state.imageVisible` in your renderer to choose between image and back-side drawing.
+Use `faceMode` when your renderer treats surfaces as having a main image side. `face-out` marks the exterior-facing side as the image side; `face-in` marks the interior-facing side as the image side. Read `state.imageVisible` in your renderer to choose between image and back-side drawing.
 
 ```ts
 createSpher(canvas, {
@@ -184,14 +189,61 @@ The same canvas API is also available from `spher/canvas`.
 import { createSpherCanvas } from "spher/canvas";
 ```
 
-### Canvas Renderers
+### Surface Spheres
 
-Use `createImageCardRenderer` when you want image cards like the demo without writing canvas drawing code by hand.
+Use `createSurfaceSpher` when you want spher to handle the sphere, controls, surface frame, front/back visibility, and selection styling while you draw arbitrary canvas content inside each surface.
 
 ```ts
-import { createImageCardRenderer, createSpher } from "spher";
+import { createSurfaceSpher } from "spher";
 
-const renderer = createImageCardRenderer({
+const sphere = createSurfaceSpher(canvas, {
+  items,
+  radius: "auto",
+  size: { ratio: 0.08 },
+  colors: {
+    alert: ["#fee2e2", "#fb7185"],
+    metric: ["#dbeafe", "#60a5fa"],
+  },
+  tone: (item) => item.kind,
+  render: (context, item, state, frame) => {
+    context.fillStyle = state.selected ? "#020617" : "#334155";
+    context.font = "600 11px system-ui";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(item.label, 0, frame.mediaY + frame.mediaHeight / 2);
+  },
+});
+```
+
+### Image Surface Spheres
+
+Use `createImageSurfaceSpher` when the surface content is an image. It creates the renderer, wires it into the canvas sphere, preloads image URLs, and redraws as images load.
+
+```ts
+import { createImageSurfaceSpher } from "spher";
+
+const sphere = createImageSurfaceSpher(canvas, {
+  items,
+  image: (item) => item.image,
+  tone: (item) => item.category,
+  colors: {
+    archive: ["#dbeafe", "#60a5fa"],
+    network: ["#fee2e2", "#fb7185"],
+  },
+  radius: "auto",
+  size: { ratio: 0.06 },
+  controls: { autoRotate: true, drag: true, wheel: true },
+});
+```
+
+### Canvas Renderers
+
+Use `createImageSurfaceRenderer` when you want image surfaces like the demo without writing canvas drawing code by hand.
+
+```ts
+import { createImageSurfaceRenderer, createSpher } from "spher";
+
+const renderer = createImageSurfaceRenderer({
   image: (item) => item.image,
   tone: (item) => item.category,
   colors: {

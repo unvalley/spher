@@ -2,95 +2,89 @@
 
 ## Direction
 
-spher should be a small sphere layout engine with low-level rendering hooks and a few first-party canvas renderers. The package should provide the mechanics for placing cards, labels, images, or custom marks on a rotating sphere, while product-specific application UI lives in userland or demos.
+spher should be a small sphere layout engine with low-level rendering hooks and a few first-party canvas renderers. The package should provide the mechanics for placing image surfaces, labels, or custom marks on a rotating sphere, while product-specific application UI lives in userland or demos.
 
 The public surface is now centered on:
 
-- `createSpher` from `spher` / `spher/dom`
-- `Spher` from `spher/react`
+- `createSpher` from `spher`
+- `createSurfaceSpher` for common framed surface compositions
+- `createImageSurfaceSpher` as an image-specific convenience preset
+- canvas renderer helpers such as `createSurfaceRenderer` and `createImageSurfaceRenderer`
 - pure geometry helpers from `spher/core`
 
-The root `spher` entry should stay framework-agnostic. Framework adapters are exported only from subpaths such as `spher/react`.
+The root `spher` entry should stay framework-agnostic and canvas-first. A full DOM or React renderer should not be a primary package surface unless it can prove stable frame times with realistic surface counts.
 
-Styled archive UI is intentionally not part of the library API. Reusable primitives such as an image-card canvas renderer can live in the package, and an archive-style composition lives in `demo/react`.
+Styled archive UI is intentionally not part of the library API. Reusable primitives such as a generic surface renderer and an image-surface renderer can live in the package, and an archive-style composition lives in `demo/react`.
 
 ## Package Layers
 
 ```txt
 src/
-├─ core      pure placement utilities
-├─ dom       framework-agnostic DOM engine
-├─ Spher.tsx  unstyled React wrapper around the DOM engine
-├─ react.ts  React export entry
-└─ index.ts  root export entry
+├─ core        pure placement utilities
+├─ canvas      canvas renderer, controls, and canvas presets
+└─ index.ts    root canvas-first export entry
 ```
 
 ## API Shape
 
-### DOM
+### Canvas
 
 ```ts
-import { createSpher } from "spher";
+import { createSurfaceSpher } from "spher";
+const items = [{ id: "tokyo", category: "archive", label: "Tokyo" }];
 
-const instance = createSpher(root, {
-  items: [{ id: "tokyo", label: "Tokyo" }],
+const instance = createSurfaceSpher(canvas, {
+  colors: {
+    archive: ["#dbeafe", "#60a5fa"],
+    instrument: ["#dcfce7", "#34d399"],
+  },
+  items,
   position: () => ({ latitude: 35.6762, longitude: 139.6503 }),
+  radius: "auto",
+  size: { ratio: 0.08 },
+  tone: (item) => item.category,
   controls: { drag: true, wheel: true },
-  render: (item, element) => {
-    element.textContent = item.label;
+  render: (context, item, state, frame) => {
+    context.fillStyle = state.selected ? "#020617" : "#334155";
+    context.fillText(item.label, 0, frame.mediaY + frame.mediaHeight / 2);
   },
 });
 ```
 
-`createSpher` owns surface placement, selection, controls, DOM style variables, and cleanup.
+`createSpher` owns surface placement, projection, selection, controls, canvas sizing, and cleanup. `createSurfaceSpher` composes the default surface frame with custom content rendering. `createImageSurfaceSpher` layers image loading and cover rendering on top of that generic surface primitive. Renderer helpers reduce the amount of user code needed for common visual patterns without forcing a product-specific component API.
 
-### React
+### DOM Overlays
 
-```tsx
-import { Spher } from "spher/react";
+DOM is still useful for sparse UI that needs real accessibility, text selection, focus, popovers, or framework components. It should be treated as an overlay layer fed by canvas state, not as the dense surface renderer.
 
-<Spher
-  items={items}
-  className="sphere"
-  controls={{ drag: true, wheel: true }}
-  position={(item) => item.coordinates}
-  render={(item, state) => (
-    <button data-selected={state.selected}>{item.label}</button>
-  )}
-/>;
-```
-
-`Spher` is unstyled. It renders wrappers for each item, connects them to `createSpher`, and passes minimal render state to `render`.
+If a DOM binding API is added later, it should be explicitly bounded: selected item, hovered item, labels, or a small visible subset. It must not trigger React renders every frame, and it should update only imperative transforms or CSS variables for the mounted overlay nodes.
 
 ## Item Model
 
 Items only require `id`. Coordinates and sizes are resolved through options:
 
 ```ts
-createSpher(root, {
+createSpher(canvas, {
   items,
   position: (item) => item.coordinates,
-  size: (item) => item.cardSize,
+  size: (item) => item.surfaceSize,
 });
 ```
 
 This keeps spher fields from colliding with user domain data.
 
-## Styling Contract
+## Rendering Contract
 
-The DOM engine owns each slot's CSS 3D transform and writes surface state to CSS variables and data attributes:
+The canvas engine calls the user renderer after applying the projected item transform. The renderer receives a stable render state:
 
 ```txt
---spher-visibility
---spher-selected
---spher-longitude
---spher-latitude
---spher-radius
---spher-roll
-data-spher-item
-data-spher-visible
-data-spher-front
-data-spher-selected
+item
+selected
+visible
+visibility
+imageVisible
+visibleSide
+viewMode
 ```
 
 The package should not ship Tailwind-based component styling. Demos can use any styling they need, while reusable canvas drawing primitives should be exposed as renderer helpers instead of copied into each demo.
@@ -110,11 +104,12 @@ pnpm test:browser
 ```
 
 - Node Vitest tests cover pure `core` functions.
-- Vitest browser mode + Playwright covers DOM engine behavior.
-- React browser tests cover `Spher` integration with real DOM slots.
+- Vitest browser mode + Playwright covers canvas behavior.
+- Renderer preset tests cover image loading, selection state, and visible-side behavior.
 
 ## Next Steps
 
-- Add examples for controlled rotation and externally owned DOM nodes.
-- Split `create-spher.ts` into renderer, controls, and state modules as behavior grows.
-- Keep `Spher` unstyled and avoid adding preset UI back into `src`.
+- Keep dense archive/surface rendering on canvas.
+- Add examples for controlled rotation and external UI controls.
+- Consider a sparse overlay API only after measuring realistic frame times.
+- Split canvas internals into renderer, controls, and state modules as behavior grows.

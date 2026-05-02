@@ -55,11 +55,11 @@ export type SpherCanvasRenderState<TItem extends SpherCanvasItem = SpherCanvasIt
 }
 
 export type SpherCanvasAutoSize = {
-  /** Size-to-diameter ratio used for responsive card sizing. Defaults to 0.1. */
+  /** Size-to-diameter ratio used for responsive surface sizing. Defaults to 0.1. */
   ratio?: number
-  /** Minimum resolved card size in CSS pixels. */
+  /** Minimum resolved surface size in CSS pixels. */
   min?: number
-  /** Maximum resolved card size in CSS pixels. */
+  /** Maximum resolved surface size in CSS pixels. */
   max?: number
 }
 
@@ -77,14 +77,14 @@ export type SpherCanvasOptions<TItem extends SpherCanvasItem = SpherCanvasItem> 
   insideZoomThreshold?: number
   minZoom?: number
   maxZoom?: number
-  /** Which side of each card shows the main image. */
+  /** Which side of each surface shows the main image. */
   faceMode?: SpherCanvasFaceMode
   placement?: SpherPlacement
   controls?: SpherCanvasControls
   selectedId?: string | null
   devicePixelRatio?: number
   position?: (item: TItem, index: number, items: TItem[]) => SpherCanvasPosition | null | undefined
-  /** Card size in CSS pixels. `"auto"` derives from the resolved radius. */
+  /** Surface size in CSS pixels. `"auto"` derives from the resolved radius. */
   size?:
     | number
     | "auto"

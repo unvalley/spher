@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from "vitest"
 import { createSpherCanvas } from "./create-spher-canvas.js"
-import { createImageCardRenderer } from "./renderers.js"
+import {
+  createImageSurfaceRenderer,
+  createImageSurfaceSpher,
+  createSurfaceRenderer,
+  createSurfaceSpher,
+} from "./renderers.js"
 
 const canvases: HTMLCanvasElement[] = []
 
@@ -43,16 +48,16 @@ describe("createSpherCanvas", () => {
     instance.destroy()
   })
 
-  it("renders image cards with the preset renderer", () => {
+  it("renders image surfaces with the preset renderer", () => {
     const canvas = createCanvas()
-    const renderer = createImageCardRenderer({
+    const renderer = createImageSurfaceRenderer({
       colors: { archive: ["#dbeafe", "#60a5fa"] },
       image: () => undefined,
       tone: () => "archive",
     })
     const instance = createSpherCanvas(canvas, {
       devicePixelRatio: 1,
-      items: [{ id: "card" }],
+      items: [{ id: "surface" }],
       position: () => ({ latitude: 0, longitude: 0 }),
       radius: 100,
       render: renderer,
@@ -61,6 +66,71 @@ describe("createSpherCanvas", () => {
     const context = canvas.getContext("2d")
 
     expect(context?.getImageData(200, 200, 1, 1).data[3]).toBeGreaterThan(0)
+
+    instance.destroy()
+  })
+
+  it("renders custom surface content with the generic preset renderer", () => {
+    const canvas = createCanvas()
+    const renderer = createSurfaceRenderer({
+      render: (context, item, _state, frame) => {
+        context.fillStyle = item.id === "metric" ? "#111827" : "#ffffff"
+        context.fillRect(frame.mediaX, frame.mediaY, frame.mediaWidth, frame.mediaHeight)
+      },
+    })
+    const instance = createSpherCanvas(canvas, {
+      devicePixelRatio: 1,
+      items: [{ id: "metric" }],
+      position: () => ({ latitude: 0, longitude: 0 }),
+      radius: 100,
+      render: renderer,
+      size: 60,
+    })
+    const context = canvas.getContext("2d")
+
+    expect(context?.getImageData(200, 200, 1, 1).data[3]).toBeGreaterThan(0)
+
+    instance.destroy()
+  })
+
+  it("creates a generic surface sphere preset", () => {
+    const canvas = createCanvas()
+    const instance = createSurfaceSpher(canvas, {
+      devicePixelRatio: 1,
+      items: [{ id: "label" }],
+      position: () => ({ latitude: 0, longitude: 0 }),
+      radius: 100,
+      render: (context, _item, _state, frame) => {
+        context.fillStyle = "#111827"
+        context.fillRect(frame.mediaX, frame.mediaY, frame.mediaWidth, frame.mediaHeight)
+      },
+      size: 60,
+    })
+    const context = canvas.getContext("2d")
+
+    expect(instance.renderer).toBeTypeOf("function")
+    expect(context?.getImageData(200, 200, 1, 1).data[3]).toBeGreaterThan(0)
+
+    instance.destroy()
+  })
+
+  it("creates an image-surface sphere preset with automatic rendering", () => {
+    const canvas = createCanvas()
+    const instance = createImageSurfaceSpher(canvas, {
+      colors: { archive: ["#dbeafe", "#60a5fa"] },
+      devicePixelRatio: 1,
+      image: () => undefined,
+      items: [{ id: "surface", category: "archive" }],
+      position: () => ({ latitude: 0, longitude: 0 }),
+      radius: 100,
+      size: 60,
+      tone: (item) => (typeof item.category === "string" ? item.category : undefined),
+    })
+    const context = canvas.getContext("2d")
+
+    expect(instance.renderer).toBeTypeOf("function")
+    expect(context?.getImageData(200, 200, 1, 1).data[3]).toBeGreaterThan(0)
+    expect(instance.itemState("surface")?.item.size).toBe(60)
 
     instance.destroy()
   })
@@ -219,7 +289,7 @@ describe("createSpherCanvas", () => {
     instance.destroy()
   })
 
-  it("resolves responsive card sizes with ratio bounds", () => {
+  it("resolves responsive surface sizes with ratio bounds", () => {
     const canvas = createCanvas()
     const instance = createSpherCanvas(canvas, {
       items: [{ id: "bounded" }],
@@ -233,7 +303,7 @@ describe("createSpherCanvas", () => {
     instance.destroy()
   })
 
-  it("scales ratio card sizes from the sphere diameter", () => {
+  it("scales ratio surface sizes from the sphere diameter", () => {
     const canvas = createCanvas()
     const instance = createSpherCanvas(canvas, {
       items: [{ id: "responsive" }],
@@ -269,7 +339,7 @@ describe("createSpherCanvas", () => {
     instance.destroy()
   })
 
-  it("reports whether the configured card image side is visible", () => {
+  it("reports whether the configured surface image side is visible", () => {
     const canvas = createCanvas()
     const instance = createSpherCanvas(canvas, {
       items: [{ id: "near" }, { id: "far" }],
@@ -307,7 +377,7 @@ describe("createSpherCanvas", () => {
     instance.destroy()
   })
 
-  it("fades edge-on cards fully out to avoid side flicker", () => {
+  it("fades edge-on surfaces fully out to avoid side flicker", () => {
     const canvas = createCanvas()
     const instance = createSpherCanvas(canvas, {
       items: [{ id: "edge" }],
@@ -324,7 +394,7 @@ describe("createSpherCanvas", () => {
     instance.destroy()
   })
 
-  it("keeps rear cards visible while fading only side-on cards", () => {
+  it("keeps rear surfaces visible while fading only side-on surfaces", () => {
     const canvas = createCanvas()
     const instance = createSpherCanvas(canvas, {
       items: [{ id: "front" }, { id: "side" }, { id: "rear" }],

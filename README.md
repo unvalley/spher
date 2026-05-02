@@ -36,11 +36,12 @@ if (canvas) {
         : { latitude: 37.7749, longitude: -122.4194 },
     size: (item) => (item.id === "tokyo" ? 72 : 56),
     render: (context, item, state) => {
+      const size = state.item.size;
       context.fillStyle = state.selected ? "#111827" : "#ffffff";
       context.strokeStyle = "rgba(15, 23, 42, 0.18)";
       context.lineWidth = 1;
       context.beginPath();
-      context.roundRect(-item.size / 2, -item.size / 2, item.size, item.size, 12);
+      context.roundRect(-size / 2, -size / 2, size, size, 12);
       context.fill();
       context.stroke();
       context.fillStyle = state.selected ? "#ffffff" : "#111827";
@@ -135,7 +136,7 @@ createSpher(canvas, {
 });
 ```
 
-Use `faceMode` to choose which side of each card carries the main image. `face-out` shows the image on the exterior-facing side; `face-in` shows the image on the interior-facing side.
+Use `faceMode` when your renderer treats cards as having a main image side. `face-out` marks the exterior-facing side as the image side; `face-in` marks the interior-facing side as the image side. Read `state.imageVisible` in your renderer to choose between image and back-side drawing.
 
 ```ts
 createSpher(canvas, {
@@ -152,8 +153,9 @@ Use `render` to draw each projected item. The canvas transform is already positi
 createSpher(canvas, {
   items,
   render: (context, item, state) => {
+    const size = state.item.size;
     context.fillStyle = state.selected ? "#111827" : "#ffffff";
-    context.fillRect(-item.size / 2, -item.size / 2, item.size, item.size);
+    context.fillRect(-size / 2, -size / 2, size, size);
   },
 });
 ```

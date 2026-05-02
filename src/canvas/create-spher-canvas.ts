@@ -655,17 +655,7 @@ const getVisibility = <TItem extends SpherCanvasItem>({
   }
 
   if (selected) return 1
-  if (state.faceMode === "face-in") {
-    const insideDepth = z / Math.max(1, state.radius * state.sceneZoom)
-    const insideVisibility = smoothstep(-0.74, 0.88, insideDepth)
-    const baseVisibility = 0.18 + insideVisibility * 0.66
-    return clamp(baseVisibility * sideVisibility, 0, 0.84)
-  }
-
-  const depth = -z / Math.max(1, state.radius * state.sceneZoom)
-  const depthVisibility = smoothstep(-0.18, 0.78, depth)
-  const baseVisibility = 0.16 + depthVisibility * 0.84
-  return clamp(baseVisibility * sideVisibility, 0, 1)
+  return sideVisibility
 }
 
 const smoothstep = (edge0: number, edge1: number, value: number) => {

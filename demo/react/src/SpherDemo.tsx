@@ -375,7 +375,7 @@ const renderCanvasArchiveCard = (
     : faceIn
       ? state.visibleSide === "outside"
         ? 0.4
-        : 0.78
+        : 0.64
       : 1
 
   context.save()

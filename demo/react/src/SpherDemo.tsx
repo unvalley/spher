@@ -368,15 +368,18 @@ const renderCanvasArchiveCard = (
   const image = images.get(item.id)
   const colors = categoryColors[item.category] ?? ["#e5e7eb", "#94a3b8"]
   const faceIn = state.faceMode === "face-in"
+  const faceOutBack = state.faceMode === "face-out" && state.visibleSide === "inside"
   const insideView = state.viewMode === "inside"
   const drawMainImage = state.imageVisible || faceIn || insideView
   const surfaceAlpha = insideView
     ? 0.86
-    : faceIn
-      ? state.visibleSide === "outside"
-        ? 0.4
-        : 0.64
-      : 1
+    : faceOutBack
+      ? 0.54
+      : faceIn
+        ? state.visibleSide === "outside"
+          ? 0.4
+          : 0.72
+        : 1
 
   context.save()
   context.globalAlpha *= surfaceAlpha
@@ -385,12 +388,12 @@ const renderCanvasArchiveCard = (
     context.shadowColor = "rgba(15, 23, 42, 0.24)"
   }
 
-  context.fillStyle = drawMainImage ? "rgba(255, 255, 255, 0.72)" : "rgba(15, 23, 42, 0.72)"
+  context.fillStyle = drawMainImage ? "rgba(255, 255, 255, 0.72)" : "rgba(255, 255, 255, 0.46)"
   context.strokeStyle = state.selected
     ? "rgba(17, 24, 39, 0.96)"
     : drawMainImage
       ? "rgba(15, 23, 42, 0.16)"
-      : "rgba(255, 255, 255, 0.28)"
+      : "rgba(15, 23, 42, 0.2)"
   context.lineWidth = state.selected ? 2 : 1
   roundedRect(context, x, y, width, height, 4)
   context.fill()
@@ -450,7 +453,7 @@ const drawCardBack = (
     context.save()
     context.translate(x + width / 2, y + height / 2)
     context.scale(-1, 1)
-    context.filter = "saturate(0.42) contrast(0.82) brightness(0.64)"
+    context.filter = "saturate(0.68) contrast(0.94) brightness(0.92)"
     drawCoverImage(context, image, -width / 2, -height / 2, width, height)
     context.restore()
   } else {
@@ -462,13 +465,13 @@ const drawCardBack = (
   }
 
   const backing = context.createLinearGradient(x, y, x + width, y + height)
-  backing.addColorStop(0, "rgba(15, 23, 42, 0.72)")
-  backing.addColorStop(0.5, "rgba(15, 23, 42, 0.36)")
-  backing.addColorStop(1, "rgba(2, 6, 23, 0.78)")
+  backing.addColorStop(0, "rgba(255, 255, 255, 0.3)")
+  backing.addColorStop(0.5, "rgba(15, 23, 42, 0.06)")
+  backing.addColorStop(1, "rgba(15, 23, 42, 0.16)")
   context.fillStyle = backing
   context.fillRect(x, y, width, height)
 
-  context.strokeStyle = "rgba(255, 255, 255, 0.2)"
+  context.strokeStyle = "rgba(15, 23, 42, 0.18)"
   context.lineWidth = 1
   context.strokeRect(x + 0.5, y + 0.5, width - 1, height - 1)
 }

@@ -220,11 +220,11 @@ export const SpherDemo = () => {
   const handleSelect = useCallback((item: Item) => setSelectedId(item.id), [])
 
   return (
-    <main className="archive-demo">
-      <header className="archive-header">
+    <main className="demo">
+      <header className="demo-header">
         <div>
-          <p className="archive-kicker">Spher canvas demo</p>
-          <label className="archive-range-control">
+          <p className="demo-kicker">Spher canvas demo</p>
+          <label className="demo-range-control">
             <span>Size ratio</span>
             <input
               aria-label="Card size ratio"
@@ -237,7 +237,7 @@ export const SpherDemo = () => {
             />
             <output>{Math.round(cardSizeRatio * 100)}%</output>
           </label>
-          <label className="archive-range-control">
+          <label className="demo-range-control">
             <span>Pitch</span>
             <input
               aria-label="Sphere pitch"
@@ -250,7 +250,7 @@ export const SpherDemo = () => {
             />
             <output>{tiltPitch}deg</output>
           </label>
-          <label className="archive-range-control">
+          <label className="demo-range-control">
             <span>Roll</span>
             <input
               aria-label="Sphere roll"
@@ -263,7 +263,7 @@ export const SpherDemo = () => {
             />
             <output>{tiltRoll}deg</output>
           </label>
-          <fieldset aria-label="Card face mode" className="archive-face-control">
+          <fieldset aria-label="Card face mode" className="demo-face-control">
             <button
               data-active={faceMode === "face-out"}
               onClick={() => setFaceMode("face-out")}
@@ -282,7 +282,7 @@ export const SpherDemo = () => {
         </div>
       </header>
 
-      <CanvasArchiveSphere
+      <CanvasSphere
         cardSizeRatio={cardSizeRatio}
         faceMode={faceMode}
         onSelect={handleSelect}
@@ -294,7 +294,7 @@ export const SpherDemo = () => {
   )
 }
 
-const CanvasArchiveSphere = ({
+const CanvasSphere = ({
   cardSizeRatio,
   faceMode,
   onSelect,
@@ -351,13 +351,7 @@ const CanvasArchiveSphere = ({
     })
   }, [cardSizeRatio, faceMode, selectedId, tiltPitch, tiltRoll])
 
-  return (
-    <canvas
-      aria-label="Spher canvas demo"
-      className="archive-sphere archive-canvas"
-      ref={canvasRef}
-    />
-  )
+  return <canvas aria-label="Spher canvas demo" className="sphere-canvas" ref={canvasRef} />
 }
 
 const categoryColors: Record<string, [string, string]> = {

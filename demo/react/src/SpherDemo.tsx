@@ -1,4 +1,4 @@
-import { type PointerEvent, useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import {
   createImageSurfaceSpher,
   type SpherFaceMode,
@@ -260,13 +260,6 @@ const items: Item[] = Array.from({ length: 4 }, (_, pass) =>
   })),
 ).flat()
 
-const categoryColors: Record<string, [string, string]> = {
-  archive: ["#dbeafe", "#60a5fa"],
-  instrument: ["#dcfce7", "#34d399"],
-  network: ["#fee2e2", "#fb7185"],
-  philosophy: ["#f3e8ff", "#a78bfa"],
-}
-
 const defaultSurfaceSizeRatio = 0.06
 const defaultTiltPitch = 12
 const defaultTiltRoll = 0
@@ -302,7 +295,7 @@ export const SpherDemo = () => {
       {controlsVisible ? (
         <header className="demo-header">
           <div>
-            <p className="demo-kicker">Spher canvas demo</p>
+            <p className="demo-kicker">Spher demo</p>
             <label className="demo-range-control">
               <span>Size ratio</span>
               <input
@@ -408,7 +401,6 @@ const CanvasSphere = ({
     if (!canvasRef.current) return
 
     const instance = createImageSurfaceSpher(canvasRef.current, {
-      colors: categoryColors,
       controls: { autoRotate: true, drag: true, keyboard: true, wheel: true },
       faceMode: "face-out",
       image: (item) => item.image,
@@ -440,31 +432,10 @@ const CanvasSphere = ({
     })
   }, [faceMode, selectedId, surfaceSizeRatio, tiltPitch, tiltRoll])
 
-  const handlePointerMove = useCallback((event: PointerEvent<HTMLCanvasElement>) => {
-    const instance = instanceRef.current
-    if (instance) syncCanvasCursor(event.currentTarget, instance, event.clientX, event.clientY)
-  }, [])
-  const handlePointerLeave = useCallback((event: PointerEvent<HTMLCanvasElement>) => {
-    event.currentTarget.dataset.overSphere = "false"
-    event.currentTarget.dataset.draggingSphere = "false"
-  }, [])
-  const handlePointerDown = useCallback((event: PointerEvent<HTMLCanvasElement>) => {
-    if (event.currentTarget.dataset.overSphere === "true") {
-      event.currentTarget.dataset.draggingSphere = "true"
-    }
-  }, [])
-  const handlePointerUp = useCallback((event: PointerEvent<HTMLCanvasElement>) => {
-    event.currentTarget.dataset.draggingSphere = "false"
-  }, [])
-
   return (
     <canvas
       aria-label="Spher canvas demo"
       className="sphere-canvas"
-      onPointerDown={handlePointerDown}
-      onPointerLeave={handlePointerLeave}
-      onPointerMove={handlePointerMove}
-      onPointerUp={handlePointerUp}
       ref={canvasRef}
     />
   )

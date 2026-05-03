@@ -5,16 +5,16 @@ import { projectItems } from "../core/projection.js"
 import type { PositionedItem } from "../core/types.js"
 import { normalizeCanvasControls } from "./controls.js"
 import type {
-  SpherCanvasFaceMode,
-  SpherCanvasInstance,
-  SpherCanvasItem,
-  SpherCanvasListener,
-  SpherCanvasOptions,
-  SpherCanvasProjection,
-  SpherCanvasRenderState,
-  SpherCanvasState,
-  SpherCanvasSurfaceSide,
-  SpherCanvasViewMode,
+  SpherFaceMode,
+  SpherInstance,
+  SpherItem,
+  SpherListener,
+  SpherOptions,
+  SpherProjection,
+  SpherRenderState,
+  SpherState,
+  SpherSurfaceSide,
+  SpherViewMode,
 } from "./types.js"
 
 const defaultRadius = 320
@@ -38,27 +38,27 @@ const momentumDecay = 0.95
 const maxMomentumVelocity = 8.6
 const minMomentumVelocity = 0.01
 
-export const createSpherCanvas = <TItem extends SpherCanvasItem>(
+export const createSpher = <TItem extends SpherItem>(
   canvas: HTMLCanvasElement,
-  options: SpherCanvasOptions<TItem>,
-): SpherCanvasInstance<TItem> => {
+  options: SpherOptions<TItem>,
+): SpherInstance<TItem> => {
   const context = canvas.getContext("2d")
   if (!context) {
     throw new Error("Could not create a 2D canvas context.")
   }
 
-  const listeners = new Set<SpherCanvasListener<TItem>>()
-  const projections = new Map<string, SpherCanvasProjection<TItem>>()
+  const listeners = new Set<SpherListener<TItem>>()
+  const projections = new Map<string, SpherProjection<TItem>>()
   let placedItemsCache: PositionedItem<TItem>[] | null = null
   let placedItemsCacheDeps: {
     items: TItem[]
-    placement: SpherCanvasState<TItem>["placement"]
-    position: SpherCanvasOptions<TItem>["position"]
+    placement: SpherState<TItem>["placement"]
+    position: SpherOptions<TItem>["position"]
     radius: number
-    size: SpherCanvasOptions<TItem>["size"]
+    size: SpherOptions<TItem>["size"]
   } | null = null
   let dragStart: {
-    rotation: SpherCanvasState<TItem>["rotation"]
+    rotation: SpherState<TItem>["rotation"]
     x: number
     y: number
   } | null = null
@@ -69,7 +69,7 @@ export const createSpherCanvas = <TItem extends SpherCanvasItem>(
   let momentumVelocity = { x: 0, y: 0 }
   let targetRotation = { ...defaultRotation }
   let destroyed = false
-  let stateOptions: SpherCanvasOptions<TItem> = { ...options }
+  let stateOptions: SpherOptions<TItem> = { ...options }
   let viewport = readViewport(canvas)
   let state = normalizeOptions(stateOptions, viewport)
   targetRotation = { ...state.rotation }
@@ -139,7 +139,7 @@ export const createSpherCanvas = <TItem extends SpherCanvasItem>(
     autoRotationFrame = null
   }
 
-  const setRotationState = (rotation: SpherCanvasState<TItem>["rotation"]) => {
+  const setRotationState = (rotation: SpherState<TItem>["rotation"]) => {
     state = { ...state, rotation }
     render()
     emit()
@@ -454,7 +454,7 @@ export const createSpherCanvas = <TItem extends SpherCanvasItem>(
     if (item) selectItem(item)
   }
 
-  const update = (patch: Partial<SpherCanvasOptions<TItem>>) => {
+  const update = (patch: Partial<SpherOptions<TItem>>) => {
     stateOptions = { ...stateOptions, ...patch }
     state = normalizeOptions(stateOptions, viewport, state)
     if (objectHasOwnProperty.call(patch, "rotation")) targetRotation = { ...state.rotation }
@@ -486,7 +486,7 @@ export const createSpherCanvas = <TItem extends SpherCanvasItem>(
     emit()
   }
 
-  const rotateTo = (rotation: SpherCanvasState<TItem>["rotation"]) => {
+  const rotateTo = (rotation: SpherState<TItem>["rotation"]) => {
     cancelRotationFrame()
     targetRotation = { ...rotation }
     update({ rotation })
@@ -507,7 +507,7 @@ export const createSpherCanvas = <TItem extends SpherCanvasItem>(
     listeners.clear()
   }
 
-  const itemState = (id: string): SpherCanvasRenderState<TItem> | null => {
+  const itemState = (id: string): SpherRenderState<TItem> | null => {
     const projection = projections.get(id)
     return projection ? toRenderState(projection) : null
   }
@@ -543,7 +543,7 @@ const readViewport = (canvas: HTMLCanvasElement): Viewport => {
 }
 
 const resolveRadius = (
-  raw: SpherCanvasOptions["radius"],
+  raw: SpherOptions["radius"],
   viewport: Viewport,
   previous: number | undefined,
 ): number => {
@@ -554,11 +554,11 @@ const resolveRadius = (
   return raw ?? previous ?? defaultRadius
 }
 
-const normalizeOptions = <TItem extends SpherCanvasItem>(
-  options: SpherCanvasOptions<TItem>,
+const normalizeOptions = <TItem extends SpherItem>(
+  options: SpherOptions<TItem>,
   viewport: Viewport,
-  previous?: SpherCanvasState<TItem>,
-): SpherCanvasState<TItem> =>
+  previous?: SpherState<TItem>,
+): SpherState<TItem> =>
   withDerivedState({
     items: options.items ?? previous?.items ?? [],
     radius: resolveRadius(options.radius, viewport, previous?.radius),
@@ -579,12 +579,12 @@ const normalizeOptions = <TItem extends SpherCanvasItem>(
       options.devicePixelRatio ?? previous?.devicePixelRatio ?? globalThis.devicePixelRatio ?? 1,
   })
 
-const withDerivedState = <TItem extends SpherCanvasItem>(
+const withDerivedState = <TItem extends SpherItem>(
   state: Omit<
-    SpherCanvasState<TItem>,
+    SpherState<TItem>,
     "insideZoomProgress" | "insideSceneScale" | "sceneZoom" | "viewMode"
   >,
-): SpherCanvasState<TItem> => {
+): SpherState<TItem> => {
   const viewMode = state.zoom >= state.insideZoomThreshold ? "inside" : "shell"
   const insideZoomProgress =
     viewMode === "inside"
@@ -608,16 +608,16 @@ const withDerivedState = <TItem extends SpherCanvasItem>(
 
 const objectHasOwnProperty = Object.prototype.hasOwnProperty
 
-const getVisibleSide = (z: number, viewMode: SpherCanvasViewMode): SpherCanvasSurfaceSide => {
+const getVisibleSide = (z: number, viewMode: SpherViewMode): SpherSurfaceSide => {
   if (viewMode === "inside") return "inside"
   return z < 0 ? "outside" : "inside"
 }
 
-const isImageVisible = (faceMode: SpherCanvasFaceMode, visibleSide: SpherCanvasSurfaceSide) =>
+const isImageVisible = (faceMode: SpherFaceMode, visibleSide: SpherSurfaceSide) =>
   visibleSide === (faceMode === "face-out" ? "outside" : "inside")
 
-const resolveSizeOption = <TItem extends SpherCanvasItem>(
-  size: SpherCanvasOptions<TItem>["size"],
+const resolveSizeOption = <TItem extends SpherItem>(
+  size: SpherOptions<TItem>["size"],
   radius: number,
 ): number | ((item: TItem, index: number, items: TItem[]) => number) | undefined => {
   const diameter = radius * 2
@@ -633,8 +633,8 @@ const resolveSizeOption = <TItem extends SpherCanvasItem>(
 }
 
 const resolveTilt = (
-  tilt: SpherCanvasOptions["tilt"],
-  previous: SpherCanvasState["tilt"] | undefined,
+  tilt: SpherOptions["tilt"],
+  previous: SpherState["tilt"] | undefined,
 ) => {
   if (tilt === undefined) return previous ?? defaultTilt
   if (typeof tilt === "number") return { x: tilt, y: 0, z: 0 }
@@ -645,14 +645,14 @@ const resolveTilt = (
   }
 }
 
-type GetVisibilityOptions<TItem extends SpherCanvasItem> = {
+type GetVisibilityOptions<TItem extends SpherItem> = {
   edgeFactor: number
   selected: boolean
-  state: SpherCanvasState<TItem>
+  state: SpherState<TItem>
   z: number
 }
 
-const getVisibility = <TItem extends SpherCanvasItem>({
+const getVisibility = <TItem extends SpherItem>({
   edgeFactor,
   selected,
   state,
@@ -683,9 +683,9 @@ type Point3D = { x: number; y: number; z: number }
 
 type ProjectedPoint = { x: number; y: number; z: number }
 
-const getProjectedPlaneTransform = <TItem extends SpherCanvasItem>(
+const getProjectedPlaneTransform = <TItem extends SpherItem>(
   item: PositionedItem<TItem>,
-  state: SpherCanvasState<TItem>,
+  state: SpherState<TItem>,
 ) => {
   const center = { x: item.baseX, y: item.baseY, z: item.baseZ }
   const { right, down } = getPlaneBasis(item)
@@ -717,7 +717,7 @@ const getProjectedPlaneTransform = <TItem extends SpherCanvasItem>(
   }
 }
 
-const getPlaneBasis = <TItem extends SpherCanvasItem>(item: PositionedItem<TItem>) => {
+const getPlaneBasis = <TItem extends SpherItem>(item: PositionedItem<TItem>) => {
   const longitude = toRadians(item.longitude)
   const latitude = toRadians(item.latitude)
   const right = {
@@ -750,9 +750,9 @@ const getPlaneBasis = <TItem extends SpherCanvasItem>(item: PositionedItem<TItem
   }
 }
 
-const projectPoint = <TItem extends SpherCanvasItem>(
+const projectPoint = <TItem extends SpherItem>(
   point: Point3D,
-  { perspective, rotation, sceneZoom, tilt, viewMode }: SpherCanvasState<TItem>,
+  { perspective, rotation, sceneZoom, tilt, viewMode }: SpherState<TItem>,
 ): ProjectedPoint => {
   // cobe parity: RotX(theta) · RotY(phi) · p.
   const theta = toRadians(rotation.x + tilt.x)
@@ -787,7 +787,7 @@ const projectPoint = <TItem extends SpherCanvasItem>(
   }
 }
 
-const toRenderState = <TItem extends SpherCanvasItem>({
+const toRenderState = <TItem extends SpherItem>({
   edgeFactor,
   faceMode,
   front,
@@ -799,7 +799,7 @@ const toRenderState = <TItem extends SpherCanvasItem>({
   visibleSide,
   visibility,
   viewMode,
-}: SpherCanvasProjection<TItem>): SpherCanvasRenderState<TItem> => ({
+}: SpherProjection<TItem>): SpherRenderState<TItem> => ({
   item,
   edgeFactor,
   faceMode,
@@ -813,9 +813,9 @@ const toRenderState = <TItem extends SpherCanvasItem>({
   viewMode,
 })
 
-const renderDefaultItem = <TItem extends SpherCanvasItem>(
+const renderDefaultItem = <TItem extends SpherItem>(
   context: CanvasRenderingContext2D,
-  { imageVisible, item, selected }: SpherCanvasRenderState<TItem>,
+  { imageVisible, item, selected }: SpherRenderState<TItem>,
 ) => {
   const width = item.size
   const height = item.size * 1.28

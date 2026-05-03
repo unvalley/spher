@@ -1,19 +1,19 @@
 import type { PositionedItem, ProjectedItem, SpherItemBase, SpherPlacement } from "../core/types.js"
 
-export type SpherCanvasPosition = {
+export type SpherPosition = {
   latitude: number
   longitude: number
 }
 
-export type SpherCanvasItem = SpherItemBase
+export type SpherItem = SpherItemBase
 
-export type SpherCanvasViewMode = "inside" | "shell"
+export type SpherViewMode = "inside" | "shell"
 
-export type SpherCanvasFaceMode = "face-out" | "face-in"
+export type SpherFaceMode = "face-out" | "face-in"
 
-export type SpherCanvasSurfaceSide = "outside" | "inside"
+export type SpherSurfaceSide = "outside" | "inside"
 
-export type SpherCanvasTilt =
+export type SpherTilt =
   | number
   | {
       /** Pitch offset in degrees, applied before user rotation. */
@@ -24,13 +24,13 @@ export type SpherCanvasTilt =
       z?: number
     }
 
-export type SpherCanvasResolvedTilt = {
+export type SpherResolvedTilt = {
   x: number
   y: number
   z: number
 }
 
-export type SpherCanvasControls =
+export type SpherControls =
   | boolean
   | {
       autoRotate?: boolean | { speed?: number }
@@ -40,21 +40,21 @@ export type SpherCanvasControls =
       preventDocumentScroll?: boolean
     }
 
-export type SpherCanvasRenderState<TItem extends SpherCanvasItem = SpherCanvasItem> = {
+export type SpherRenderState<TItem extends SpherItem = SpherItem> = {
   item: PositionedItem<TItem>
   edgeFactor: number
-  faceMode: SpherCanvasFaceMode
+  faceMode: SpherFaceMode
   front: boolean
   imageVisible: boolean
   normalY: number
   perspectiveScale: number
   selected: boolean
-  visibleSide: SpherCanvasSurfaceSide
+  visibleSide: SpherSurfaceSide
   visibility: number
-  viewMode: SpherCanvasViewMode
+  viewMode: SpherViewMode
 }
 
-export type SpherCanvasAutoSize = {
+export type SpherAutoSize = {
   /** Size-to-diameter ratio used for responsive surface sizing. Defaults to 0.1. */
   ratio?: number
   /** Minimum resolved surface size in CSS pixels. */
@@ -63,7 +63,7 @@ export type SpherCanvasAutoSize = {
   max?: number
 }
 
-export type SpherCanvasOptions<TItem extends SpherCanvasItem = SpherCanvasItem> = {
+export type SpherOptions<TItem extends SpherItem = SpherItem> = {
   items: TItem[]
   /** Sphere radius in CSS pixels. `"auto"` tracks the canvas's shorter side. */
   radius?: number | "auto"
@@ -72,33 +72,33 @@ export type SpherCanvasOptions<TItem extends SpherCanvasItem = SpherCanvasItem> 
     x: number
     y: number
   }
-  tilt?: SpherCanvasTilt
+  tilt?: SpherTilt
   zoom?: number
   insideZoomThreshold?: number
   minZoom?: number
   maxZoom?: number
   /** Which side of each surface shows the main image. */
-  faceMode?: SpherCanvasFaceMode
+  faceMode?: SpherFaceMode
   placement?: SpherPlacement
-  controls?: SpherCanvasControls
+  controls?: SpherControls
   selectedId?: string | null
   devicePixelRatio?: number
-  position?: (item: TItem, index: number, items: TItem[]) => SpherCanvasPosition | null | undefined
+  position?: (item: TItem, index: number, items: TItem[]) => SpherPosition | null | undefined
   /** Surface size in CSS pixels. `"auto"` derives from the resolved radius. */
   size?:
     | number
     | "auto"
-    | SpherCanvasAutoSize
+    | SpherAutoSize
     | ((item: TItem, index: number, items: TItem[]) => number)
   render?: (
     context: CanvasRenderingContext2D,
     item: TItem,
-    state: SpherCanvasRenderState<TItem>,
+    state: SpherRenderState<TItem>,
   ) => void
   onSelect?: (item: TItem) => void
 }
 
-export type SpherCanvasState<TItem extends SpherCanvasItem = SpherCanvasItem> = {
+export type SpherState<TItem extends SpherItem = SpherItem> = {
   items: TItem[]
   radius: number
   perspective: number
@@ -106,7 +106,7 @@ export type SpherCanvasState<TItem extends SpherCanvasItem = SpherCanvasItem> = 
     x: number
     y: number
   }
-  tilt: SpherCanvasResolvedTilt
+  tilt: SpherResolvedTilt
   zoom: number
   insideZoomProgress: number
   insideZoomThreshold: number
@@ -117,31 +117,31 @@ export type SpherCanvasState<TItem extends SpherCanvasItem = SpherCanvasItem> = 
   placement: SpherPlacement
   selectedId: string | null
   devicePixelRatio: number
-  faceMode: SpherCanvasFaceMode
-  viewMode: SpherCanvasViewMode
+  faceMode: SpherFaceMode
+  viewMode: SpherViewMode
 }
 
-export type SpherCanvasProjection<TItem extends SpherCanvasItem = SpherCanvasItem> =
+export type SpherProjection<TItem extends SpherItem = SpherItem> =
   ProjectedItem<TItem> & {
-    faceMode: SpherCanvasFaceMode
+    faceMode: SpherFaceMode
     front: boolean
     imageVisible: boolean
     selected: boolean
-    visibleSide: SpherCanvasSurfaceSide
+    visibleSide: SpherSurfaceSide
     visibility: number
-    viewMode: SpherCanvasViewMode
+    viewMode: SpherViewMode
   }
 
-export type SpherCanvasListener<TItem extends SpherCanvasItem = SpherCanvasItem> = (
-  state: SpherCanvasState<TItem>,
+export type SpherListener<TItem extends SpherItem = SpherItem> = (
+  state: SpherState<TItem>,
 ) => void
 
-export type SpherCanvasInstance<TItem extends SpherCanvasItem = SpherCanvasItem> = {
-  update: (patch: Partial<SpherCanvasOptions<TItem>>) => void
+export type SpherInstance<TItem extends SpherItem = SpherItem> = {
+  update: (patch: Partial<SpherOptions<TItem>>) => void
   select: (id: string | null) => void
-  rotateTo: (rotation: SpherCanvasState<TItem>["rotation"]) => void
+  rotateTo: (rotation: SpherState<TItem>["rotation"]) => void
   destroy: () => void
-  itemState: (id: string) => SpherCanvasRenderState<TItem> | null
-  getState: () => SpherCanvasState<TItem>
-  subscribe: (listener: SpherCanvasListener<TItem>) => () => void
+  itemState: (id: string) => SpherRenderState<TItem> | null
+  getState: () => SpherState<TItem>
+  subscribe: (listener: SpherListener<TItem>) => () => void
 }

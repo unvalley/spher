@@ -1,6 +1,6 @@
-import type { SpherCanvasControls } from "./types.js"
+import type { SpherControls } from "./types.js"
 
-export type ResolvedSpherCanvasControls = {
+export type ResolvedSpherControls = {
   autoRotate: boolean
   autoRotateSpeed: number
   drag: boolean
@@ -12,8 +12,8 @@ export type ResolvedSpherCanvasControls = {
 const defaultAutoRotateSpeed = 0.18
 
 export const normalizeCanvasControls = (
-  controls: SpherCanvasControls | undefined,
-): ResolvedSpherCanvasControls => {
+  controls: SpherControls | undefined,
+): ResolvedSpherControls => {
   if (controls === true) {
     return {
       autoRotate: false,

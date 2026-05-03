@@ -1,12 +1,12 @@
 import { type PointerEvent, useCallback, useEffect, useRef, useState } from "react"
 import {
   createImageSurfaceSpher,
-  type SpherCanvasFaceMode,
-  type SpherCanvasInstance,
-  type SpherCanvasItem,
+  type SpherFaceMode,
+  type SpherInstance,
+  type SpherItem,
 } from "../../../src/index.js"
 
-type Item = SpherCanvasItem & {
+type Item = SpherItem & {
   category: string
   image: string
   title: string
@@ -274,7 +274,7 @@ const defaultTiltRoll = 0
 export const SpherDemo = () => {
   const [selectedId, setSelectedId] = useState(items[0].id)
   const [surfaceSizeRatio, setSurfaceSizeRatio] = useState(defaultSurfaceSizeRatio)
-  const [faceMode, setFaceMode] = useState<SpherCanvasFaceMode>("face-out")
+  const [faceMode, setFaceMode] = useState<SpherFaceMode>("face-out")
   const [tiltPitch, setTiltPitch] = useState(defaultTiltPitch)
   const [tiltRoll, setTiltRoll] = useState(defaultTiltRoll)
   const [controlsVisible, setControlsVisible] = useState(true)
@@ -394,7 +394,7 @@ const CanvasSphere = ({
   tiltPitch,
   tiltRoll,
 }: {
-  faceMode: SpherCanvasFaceMode
+  faceMode: SpherFaceMode
   onSelect: (item: Item) => void
   selectedId: string | null
   surfaceSizeRatio: number
@@ -402,7 +402,7 @@ const CanvasSphere = ({
   tiltRoll: number
 }) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const instanceRef = useRef<SpherCanvasInstance<Item> | null>(null)
+  const instanceRef = useRef<SpherInstance<Item> | null>(null)
 
   useEffect(() => {
     if (!canvasRef.current) return
@@ -472,7 +472,7 @@ const CanvasSphere = ({
 
 const syncCanvasCursor = (
   canvas: HTMLCanvasElement,
-  instance: SpherCanvasInstance<Item>,
+  instance: SpherInstance<Item>,
   clientX = -1,
   clientY = -1,
 ) => {

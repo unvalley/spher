@@ -1,13 +1,13 @@
-import { createSpherCanvas } from "./create-spher-canvas.js"
-import type { SpherCanvasColorPair, SpherCanvasRenderer } from "./renderer-types.js"
+import { createSpher } from "./create-spher-canvas.js"
+import type { SpherColorPair, SpherRenderer } from "./renderer-types.js"
 import type {
-  SpherCanvasInstance,
-  SpherCanvasItem,
-  SpherCanvasOptions,
-  SpherCanvasRenderState,
+  SpherInstance,
+  SpherItem,
+  SpherOptions,
+  SpherRenderState,
 } from "./types.js"
 
-export type SpherCanvasSurfaceFrame = {
+export type SpherSurfaceFrame = {
   x: number
   y: number
   width: number
@@ -16,51 +16,49 @@ export type SpherCanvasSurfaceFrame = {
   mediaY: number
   mediaWidth: number
   mediaHeight: number
-  colors: SpherCanvasColorPair
+  colors: SpherColorPair
   drawMain: boolean
   surfaceAlpha: number
 }
 
-export type SpherCanvasSurfaceContent<TItem extends SpherCanvasItem = SpherCanvasItem> = (
+export type SpherSurfaceContent<TItem extends SpherItem = SpherItem> = (
   context: CanvasRenderingContext2D,
   item: TItem,
-  state: SpherCanvasRenderState<TItem>,
-  frame: SpherCanvasSurfaceFrame,
+  state: SpherRenderState<TItem>,
+  frame: SpherSurfaceFrame,
 ) => void
 
-export type SpherCanvasSurfaceRendererOptions<TItem extends SpherCanvasItem = SpherCanvasItem> = {
+export type SpherSurfaceRendererOptions<TItem extends SpherItem = SpherItem> = {
   colors?:
-    | Record<string, SpherCanvasColorPair>
-    | ((item: TItem) => SpherCanvasColorPair | null | undefined)
+    | Record<string, SpherColorPair>
+    | ((item: TItem) => SpherColorPair | null | undefined)
   tone?: (item: TItem) => string | null | undefined
-  fallbackColors?: SpherCanvasColorPair
+  fallbackColors?: SpherColorPair
   aspectRatio?: number
   inset?: number
   cornerRadius?: number
-  /** @deprecated Use cornerRadius instead. */
-  radius?: number
   mediaRadius?: number
   widthOffset?: number
-  render?: SpherCanvasSurfaceContent<TItem>
-  renderBack?: SpherCanvasSurfaceContent<TItem>
+  render?: SpherSurfaceContent<TItem>
+  renderBack?: SpherSurfaceContent<TItem>
 }
 
-export type SpherCanvasSurfaceSpherOptions<TItem extends SpherCanvasItem = SpherCanvasItem> = Omit<
-  SpherCanvasOptions<TItem>,
+export type SpherSurfaceSpherOptions<TItem extends SpherItem = SpherItem> = Omit<
+  SpherOptions<TItem>,
   "render"
 > &
-  SpherCanvasSurfaceRendererOptions<TItem>
+  SpherSurfaceRendererOptions<TItem>
 
-export type SpherCanvasSurfaceInstance<TItem extends SpherCanvasItem = SpherCanvasItem> =
-  SpherCanvasInstance<TItem> & {
-    renderer: SpherCanvasRenderer<TItem>
+export type SpherSurfaceInstance<TItem extends SpherItem = SpherItem> =
+  SpherInstance<TItem> & {
+    renderer: SpherRenderer<TItem>
   }
 
 const defaultFallbackColors = ["#e5e7eb", "#94a3b8"] as const
 
-export const createSurfaceRenderer = <TItem extends SpherCanvasItem>(
-  options: SpherCanvasSurfaceRendererOptions<TItem> = {},
-): SpherCanvasRenderer<TItem> => {
+export const createSurfaceRenderer = <TItem extends SpherItem>(
+  options: SpherSurfaceRendererOptions<TItem> = {},
+): SpherRenderer<TItem> => {
   return (context, item, state) => {
     const frame = createSurfaceFrame(options, item, state)
 
@@ -91,13 +89,13 @@ export const createSurfaceRenderer = <TItem extends SpherCanvasItem>(
   }
 }
 
-export const createSurfaceSpher = <TItem extends SpherCanvasItem>(
+export const createSurfaceSpher = <TItem extends SpherItem>(
   canvas: HTMLCanvasElement,
-  options: SpherCanvasSurfaceSpherOptions<TItem>,
-): SpherCanvasSurfaceInstance<TItem> => {
+  options: SpherSurfaceSpherOptions<TItem>,
+): SpherSurfaceInstance<TItem> => {
   const { canvasOptions, rendererOptions } = splitSurfaceOptions(options)
   const renderer = createSurfaceRenderer<TItem>(rendererOptions)
-  const instance = createSpherCanvas(canvas, { ...canvasOptions, render: renderer })
+  const instance = createSpher(canvas, { ...canvasOptions, render: renderer })
 
   return {
     ...instance,
@@ -108,7 +106,7 @@ export const createSurfaceSpher = <TItem extends SpherCanvasItem>(
 export const drawFallbackSurface = (
   context: CanvasRenderingContext2D,
   frame: Pick<
-    SpherCanvasSurfaceFrame,
+    SpherSurfaceFrame,
     "colors" | "mediaHeight" | "mediaWidth" | "mediaX" | "mediaY"
   >,
 ) => {
@@ -128,7 +126,7 @@ export const drawImageSurfaceBack = (
   context: CanvasRenderingContext2D,
   image: HTMLImageElement | undefined,
   frame: Pick<
-    SpherCanvasSurfaceFrame,
+    SpherSurfaceFrame,
     "colors" | "mediaHeight" | "mediaWidth" | "mediaX" | "mediaY"
   >,
 ) => {
@@ -173,7 +171,7 @@ export const drawCoverImage = (
   {
     mediaHeight: height,
     mediaWidth: width,
-  }: Pick<SpherCanvasSurfaceFrame, "mediaHeight" | "mediaWidth">,
+  }: Pick<SpherSurfaceFrame, "mediaHeight" | "mediaWidth">,
 ) => {
   const scale = Math.max(width / image.naturalWidth, height / image.naturalHeight)
   const sourceWidth = width / scale
@@ -183,7 +181,7 @@ export const drawCoverImage = (
   context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height)
 }
 
-const splitSurfaceOptions = <TItem extends SpherCanvasItem>({
+const splitSurfaceOptions = <TItem extends SpherItem>({
   aspectRatio,
   colors,
   cornerRadius,
@@ -196,7 +194,7 @@ const splitSurfaceOptions = <TItem extends SpherCanvasItem>({
   tone,
   widthOffset,
   ...canvasOptions
-}: SpherCanvasSurfaceSpherOptions<TItem>) => ({
+}: SpherSurfaceSpherOptions<TItem>) => ({
   canvasOptions,
   rendererOptions: {
     aspectRatio,
@@ -213,11 +211,11 @@ const splitSurfaceOptions = <TItem extends SpherCanvasItem>({
   },
 })
 
-const createSurfaceFrame = <TItem extends SpherCanvasItem>(
-  options: SpherCanvasSurfaceRendererOptions<TItem>,
+const createSurfaceFrame = <TItem extends SpherItem>(
+  options: SpherSurfaceRendererOptions<TItem>,
   item: TItem,
-  state: SpherCanvasRenderState<TItem>,
-): SpherCanvasSurfaceFrame => {
+  state: SpherRenderState<TItem>,
+): SpherSurfaceFrame => {
   const inset = options.inset ?? 3
   const width = state.item.size + (options.widthOffset ?? 4)
   const mediaWidth = width - inset * 2
@@ -242,12 +240,12 @@ const createSurfaceFrame = <TItem extends SpherCanvasItem>(
   }
 }
 
-const drawMainSurfaceContent = <TItem extends SpherCanvasItem>(
+const drawMainSurfaceContent = <TItem extends SpherItem>(
   context: CanvasRenderingContext2D,
   item: TItem,
-  state: SpherCanvasRenderState<TItem>,
-  frame: SpherCanvasSurfaceFrame,
-  options: SpherCanvasSurfaceRendererOptions<TItem>,
+  state: SpherRenderState<TItem>,
+  frame: SpherSurfaceFrame,
+  options: SpherSurfaceRendererOptions<TItem>,
 ) => {
   if (options.render) {
     options.render(context, item, state, frame)
@@ -256,12 +254,12 @@ const drawMainSurfaceContent = <TItem extends SpherCanvasItem>(
   drawFallbackSurface(context, frame)
 }
 
-const drawBackSurfaceContent = <TItem extends SpherCanvasItem>(
+const drawBackSurfaceContent = <TItem extends SpherItem>(
   context: CanvasRenderingContext2D,
   item: TItem,
-  state: SpherCanvasRenderState<TItem>,
-  frame: SpherCanvasSurfaceFrame,
-  options: SpherCanvasSurfaceRendererOptions<TItem>,
+  state: SpherRenderState<TItem>,
+  frame: SpherSurfaceFrame,
+  options: SpherSurfaceRendererOptions<TItem>,
 ) => {
   if (options.renderBack) {
     options.renderBack(context, item, state, frame)
@@ -270,10 +268,10 @@ const drawBackSurfaceContent = <TItem extends SpherCanvasItem>(
   drawImageSurfaceBack(context, undefined, frame)
 }
 
-const resolveColors = <TItem extends SpherCanvasItem>(
-  options: SpherCanvasSurfaceRendererOptions<TItem>,
+const resolveColors = <TItem extends SpherItem>(
+  options: SpherSurfaceRendererOptions<TItem>,
   item: TItem,
-): SpherCanvasColorPair => {
+): SpherColorPair => {
   if (typeof options.colors === "function") {
     return options.colors(item) ?? options.fallbackColors ?? defaultFallbackColors
   }
@@ -283,7 +281,7 @@ const resolveColors = <TItem extends SpherCanvasItem>(
   return options.fallbackColors ?? defaultFallbackColors
 }
 
-const getSurfaceAlpha = <TItem extends SpherCanvasItem>({
+const getSurfaceAlpha = <TItem extends SpherItem>({
   faceIn,
   faceOutBack,
   insideView,
@@ -292,7 +290,7 @@ const getSurfaceAlpha = <TItem extends SpherCanvasItem>({
   faceIn: boolean
   faceOutBack: boolean
   insideView: boolean
-  state: SpherCanvasRenderState<TItem>
+  state: SpherRenderState<TItem>
 }) => {
   if (insideView) return 0.86
   if (faceOutBack) return 0.54
@@ -300,11 +298,11 @@ const getSurfaceAlpha = <TItem extends SpherCanvasItem>({
   return state.visibleSide === "outside" ? 0.4 : 0.72
 }
 
-const drawSurfaceFrame = <TItem extends SpherCanvasItem>(
+const drawSurfaceFrame = <TItem extends SpherItem>(
   context: CanvasRenderingContext2D,
-  state: SpherCanvasRenderState<TItem>,
-  { drawMain, height, width, x, y }: SpherCanvasSurfaceFrame,
-  options: Pick<SpherCanvasSurfaceRendererOptions<TItem>, "cornerRadius" | "radius">,
+  state: SpherRenderState<TItem>,
+  { drawMain, height, width, x, y }: SpherSurfaceFrame,
+  options: Pick<SpherSurfaceRendererOptions<TItem>, "cornerRadius">,
 ) => {
   if (state.selected) {
     context.shadowBlur = 18
@@ -318,14 +316,14 @@ const drawSurfaceFrame = <TItem extends SpherCanvasItem>(
       ? "rgba(15, 23, 42, 0.16)"
       : "rgba(15, 23, 42, 0.2)"
   context.lineWidth = state.selected ? 2 : 1
-  roundedRect(context, x, y, width, height, options.cornerRadius ?? options.radius ?? 4)
+  roundedRect(context, x, y, width, height, options.cornerRadius ?? 4)
   context.fill()
   context.stroke()
 }
 
 const drawSurfaceLight = (
   context: CanvasRenderingContext2D,
-  { drawMain, mediaHeight, mediaWidth, mediaX, mediaY }: SpherCanvasSurfaceFrame,
+  { drawMain, mediaHeight, mediaWidth, mediaX, mediaY }: SpherSurfaceFrame,
 ) => {
   if (!drawMain) return
 

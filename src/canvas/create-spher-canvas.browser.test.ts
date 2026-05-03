@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest"
-import { createSpherCanvas } from "./create-spher-canvas.js"
+import { createSpher } from "./create-spher-canvas.js"
 import {
   createImageSurfaceRenderer,
   createImageSurfaceSpher,
@@ -25,10 +25,10 @@ afterEach(() => {
   canvases.length = 0
 })
 
-describe("createSpherCanvas", () => {
+describe("createSpher", () => {
   it("renders items into a high-DPI canvas", () => {
     const canvas = createCanvas()
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       devicePixelRatio: 2,
       items: [{ id: "front" }],
       position: () => ({ latitude: 0, longitude: 0 }),
@@ -55,7 +55,7 @@ describe("createSpherCanvas", () => {
       image: () => undefined,
       tone: () => "archive",
     })
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       devicePixelRatio: 1,
       items: [{ id: "surface" }],
       position: () => ({ latitude: 0, longitude: 0 }),
@@ -78,7 +78,7 @@ describe("createSpherCanvas", () => {
         context.fillRect(frame.mediaX, frame.mediaY, frame.mediaWidth, frame.mediaHeight)
       },
     })
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       devicePixelRatio: 1,
       items: [{ id: "metric" }],
       position: () => ({ latitude: 0, longitude: 0 }),
@@ -138,7 +138,7 @@ describe("createSpherCanvas", () => {
   it("selects a front item from pointer interaction", () => {
     const canvas = createCanvas()
     const selectedIds: string[] = []
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       controls: { drag: true },
       items: [{ id: "selectable" }],
       onSelect: (item) => selectedIds.push(item.id),
@@ -172,7 +172,7 @@ describe("createSpherCanvas", () => {
 
   it("eases keyboard rotation toward the target rotation", async () => {
     const canvas = createCanvas()
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       controls: { keyboard: true },
       items: [{ id: "front" }],
       position: () => ({ latitude: 0, longitude: 0 }),
@@ -190,7 +190,7 @@ describe("createSpherCanvas", () => {
 
   it("applies cobe-style drag rotation from the pointer origin", () => {
     const canvas = createCanvas()
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       controls: { drag: true },
       items: [{ id: "front" }],
       position: () => ({ latitude: 0, longitude: 0 }),
@@ -230,7 +230,7 @@ describe("createSpherCanvas", () => {
 
   it("auto rotates when enabled", async () => {
     const canvas = createCanvas()
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       controls: { autoRotate: { speed: 1 } },
       items: [{ id: "front" }],
       position: () => ({ latitude: 0, longitude: 0 }),
@@ -246,7 +246,7 @@ describe("createSpherCanvas", () => {
   it("draws item renderers on the projected sphere tangent plane", () => {
     const canvas = createCanvas()
     const transforms: DOMMatrix[] = []
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       devicePixelRatio: 1,
       items: [{ id: "edge" }],
       position: () => ({ latitude: 0, longitude: 65 }),
@@ -266,7 +266,7 @@ describe("createSpherCanvas", () => {
 
   it("keeps tilt separate from interactive rotation", () => {
     const canvas = createCanvas()
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       items: [{ id: "front" }],
       position: () => ({ latitude: 0, longitude: 0 }),
       radius: 100,
@@ -291,7 +291,7 @@ describe("createSpherCanvas", () => {
 
   it("resolves responsive surface sizes with ratio bounds", () => {
     const canvas = createCanvas()
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       items: [{ id: "bounded" }],
       position: () => ({ latitude: 0, longitude: 0 }),
       radius: "auto",
@@ -305,7 +305,7 @@ describe("createSpherCanvas", () => {
 
   it("scales ratio surface sizes from the sphere diameter", () => {
     const canvas = createCanvas()
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       items: [{ id: "responsive" }],
       position: () => ({ latitude: 0, longitude: 0 }),
       radius: 100,
@@ -324,7 +324,7 @@ describe("createSpherCanvas", () => {
   it("draws farther items before nearer items", () => {
     const canvas = createCanvas()
     const renderedIds: string[] = []
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       items: [{ id: "near" }, { id: "far" }],
       position: (item) =>
         item.id === "near" ? { latitude: 0, longitude: 0 } : { latitude: 0, longitude: 180 },
@@ -341,7 +341,7 @@ describe("createSpherCanvas", () => {
 
   it("reports whether the configured surface image side is visible", () => {
     const canvas = createCanvas()
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       items: [{ id: "near" }, { id: "far" }],
       position: (item) =>
         item.id === "near" ? { latitude: 0, longitude: 0 } : { latitude: 0, longitude: 180 },
@@ -363,7 +363,7 @@ describe("createSpherCanvas", () => {
 
   it("keeps visibility continuous around the sphere edge", () => {
     const canvas = createCanvas()
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       items: [{ id: "edge-a" }, { id: "edge-b" }],
       position: (item) =>
         item.id === "edge-a" ? { latitude: 0, longitude: 72 } : { latitude: 0, longitude: 73 },
@@ -379,7 +379,7 @@ describe("createSpherCanvas", () => {
 
   it("fades edge-on surfaces fully out to avoid side flicker", () => {
     const canvas = createCanvas()
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       items: [{ id: "edge" }],
       position: () => ({ latitude: 0, longitude: 90 }),
       radius: 100,
@@ -396,7 +396,7 @@ describe("createSpherCanvas", () => {
 
   it("keeps rear surfaces visible while fading only side-on surfaces", () => {
     const canvas = createCanvas()
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       items: [{ id: "front" }, { id: "side" }, { id: "rear" }],
       position: (item) => {
         if (item.id === "front") return { latitude: 0, longitude: 0 }
@@ -420,7 +420,7 @@ describe("createSpherCanvas", () => {
   it("hides near-side items after zooming inside the sphere", () => {
     const canvas = createCanvas()
     const renderedIds: string[] = []
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       items: [{ id: "near" }, { id: "far" }],
       position: (item) =>
         item.id === "near" ? { latitude: 0, longitude: 180 } : { latitude: 0, longitude: 0 },
@@ -443,7 +443,7 @@ describe("createSpherCanvas", () => {
   it("keeps inside-view item transforms bounded after zooming into the sphere", () => {
     const canvas = createCanvas()
     const transforms: DOMMatrix[] = []
-    const instance = createSpherCanvas(canvas, {
+    const instance = createSpher(canvas, {
       devicePixelRatio: 1,
       items: [{ id: "inside" }],
       position: () => ({ latitude: 0, longitude: 0 }),

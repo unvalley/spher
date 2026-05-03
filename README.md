@@ -86,7 +86,7 @@ if (canvas) {
 
 ### `createSpher(canvas, options)`
 
-The main `createSpher` export is an alias of `createSpherCanvas`. It draws into an existing `<canvas>` and owns pointer, wheel, and keyboard controls when enabled.
+The main `createSpher` export is an alias of `createSpher`. It draws into an existing `<canvas>` and owns pointer, wheel, and keyboard controls when enabled.
 
 ```ts
 import { createSpher } from "spher";
@@ -108,13 +108,13 @@ const instance = createSpher(canvas, {
 The instance exposes:
 
 ```ts
-type SpherCanvasInstance = {
+type SpherInstance = {
   update: (patch) => void;
   select: (id: string | null) => void;
   rotateTo: (rotation) => void;
   destroy: () => void;
-  itemState: (id: string) => SpherCanvasRenderState | null;
-  getState: () => SpherCanvasState;
+  itemState: (id: string) => SpherRenderState | null;
+  getState: () => SpherState;
   subscribe: (listener) => () => void;
 };
 ```
@@ -186,7 +186,7 @@ createSpher(canvas, {
 The same canvas API is also available from `spher/canvas`.
 
 ```ts
-import { createSpherCanvas } from "spher/canvas";
+import { createSpher } from "spher/canvas";
 ```
 
 ### Surface Spheres

@@ -1,28 +1,23 @@
 export type {
-  SpherCanvasImageCardInstance,
-  SpherCanvasImageCardRendererOptions,
-  SpherCanvasImageCardSpherOptions,
-  SpherCanvasImageSurfaceInstance,
-  SpherCanvasImageSurfaceRendererOptions,
-  SpherCanvasImageSurfaceSpherOptions,
+  SpherImageSurfaceInstance,
+  SpherImageSurfaceRendererOptions,
+  SpherImageSurfaceSpherOptions,
 } from "./image-surface-renderer.js"
 export {
-  createImageCardRenderer,
-  createImageCardSpher,
   createImageSurfaceRenderer,
   createImageSurfaceSpher,
 } from "./image-surface-renderer.js"
 export type {
-  SpherCanvasColorPair,
-  SpherCanvasImageSource,
-  SpherCanvasPreloadableRenderer,
-  SpherCanvasRenderer,
+  SpherColorPair,
+  SpherImageSource,
+  SpherPreloadableRenderer,
+  SpherRenderer,
 } from "./renderer-types.js"
 export type {
-  SpherCanvasSurfaceContent,
-  SpherCanvasSurfaceFrame,
-  SpherCanvasSurfaceInstance,
-  SpherCanvasSurfaceRendererOptions,
-  SpherCanvasSurfaceSpherOptions,
+  SpherSurfaceContent as SpherSurfaceContent,
+  SpherSurfaceFrame,
+  SpherSurfaceInstance,
+  SpherSurfaceRendererOptions,
+  SpherSurfaceSpherOptions,
 } from "./surface-renderer.js"
 export { createSurfaceRenderer, createSurfaceSpher } from "./surface-renderer.js"

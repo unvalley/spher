@@ -1,58 +1,44 @@
-import { createSpherCanvas } from "./create-spher-canvas.js"
-import type { SpherCanvasImageSource, SpherCanvasPreloadableRenderer } from "./renderer-types.js"
+import { createSpher } from "./create-spher-canvas.js"
+import type { SpherImageSource, SpherPreloadableRenderer } from "./renderer-types.js"
 import {
   createSurfaceRenderer,
   drawCoverImage,
   drawFallbackSurface,
   drawImageSurfaceBack,
-  type SpherCanvasSurfaceRendererOptions,
+  type SpherSurfaceRendererOptions,
 } from "./surface-renderer.js"
-import type { SpherCanvasInstance, SpherCanvasItem, SpherCanvasOptions } from "./types.js"
+import type { SpherInstance, SpherItem, SpherOptions } from "./types.js"
 
-export type SpherCanvasImageSurfaceRendererOptions<
-  TItem extends SpherCanvasItem = SpherCanvasItem,
-> = Omit<SpherCanvasSurfaceRendererOptions<TItem>, "aspectRatio" | "render" | "renderBack"> & {
-  image: (item: TItem) => SpherCanvasImageSource
+export type SpherImageSurfaceRendererOptions<
+  TItem extends SpherItem = SpherItem,
+> = Omit<SpherSurfaceRendererOptions<TItem>, "aspectRatio" | "render" | "renderBack"> & {
+  image: (item: TItem) => SpherImageSource
   imageAspectRatio?: number
 }
 
-/** @deprecated Use SpherCanvasImageSurfaceRendererOptions instead. */
-export type SpherCanvasImageCardRendererOptions<TItem extends SpherCanvasItem = SpherCanvasItem> =
-  SpherCanvasImageSurfaceRendererOptions<TItem>
-
-export type SpherCanvasImageSurfaceSpherOptions<TItem extends SpherCanvasItem = SpherCanvasItem> =
-  Omit<SpherCanvasOptions<TItem>, "render"> &
-    Omit<SpherCanvasImageSurfaceRendererOptions<TItem>, "cornerRadius" | "radius"> & {
+export type SpherImageSurfaceSpherOptions<TItem extends SpherItem = SpherItem> =
+  Omit<SpherOptions<TItem>, "render"> &
+    Omit<SpherImageSurfaceRendererOptions<TItem>, "cornerRadius"> & {
       /** Corner radius for each rendered image surface. */
       cornerRadius?: number
-      /** @deprecated Use cornerRadius instead. */
-      cardRadius?: number
       /** Preload image sources and redraw as each image loads. Defaults to true. */
       preloadImages?: boolean
     }
 
-/** @deprecated Use SpherCanvasImageSurfaceSpherOptions instead. */
-export type SpherCanvasImageCardSpherOptions<TItem extends SpherCanvasItem = SpherCanvasItem> =
-  SpherCanvasImageSurfaceSpherOptions<TItem>
-
-export type SpherCanvasImageSurfaceInstance<TItem extends SpherCanvasItem = SpherCanvasItem> =
-  SpherCanvasInstance<TItem> & {
-    renderer: SpherCanvasPreloadableRenderer<TItem>
+export type SpherImageSurfaceInstance<TItem extends SpherItem = SpherItem> =
+  SpherInstance<TItem> & {
+    renderer: SpherPreloadableRenderer<TItem>
     preloadImages: (items?: TItem[], onLoad?: () => void) => void
   }
-
-/** @deprecated Use SpherCanvasImageSurfaceInstance instead. */
-export type SpherCanvasImageCardInstance<TItem extends SpherCanvasItem = SpherCanvasItem> =
-  SpherCanvasImageSurfaceInstance<TItem>
 
 type CachedImage = {
   image: HTMLImageElement
   src: string
 }
 
-export const createImageSurfaceRenderer = <TItem extends SpherCanvasItem>(
-  options: SpherCanvasImageSurfaceRendererOptions<TItem>,
-): SpherCanvasPreloadableRenderer<TItem> => {
+export const createImageSurfaceRenderer = <TItem extends SpherItem>(
+  options: SpherImageSurfaceRendererOptions<TItem>,
+): SpherPreloadableRenderer<TItem> => {
   const images = createImageCache(options.image)
   const renderer = createSurfaceRenderer<TItem>({
     ...options,
@@ -68,23 +54,23 @@ export const createImageSurfaceRenderer = <TItem extends SpherCanvasItem>(
     renderBack: (context, item, _state, frame) => {
       drawImageSurfaceBack(context, images.resolve(item), frame)
     },
-  }) as SpherCanvasPreloadableRenderer<TItem>
+  }) as SpherPreloadableRenderer<TItem>
 
   renderer.preload = images.preload
   return renderer
 }
 
-export const createImageSurfaceSpher = <TItem extends SpherCanvasItem>(
+export const createImageSurfaceSpher = <TItem extends SpherItem>(
   canvas: HTMLCanvasElement,
-  options: SpherCanvasImageSurfaceSpherOptions<TItem>,
-): SpherCanvasImageSurfaceInstance<TItem> => {
+  options: SpherImageSurfaceSpherOptions<TItem>,
+): SpherImageSurfaceInstance<TItem> => {
   const { canvasOptions, preloadImages, rendererOptions } = splitImageSurfaceOptions(options)
   const renderer = createImageSurfaceRenderer<TItem>(rendererOptions)
-  const instance = createSpherCanvas(canvas, { ...canvasOptions, render: renderer })
+  const instance = createSpher(canvas, { ...canvasOptions, render: renderer })
   const preload = (items = instance.getState().items, onLoad?: () => void) => {
     renderer.preload(items, onLoad ?? (() => instance.update({})))
   }
-  const update: SpherCanvasInstance<TItem>["update"] = (patch) => {
+  const update: SpherInstance<TItem>["update"] = (patch) => {
     instance.update(patch)
     if (preloadImages && patch.items) preload(patch.items)
   }
@@ -99,14 +85,8 @@ export const createImageSurfaceSpher = <TItem extends SpherCanvasItem>(
   }
 }
 
-/** @deprecated Use createImageSurfaceRenderer instead. */
-export const createImageCardRenderer = createImageSurfaceRenderer
-
-/** @deprecated Use createImageSurfaceSpher instead. */
-export const createImageCardSpher = createImageSurfaceSpher
-
-const createImageCache = <TItem extends SpherCanvasItem>(
-  getSource: (item: TItem) => SpherCanvasImageSource,
+const createImageCache = <TItem extends SpherItem>(
+  getSource: (item: TItem) => SpherImageSource,
 ) => {
   const cache = new Map<string, CachedImage>()
   let notifyImageLoad: (() => void) | undefined
@@ -136,8 +116,7 @@ const createImageCache = <TItem extends SpherCanvasItem>(
   }
 }
 
-const splitImageSurfaceOptions = <TItem extends SpherCanvasItem>({
-  cardRadius,
+const splitImageSurfaceOptions = <TItem extends SpherItem>({
   colors,
   cornerRadius,
   fallbackColors,
@@ -149,12 +128,12 @@ const splitImageSurfaceOptions = <TItem extends SpherCanvasItem>({
   tone,
   widthOffset,
   ...canvasOptions
-}: SpherCanvasImageSurfaceSpherOptions<TItem>) => ({
+}: SpherImageSurfaceSpherOptions<TItem>) => ({
   canvasOptions,
   preloadImages,
   rendererOptions: {
     colors,
-    cornerRadius: cornerRadius ?? cardRadius,
+    cornerRadius,
     fallbackColors,
     image,
     imageAspectRatio,

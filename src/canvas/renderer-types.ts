@@ -1,16 +1,16 @@
-import type { SpherCanvasItem, SpherCanvasRenderState } from "./types.js"
+import type { SpherItem, SpherRenderState } from "./types.js"
 
-export type SpherCanvasRenderer<TItem extends SpherCanvasItem = SpherCanvasItem> = (
+export type SpherRenderer<TItem extends SpherItem = SpherItem> = (
   context: CanvasRenderingContext2D,
   item: TItem,
-  state: SpherCanvasRenderState<TItem>,
+  state: SpherRenderState<TItem>,
 ) => void
 
-export type SpherCanvasPreloadableRenderer<TItem extends SpherCanvasItem = SpherCanvasItem> =
-  SpherCanvasRenderer<TItem> & {
+export type SpherPreloadableRenderer<TItem extends SpherItem = SpherItem> =
+  SpherRenderer<TItem> & {
     preload: (items: TItem[], onLoad?: () => void) => void
   }
 
-export type SpherCanvasImageSource = string | HTMLImageElement | null | undefined
+export type SpherImageSource = string | HTMLImageElement | null | undefined
 
-export type SpherCanvasColorPair = readonly [string, string]
+export type SpherColorPair = readonly [string, string]

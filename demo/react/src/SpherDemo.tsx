@@ -1,21 +1,17 @@
-import { useCallback, useEffect, useRef, useState } from "react"
-import {
-  createImageSurfaceSpher,
-  type SpherFaceMode,
-  type SpherInstance,
-  type SpherItem,
-} from "../../../src/index.js"
+import { useCallback, useEffect, useState } from "react"
+import type { SpherFaceMode, SpherItem } from "../../../src/index.js"
+import { Spher } from "../../../src/react/index.js"
 
 type Item = SpherItem & {
   category: string
-  image: string
+  cover: string
   title: string
   year: number
 }
 
-type SourceItem = Omit<Item, "image">
+type SourceItem = Omit<Item, "cover">
 
-const philosophyImages = [
+const philosophyCovers = [
   new URL("./assets/philosophy/abelard-photo.jpg", import.meta.url).href,
   new URL("./assets/philosophy/abelard.jpg", import.meta.url).href,
   new URL("./assets/philosophy/adam-smith.jpg", import.meta.url).href,
@@ -255,18 +251,18 @@ const items: Item[] = Array.from({ length: 4 }, (_, pass) =>
   sourceItems.map((item, index) => ({
     ...item,
     id: `${item.id}-${pass}`,
-    image: philosophyImages[pass * sourceItems.length + index],
+    cover: philosophyCovers[pass * sourceItems.length + index],
     year: item.year + pass * 11 + index,
   })),
 ).flat()
 
-const defaultSurfaceSizeRatio = 0.06
+const defaultCardSizeRatio = 0.06
 const defaultTiltPitch = 12
 const defaultTiltRoll = 0
 
 export const SpherDemo = () => {
   const [selectedId, setSelectedId] = useState(items[0].id)
-  const [surfaceSizeRatio, setSurfaceSizeRatio] = useState(defaultSurfaceSizeRatio)
+  const [cardSizeRatio, setCardSizeRatio] = useState(defaultCardSizeRatio)
   const [faceMode, setFaceMode] = useState<SpherFaceMode>("face-out")
   const [tiltPitch, setTiltPitch] = useState(defaultTiltPitch)
   const [tiltRoll, setTiltRoll] = useState(defaultTiltRoll)
@@ -275,7 +271,7 @@ export const SpherDemo = () => {
   const visibleSelectedId = items.some((item) => item.id === selectedId) ? selectedId : null
   const handleSelect = useCallback((item: Item) => setSelectedId(item.id), [])
   const handleResetView = useCallback(() => {
-    setSurfaceSizeRatio(defaultSurfaceSizeRatio)
+    setCardSizeRatio(defaultCardSizeRatio)
     setTiltPitch(defaultTiltPitch)
     setTiltRoll(defaultTiltRoll)
   }, [])
@@ -299,15 +295,15 @@ export const SpherDemo = () => {
             <label className="demo-range-control">
               <span>Size ratio</span>
               <input
-                aria-label="Surface size ratio"
+                aria-label="Card size ratio"
                 max="0.12"
                 min="0.03"
-                onChange={(event) => setSurfaceSizeRatio(Number(event.currentTarget.value))}
+                onChange={(event) => setCardSizeRatio(Number(event.currentTarget.value))}
                 step="0.01"
                 type="range"
-                value={surfaceSizeRatio}
+                value={cardSizeRatio}
               />
-              <output>{Math.round(surfaceSizeRatio * 100)}%</output>
+              <output>{Math.round(cardSizeRatio * 100)}%</output>
             </label>
             <label className="demo-range-control">
               <span>Pitch</span>
@@ -336,7 +332,7 @@ export const SpherDemo = () => {
               <output>{tiltRoll}deg</output>
             </label>
             <div className="demo-control-row">
-              <fieldset aria-label="Surface face mode" className="demo-face-control">
+              <fieldset aria-label="Card face mode" className="demo-face-control">
                 <button
                   data-active={faceMode === "face-out"}
                   onClick={() => setFaceMode("face-out")}
@@ -367,90 +363,26 @@ export const SpherDemo = () => {
         </header>
       ) : null}
 
-      <CanvasSphere
+      <Spher
+        aria-label="Spher demo"
+        card={{
+          cover: (item) => item.cover,
+          title: (item) => item.title,
+          tone: (item) => item.category,
+        }}
+        className="sphere-canvas"
+        controls={{ autoRotate: true, drag: true, keyboard: true, wheel: true }}
         faceMode={faceMode}
+        items={items}
+        maxZoom={4.4}
+        minZoom={0.66}
         onSelect={handleSelect}
+        perspective={980}
+        radius="auto"
         selectedId={visibleSelectedId}
-        surfaceSizeRatio={surfaceSizeRatio}
-        tiltPitch={tiltPitch}
-        tiltRoll={tiltRoll}
+        size={{ ratio: cardSizeRatio }}
+        tilt={{ x: tiltPitch, z: tiltRoll }}
       />
     </main>
   )
-}
-
-const CanvasSphere = ({
-  faceMode,
-  onSelect,
-  selectedId,
-  surfaceSizeRatio,
-  tiltPitch,
-  tiltRoll,
-}: {
-  faceMode: SpherFaceMode
-  onSelect: (item: Item) => void
-  selectedId: string | null
-  surfaceSizeRatio: number
-  tiltPitch: number
-  tiltRoll: number
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null)
-  const instanceRef = useRef<SpherInstance<Item> | null>(null)
-
-  useEffect(() => {
-    if (!canvasRef.current) return
-
-    const instance = createImageSurfaceSpher(canvasRef.current, {
-      controls: { autoRotate: true, drag: true, keyboard: true, wheel: true },
-      faceMode: "face-out",
-      image: (item) => item.image,
-      items,
-      maxZoom: 4.4,
-      minZoom: 0.66,
-      onSelect,
-      perspective: 980,
-      radius: "auto",
-      selectedId: null,
-      size: { ratio: 0.06 },
-      tone: (item) => item.category,
-    })
-    instanceRef.current = instance
-    syncCanvasCursor(canvasRef.current, instance)
-
-    return () => {
-      instance.destroy()
-      if (instanceRef.current === instance) instanceRef.current = null
-    }
-  }, [onSelect])
-
-  useEffect(() => {
-    instanceRef.current?.update({
-      faceMode,
-      selectedId,
-      size: { ratio: surfaceSizeRatio },
-      tilt: { x: tiltPitch, z: tiltRoll },
-    })
-  }, [faceMode, selectedId, surfaceSizeRatio, tiltPitch, tiltRoll])
-
-  return (
-    <canvas
-      aria-label="Spher canvas demo"
-      className="sphere-canvas"
-      ref={canvasRef}
-    />
-  )
-}
-
-const syncCanvasCursor = (
-  canvas: HTMLCanvasElement,
-  instance: SpherInstance<Item>,
-  clientX = -1,
-  clientY = -1,
-) => {
-  const rect = canvas.getBoundingClientRect()
-  const state = instance.getState()
-  const x = clientX - rect.left - rect.width / 2
-  const y = clientY - rect.top - rect.height / 2
-  const radius = state.radius * state.sceneZoom
-  canvas.dataset.overSphere = Math.hypot(x, y) <= radius ? "true" : "false"
 }

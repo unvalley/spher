@@ -5,6 +5,7 @@ import { projectItems } from "../core/projection.js"
 import type { PositionedItem } from "../core/types.js"
 import { normalizeCanvasControls } from "./controls.js"
 import type {
+  SpherCardSide,
   SpherFaceMode,
   SpherInstance,
   SpherItem,
@@ -13,7 +14,6 @@ import type {
   SpherProjection,
   SpherRenderState,
   SpherState,
-  SpherSurfaceSide,
   SpherViewMode,
 } from "./types.js"
 
@@ -272,7 +272,7 @@ export const createSpher = <TItem extends SpherItem>(
       const selected = projected.item.id === state.selectedId
       const front = state.viewMode === "inside" ? projected.z < 0 : projected.z < -30
       const visibleSide = getVisibleSide(projected.z, state.viewMode)
-      const imageVisible = isImageVisible(state.faceMode, visibleSide)
+      const coverVisible = isCoverVisible(state.faceMode, visibleSide)
       const visibility = getVisibility({
         edgeFactor: projected.edgeFactor,
         selected,
@@ -283,7 +283,7 @@ export const createSpher = <TItem extends SpherItem>(
         ...projected,
         faceMode: state.faceMode,
         front,
-        imageVisible,
+        coverVisible,
         selected,
         visibleSide,
         visibility,
@@ -608,12 +608,12 @@ const withDerivedState = <TItem extends SpherItem>(
 
 const objectHasOwnProperty = Object.prototype.hasOwnProperty
 
-const getVisibleSide = (z: number, viewMode: SpherViewMode): SpherSurfaceSide => {
+const getVisibleSide = (z: number, viewMode: SpherViewMode): SpherCardSide => {
   if (viewMode === "inside") return "inside"
   return z < 0 ? "outside" : "inside"
 }
 
-const isImageVisible = (faceMode: SpherFaceMode, visibleSide: SpherSurfaceSide) =>
+const isCoverVisible = (faceMode: SpherFaceMode, visibleSide: SpherCardSide) =>
   visibleSide === (faceMode === "face-out" ? "outside" : "inside")
 
 const resolveSizeOption = <TItem extends SpherItem>(
@@ -632,10 +632,7 @@ const resolveSizeOption = <TItem extends SpherItem>(
   return clamp(diameter * ratio, min, max)
 }
 
-const resolveTilt = (
-  tilt: SpherOptions["tilt"],
-  previous: SpherState["tilt"] | undefined,
-) => {
+const resolveTilt = (tilt: SpherOptions["tilt"], previous: SpherState["tilt"] | undefined) => {
   if (tilt === undefined) return previous ?? defaultTilt
   if (typeof tilt === "number") return { x: tilt, y: 0, z: 0 }
   return {
@@ -791,7 +788,7 @@ const toRenderState = <TItem extends SpherItem>({
   edgeFactor,
   faceMode,
   front,
-  imageVisible,
+  coverVisible,
   item,
   normalY,
   perspectiveScale,
@@ -804,7 +801,7 @@ const toRenderState = <TItem extends SpherItem>({
   edgeFactor,
   faceMode,
   front,
-  imageVisible,
+  coverVisible,
   normalY,
   perspectiveScale,
   selected,
@@ -815,13 +812,13 @@ const toRenderState = <TItem extends SpherItem>({
 
 const renderDefaultItem = <TItem extends SpherItem>(
   context: CanvasRenderingContext2D,
-  { imageVisible, item, selected }: SpherRenderState<TItem>,
+  { coverVisible, item, selected }: SpherRenderState<TItem>,
 ) => {
   const width = item.size
   const height = item.size * 1.28
   context.fillStyle = selected
     ? "rgba(255, 255, 255, 0.92)"
-    : imageVisible
+    : coverVisible
       ? "rgba(255, 255, 255, 0.86)"
       : "rgba(15, 23, 42, 0.64)"
   context.strokeStyle = selected ? "rgba(17, 24, 39, 0.96)" : "rgba(15, 23, 42, 0.18)"

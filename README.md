@@ -1,6 +1,6 @@
 # spher
 
-`spher` is a small canvas-first sphere layout engine.
+`spher` is a small canvas-first sphere layout engine with a React binding.
 
 https://github.com/user-attachments/assets/fdd3f7f9-761b-4bba-bfd2-dafc9f3ec17a
 
@@ -12,81 +12,104 @@ npm install spher
 
 ## Quick Start
 
-```ts
-import { createSurfaceSpher } from "spher";
+```tsx
+import { Spher } from "spher/react";
 
-const canvas = document.querySelector<HTMLCanvasElement>("#sphere");
+const items = [
+  {
+    id: "tokyo",
+    label: "Tokyo",
+    cover: "/tokyo.jpg",
+    tone: "city",
+  },
+  {
+    id: "sf",
+    label: "San Francisco",
+    cover: "/sf.jpg",
+    tone: "coast",
+  },
+];
 
-if (canvas) {
-  const items = [
-    {
-      id: "tokyo",
-      label: "Tokyo",
-      tone: "city",
-    },
-    {
-      id: "sf",
-      label: "San Francisco",
-      tone: "coast",
-    },
-  ];
-
-  const sphere = createSurfaceSpher(canvas, {
-    colors: {
-      city: ["#dbeafe", "#60a5fa"],
-      coast: ["#dcfce7", "#34d399"],
-    },
-    controls: {
-      autoRotate: { speed: 0.18 },
-      drag: true,
-      wheel: true,
-    },
-    items,
-    perspective: 900,
-    position: (item) =>
-      item.id === "tokyo"
-        ? { latitude: 35.6762, longitude: 139.6503 }
-        : { latitude: 37.7749, longitude: -122.4194 },
-    radius: 320,
-    render: (context, item, _state, frame) => {
-      context.fillStyle = "#0f172a";
-      context.font = "600 12px system-ui";
-      context.textAlign = "center";
-      context.textBaseline = "middle";
-      context.fillText(item.label, 0, frame.mediaY + frame.mediaHeight / 2);
-    },
-    size: { ratio: 0.1 },
-    tone: (item) => item.tone,
-    onSelect: (item) => {
-      console.log("selected", item.id);
-    },
-  });
-
-  sphere.rotateTo({ x: 8, y: 24 });
-
-  // Later:
-  // sphere.destroy();
+export function Globe() {
+  return (
+    <Spher
+      className="sphere"
+      controls={{ autoRotate: { speed: 0.18 }, drag: true, wheel: true }}
+      items={items}
+      perspective={900}
+      position={(item) =>
+        item.id === "tokyo"
+          ? { latitude: 35.6762, longitude: 139.6503 }
+          : { latitude: 37.7749, longitude: -122.4194 }
+      }
+      radius="auto"
+      size={{ ratio: 0.1 }}
+      card={{
+        colors: {
+          city: ["#dbeafe", "#60a5fa"],
+          coast: ["#dcfce7", "#34d399"],
+        },
+        cover: (item) => item.cover,
+        title: (item) => item.label,
+        tone: (item) => item.tone,
+      }}
+      onSelect={(item) => console.log("selected", item.id)}
+    />
+  );
 }
 ```
 
 ```css
-#sphere {
+.sphere {
   cursor: grab;
   width: 480px;
   height: 480px;
   touch-action: none;
 }
 
-#sphere:active {
+.sphere:active {
   cursor: grabbing;
 }
 ```
 
 ## API
 
+### React
+
+Use `Spher` from `spher/react` when you want React to own the canvas element and lifecycle while spher keeps dense rendering on canvas.
+
+```tsx
+import { Spher, useSpher } from "spher/react";
+```
+
+`Spher` accepts the same options as `createSpher`, plus normal canvas props such as `className` and `aria-label`.
+
+```tsx
+<Spher
+  items={items}
+  radius="auto"
+  size={{ ratio: 0.08 }}
+  card={{
+    cover: (item) => item.thumbnail,
+    title: (item) => item.name,
+  }}
+/>
+```
+
+Use `useSpher` when you need to place the `<canvas>` yourself.
+
+```tsx
+const { canvasRef, instanceRef } = useSpher({
+  items,
+  card: { cover: (item) => item.thumbnail },
+});
+
+return <canvas ref={canvasRef} />;
+```
+
 ### `createSpher(canvas, options)`
 
-The main `createSpher` export is an alias of `createSpher`. It draws into an existing `<canvas>` and owns pointer, wheel, and keyboard controls when enabled.
+The root `createSpher` export draws into an existing `<canvas>` and owns pointer, wheel, and keyboard controls when enabled.
 
 ```ts
 import { createSpher } from "spher";
@@ -139,7 +162,7 @@ createSpher(canvas, {
 });
 ```
 
-For responsive surfaces, pass `"auto"` to derive the size from the resolved sphere diameter, or pass a ratio when the surface should scale with the displayed sphere.
+For responsive cards, pass `"auto"` to derive the size from the resolved sphere diameter, or pass a ratio when the card should scale with the displayed sphere.
 
 ```ts
 createSpher(canvas, {
@@ -149,7 +172,7 @@ createSpher(canvas, {
 });
 ```
 
-Use `faceMode` when your renderer treats surfaces as having a main image side. `face-out` marks the exterior-facing side as the image side; `face-in` marks the interior-facing side as the image side. Read `state.imageVisible` in your renderer to choose between image and back-side drawing.
+Use `faceMode` when your renderer treats cards as having a main cover side. `face-out` marks the exterior-facing side as the cover side; `face-in` marks the interior-facing side as the cover side. Read `state.coverVisible` in your renderer to choose between cover and back-side drawing.
 
 ```ts
 createSpher(canvas, {
@@ -168,9 +191,48 @@ createSpher(canvas, {
 });
 ```
 
-### Canvas Rendering
+### Cards
 
-Use `render` to draw each projected item. The canvas transform is already positioned on the sphere surface before your function runs, so draw around `(0, 0)`.
+Use `card` for the common framed-cover case. `cover` can return a URL string or any drawable `CanvasImageSource`, including images, videos, canvases, and image bitmaps.
+
+```ts
+createSpher(canvas, {
+  items,
+  radius: "auto",
+  size: { ratio: 0.08 },
+  card: {
+    cover: (item) => item.preview,
+    title: (item) => item.label,
+    subtitle: (item) => item.kind,
+    tone: (item) => item.kind,
+    colors: {
+      alert: ["#fee2e2", "#fb7185"],
+      metric: ["#dbeafe", "#60a5fa"],
+    },
+  },
+});
+```
+
+For custom canvas content inside the framed card, use `card.render`.
+
+```ts
+createSpher(canvas, {
+  items,
+  card: {
+    render: (context, item, state, frame) => {
+      context.fillStyle = state.selected ? "#020617" : "#334155";
+      context.font = "600 11px system-ui";
+      context.textAlign = "center";
+      context.textBaseline = "middle";
+      context.fillText(item.label, 0, frame.coverY + frame.coverHeight / 2);
+    },
+  },
+});
+```
+
+### Low-Level Canvas Rendering
+
+Use `render` to draw each projected item. The canvas transform is already positioned on the sphere card before your function runs, so draw around `(0, 0)`.
 
 ```ts
 createSpher(canvas, {
@@ -189,14 +251,14 @@ The same canvas API is also available from `spher/canvas`.
 import { createSpher } from "spher/canvas";
 ```
 
-### Surface Spheres
+### Card Renderers
 
-Use `createSurfaceSpher` when you want spher to handle the sphere, controls, surface frame, front/back visibility, and selection styling while you draw arbitrary canvas content inside each surface.
+Use `createCardSpher` when you want spher to handle the sphere, controls, card frame, front/back visibility, and selection styling while you draw arbitrary canvas content inside each card.
 
 ```ts
-import { createSurfaceSpher } from "spher";
+import { createCardSpher } from "spher";
 
-const sphere = createSurfaceSpher(canvas, {
+const sphere = createCardSpher(canvas, {
   items,
   radius: "auto",
   size: { ratio: 0.08 },
@@ -210,45 +272,27 @@ const sphere = createSurfaceSpher(canvas, {
     context.font = "600 11px system-ui";
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillText(item.label, 0, frame.mediaY + frame.mediaHeight / 2);
+    context.fillText(item.label, 0, frame.coverY + frame.coverHeight / 2);
   },
-});
-```
-
-### Image Surface Spheres
-
-Use `createImageSurfaceSpher` when the surface content is an image. It creates the renderer, wires it into the canvas sphere, preloads image URLs, and redraws as images load.
-
-```ts
-import { createImageSurfaceSpher } from "spher";
-
-const sphere = createImageSurfaceSpher(canvas, {
-  items,
-  image: (item) => item.image,
-  tone: (item) => item.category,
-  colors: {
-    archive: ["#dbeafe", "#60a5fa"],
-    network: ["#fee2e2", "#fb7185"],
-  },
-  radius: "auto",
-  size: { ratio: 0.06 },
-  controls: { autoRotate: true, drag: true, wheel: true },
 });
 ```
 
 ### Canvas Renderers
 
-Use `createImageSurfaceRenderer` when you want image surfaces like the demo without writing canvas drawing code by hand.
+Use `createCardRenderer` when you want the card frame preset while wiring the low-level canvas instance yourself.
 
 ```ts
-import { createImageSurfaceRenderer, createSpher } from "spher";
+import { createCardRenderer, createSpher } from "spher";
 
-const renderer = createImageSurfaceRenderer({
-  image: (item) => item.image,
+const renderer = createCardRenderer({
   tone: (item) => item.category,
   colors: {
     archive: ["#dbeafe", "#60a5fa"],
     network: ["#fee2e2", "#fb7185"],
+  },
+  render: (context, item, _state, frame) => {
+    context.fillStyle = "#0f172a";
+    context.fillText(item.label, 0, frame.coverY + frame.coverHeight / 2);
   },
 });
 
@@ -258,8 +302,6 @@ const sphere = createSpher(canvas, {
   size: { ratio: 0.06 },
   render: renderer,
 });
-
-renderer.preload(items, () => sphere.update({}));
 ```
 
 ## Core Utilities
@@ -277,8 +319,8 @@ const placed = placeItems([{ id: "a" }, { id: "b" }], {
 
 ## Demo
 
-See [demo/react](demo/react) for a styled React example built on `createImageSurfaceSpher`.
-The demo includes philosophy archive image assets and lets you hide the controls with the `Hide`
+See [demo/react](demo/react) for a styled React example built on `Spher` from `spher/react`.
+The demo includes philosophy archive cover assets and lets you hide the controls with the `Hide`
 button. Press `h` to show the controls again.
 
 ## Design Notes

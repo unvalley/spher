@@ -2,19 +2,19 @@
 
 ## Direction
 
-spher should be a small sphere layout engine with low-level rendering hooks and a few first-party canvas renderers. The package should provide the mechanics for placing image surfaces, labels, or custom marks on a rotating sphere, while product-specific application UI lives in userland or demos.
+spher should be a small sphere layout engine with low-level rendering hooks, a declarative card preset, and a thin React binding. The package should provide the mechanics for placing cover cards, labels, or custom marks on a rotating sphere, while product-specific application UI lives in userland or demos.
 
-The public surface is now centered on:
+The public card is now centered on:
 
 - `createSpher` from `spher`
-- `createSurfaceSpher` for common framed surface compositions
-- `createImageSurfaceSpher` as an image-specific convenience preset
-- canvas renderer helpers such as `createSurfaceRenderer` and `createImageSurfaceRenderer`
+- `Spher` and `useSpher` from `spher/react`
+- `createCardSpher` for common framed card compositions
+- canvas renderer helpers such as `createCardRenderer`
 - pure geometry helpers from `spher/core`
 
-The root `spher` entry should stay framework-agnostic and canvas-first. A full DOM or React renderer should not be a primary package surface unless it can prove stable frame times with realistic surface counts.
+The root `spher` entry should stay framework-agnostic and canvas-first. The React entry should own lifecycle ergonomics only; it should not turn dense sphere items into DOM nodes.
 
-Styled archive UI is intentionally not part of the library API. Reusable primitives such as a generic surface renderer and an image-surface renderer can live in the package, and an archive-style composition lives in `demo/react`.
+Styled archive UI is intentionally not part of the library API. Reusable primitives such as a generic card renderer can live in the package, and an archive-style composition lives in `demo/react`.
 
 ## Package Layers
 
@@ -22,6 +22,7 @@ Styled archive UI is intentionally not part of the library API. Reusable primiti
 src/
 ├─ core        pure placement utilities
 ├─ canvas      canvas renderer, controls, and canvas presets
+├─ react       React lifecycle binding around the canvas engine
 └─ index.ts    root canvas-first export entry
 ```
 
@@ -30,32 +31,49 @@ src/
 ### Canvas
 
 ```ts
-import { createSurfaceSpher } from "spher";
+import { createSpher } from "spher";
 const items = [{ id: "tokyo", category: "archive", label: "Tokyo" }];
 
-const instance = createSurfaceSpher(canvas, {
-  colors: {
-    archive: ["#dbeafe", "#60a5fa"],
-    instrument: ["#dcfce7", "#34d399"],
-  },
+const instance = createSpher(canvas, {
   items,
   position: () => ({ latitude: 35.6762, longitude: 139.6503 }),
   radius: "auto",
   size: { ratio: 0.08 },
-  tone: (item) => item.category,
   controls: { drag: true, wheel: true },
-  render: (context, item, state, frame) => {
-    context.fillStyle = state.selected ? "#020617" : "#334155";
-    context.fillText(item.label, 0, frame.mediaY + frame.mediaHeight / 2);
+  card: {
+    colors: {
+      archive: ["#dbeafe", "#60a5fa"],
+      instrument: ["#dcfce7", "#34d399"],
+    },
+    title: (item) => item.label,
+    tone: (item) => item.category,
   },
 });
 ```
 
-`createSpher` owns surface placement, projection, selection, controls, canvas sizing, and cleanup. `createSurfaceSpher` composes the default surface frame with custom content rendering. `createImageSurfaceSpher` layers image loading and cover rendering on top of that generic surface primitive. Renderer helpers reduce the amount of user code needed for common visual patterns without forcing a product-specific component API.
+`createSpher` owns card placement, projection, selection, controls, canvas sizing, and cleanup. Its `card` option covers the common framed-cover recipe without requiring users to write canvas drawing code. `createCardSpher` composes the default card frame with custom content rendering. Renderer helpers reduce the amount of user code needed for common visual patterns without forcing a product-specific component API.
+
+### React
+
+```tsx
+import { Spher } from "spher/react";
+
+<Spher
+  items={items}
+  radius="auto"
+  size={{ ratio: 0.08 }}
+  card={{
+    cover: (item) => item.preview,
+    title: (item) => item.label,
+  }}
+/>;
+```
+
+The React binding should be a declarative owner for the canvas element and instance updates. It should not be a DOM renderer. React children are intentionally not accepted as sphere items; use `card` recipes or canvas render hooks instead.
 
 ### DOM Overlays
 
-DOM is still useful for sparse UI that needs real accessibility, text selection, focus, popovers, or framework components. It should be treated as an overlay layer fed by canvas state, not as the dense surface renderer.
+DOM is still useful for sparse UI that needs real accessibility, text selection, focus, popovers, or framework components. It should be treated as an overlay layer fed by canvas state, not as the dense card renderer.
 
 If a DOM binding API is added later, it should be explicitly bounded: selected item, hovered item, labels, or a small visible subset. It must not trigger React renders every frame, and it should update only imperative transforms or CSS variables for the mounted overlay nodes.
 
@@ -67,7 +85,7 @@ Items only require `id`. Coordinates and sizes are resolved through options:
 createSpher(canvas, {
   items,
   position: (item) => item.coordinates,
-  size: (item) => item.surfaceSize,
+  size: (item) => item.cardSize,
 });
 ```
 
@@ -82,7 +100,7 @@ item
 selected
 visible
 visibility
-imageVisible
+coverVisible
 visibleSide
 viewMode
 ```
@@ -91,7 +109,7 @@ The package should not ship Tailwind-based component styling. Demos can use any 
 
 ## Demo Strategy
 
-`demo/react` contains a styled archive example built with `createSpher` and first-party canvas renderers. This keeps the package API generic while still showing a rich archive experience with a small amount of userland code.
+`demo/react` contains a styled archive example built with `Spher` and the root `card` preset. This keeps the package API generic while still showing a rich archive experience with a small amount of userland code.
 
 ## Test Strategy
 
@@ -105,11 +123,11 @@ pnpm test:browser
 
 - Node Vitest tests cover pure `core` functions.
 - Vitest browser mode + Playwright covers canvas behavior.
-- Renderer preset tests cover image loading, selection state, and visible-side behavior.
+- Renderer preset tests cover cover loading, selection state, and visible-side behavior.
 
 ## Next Steps
 
-- Keep dense archive/surface rendering on canvas.
+- Keep dense archive/card rendering on canvas.
 - Add examples for controlled rotation and external UI controls.
 - Consider a sparse overlay API only after measuring realistic frame times.
 - Split canvas internals into renderer, controls, and state modules as behavior grows.

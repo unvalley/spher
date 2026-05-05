@@ -1,26 +1,26 @@
 export { createSpher } from "./create-spher-canvas.js"
 export type {
+  SpherCardContent,
+  SpherCardFrame,
+  SpherCardInstance,
+  SpherCardRendererOptions,
+  SpherCardSpherOptions,
   SpherColorPair,
-  SpherImageSource,
-  SpherImageSurfaceInstance,
-  SpherImageSurfaceRendererOptions,
-  SpherImageSurfaceSpherOptions,
+  SpherCoverSource,
   SpherPreloadableRenderer,
   SpherRenderer,
-  SpherSurfaceContent,
-  SpherSurfaceFrame,
-  SpherSurfaceInstance,
-  SpherSurfaceRendererOptions,
-  SpherSurfaceSpherOptions,
 } from "./renderers.js"
 export {
-  createImageSurfaceRenderer,
-  createImageSurfaceSpher,
-  createSurfaceRenderer,
-  createSurfaceSpher,
+  createCardRenderer,
+  createCardSpher,
+  drawCardBack,
+  drawCover,
+  drawFallbackCard,
+  isDrawableCover,
 } from "./renderers.js"
 export type {
   SpherAutoSize,
+  SpherCardSide,
   SpherControls,
   SpherFaceMode,
   SpherInstance,
@@ -32,6 +32,5 @@ export type {
   SpherRenderState,
   SpherResolvedTilt,
   SpherState,
-  SpherSurfaceSide,
   SpherTilt,
 } from "./types.js"

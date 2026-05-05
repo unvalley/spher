@@ -11,7 +11,7 @@ export type SpherViewMode = "inside" | "shell"
 
 export type SpherFaceMode = "face-out" | "face-in"
 
-export type SpherSurfaceSide = "outside" | "inside"
+export type SpherCardSide = "outside" | "inside"
 
 export type SpherTilt =
   | number
@@ -45,21 +45,21 @@ export type SpherRenderState<TItem extends SpherItem = SpherItem> = {
   edgeFactor: number
   faceMode: SpherFaceMode
   front: boolean
-  imageVisible: boolean
+  coverVisible: boolean
   normalY: number
   perspectiveScale: number
   selected: boolean
-  visibleSide: SpherSurfaceSide
+  visibleSide: SpherCardSide
   visibility: number
   viewMode: SpherViewMode
 }
 
 export type SpherAutoSize = {
-  /** Size-to-diameter ratio used for responsive surface sizing. Defaults to 0.1. */
+  /** Size-to-diameter ratio used for responsive card sizing. Defaults to 0.1. */
   ratio?: number
-  /** Minimum resolved surface size in CSS pixels. */
+  /** Minimum resolved card size in CSS pixels. */
   min?: number
-  /** Maximum resolved surface size in CSS pixels. */
+  /** Maximum resolved card size in CSS pixels. */
   max?: number
 }
 
@@ -77,24 +77,16 @@ export type SpherOptions<TItem extends SpherItem = SpherItem> = {
   insideZoomThreshold?: number
   minZoom?: number
   maxZoom?: number
-  /** Which side of each surface shows the main image. */
+  /** Which side of each card shows the main cover. */
   faceMode?: SpherFaceMode
   placement?: SpherPlacement
   controls?: SpherControls
   selectedId?: string | null
   devicePixelRatio?: number
   position?: (item: TItem, index: number, items: TItem[]) => SpherPosition | null | undefined
-  /** Surface size in CSS pixels. `"auto"` derives from the resolved radius. */
-  size?:
-    | number
-    | "auto"
-    | SpherAutoSize
-    | ((item: TItem, index: number, items: TItem[]) => number)
-  render?: (
-    context: CanvasRenderingContext2D,
-    item: TItem,
-    state: SpherRenderState<TItem>,
-  ) => void
+  /** Card size in CSS pixels. `"auto"` derives from the resolved radius. */
+  size?: number | "auto" | SpherAutoSize | ((item: TItem, index: number, items: TItem[]) => number)
+  render?: (context: CanvasRenderingContext2D, item: TItem, state: SpherRenderState<TItem>) => void
   onSelect?: (item: TItem) => void
 }
 
@@ -121,20 +113,17 @@ export type SpherState<TItem extends SpherItem = SpherItem> = {
   viewMode: SpherViewMode
 }
 
-export type SpherProjection<TItem extends SpherItem = SpherItem> =
-  ProjectedItem<TItem> & {
-    faceMode: SpherFaceMode
-    front: boolean
-    imageVisible: boolean
-    selected: boolean
-    visibleSide: SpherSurfaceSide
-    visibility: number
-    viewMode: SpherViewMode
-  }
+export type SpherProjection<TItem extends SpherItem = SpherItem> = ProjectedItem<TItem> & {
+  faceMode: SpherFaceMode
+  front: boolean
+  coverVisible: boolean
+  selected: boolean
+  visibleSide: SpherCardSide
+  visibility: number
+  viewMode: SpherViewMode
+}
 
-export type SpherListener<TItem extends SpherItem = SpherItem> = (
-  state: SpherState<TItem>,
-) => void
+export type SpherListener<TItem extends SpherItem = SpherItem> = (state: SpherState<TItem>) => void
 
 export type SpherInstance<TItem extends SpherItem = SpherItem> = {
   update: (patch: Partial<SpherOptions<TItem>>) => void

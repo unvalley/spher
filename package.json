@@ -36,6 +36,18 @@
     "./canvas": {
       "types": "./dist/canvas/index.d.ts",
       "import": "./dist/canvas/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "import": "./dist/react/index.js"
+    }
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
     }
   },
   "keywords": [
@@ -53,8 +65,10 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
+    "@types/react": "^19.2.7",
     "@vitest/browser-playwright": "^4.1.5",
     "playwright": "^1.59.1",
+    "react": "^19.2.4",
     "tsdown": "^0.21.10",
     "typescript": "^5.9.3",
     "vitest": "^4.1.5"

@@ -6,11 +6,10 @@ export type SpherRenderer<TItem extends SpherItem = SpherItem> = (
   state: SpherRenderState<TItem>,
 ) => void
 
-export type SpherPreloadableRenderer<TItem extends SpherItem = SpherItem> =
-  SpherRenderer<TItem> & {
-    preload: (items: TItem[], onLoad?: () => void) => void
-  }
+export type SpherPreloadableRenderer<TItem extends SpherItem = SpherItem> = SpherRenderer<TItem> & {
+  preload: (items: TItem[], onLoad?: () => void) => void
+}
 
-export type SpherImageSource = string | HTMLImageElement | null | undefined
+export type SpherCoverSource = string | CanvasImageSource | null | undefined
 
 export type SpherColorPair = readonly [string, string]

@@ -123,7 +123,7 @@ export const selectInsideVisibleItemIds = <TItem extends SpherItemBase>(
   return selectedIds
 }
 
-export type SelectVisibleSurfaceItemIdsOptions<TItem extends SpherItemBase> = {
+export type SelectVisibleCardItemIdsOptions<TItem extends SpherItemBase> = {
   projectedItems: ProjectedItem<TItem>[]
   radius: number
   zoom?: number
@@ -131,13 +131,13 @@ export type SelectVisibleSurfaceItemIdsOptions<TItem extends SpherItemBase> = {
   prioritizeIds?: Set<string>
 }
 
-export const selectVisibleSurfaceItemIds = <TItem extends SpherItemBase>({
+export const selectVisibleCardItemIds = <TItem extends SpherItemBase>({
   projectedItems,
   radius,
   zoom = 1,
   sceneScale = 1,
   prioritizeIds = new Set(),
-}: SelectVisibleSurfaceItemIdsOptions<TItem>) =>
+}: SelectVisibleCardItemIdsOptions<TItem>) =>
   selectInsideVisibleItemIds(
     projectedItems,
     Math.max(0, zoom - 1),

@@ -18,6 +18,20 @@ describe("core sphere projection", () => {
     expect(Number.isFinite(placed[0].baseZ)).toBe(true)
   })
 
+  it("supports grid placement", () => {
+    const placed = placeItems(
+      Array.from({ length: 9 }, (_, index) => ({ id: `${index}` })),
+      {
+        placement: "grid",
+        radius: 100,
+      },
+    )
+
+    expect(placed).toHaveLength(9)
+    expect(placed[0].latitude).toBeCloseTo(-66)
+    expect(placed.at(-1)?.latitude).toBeCloseTo(66)
+  })
+
   it("projects an explicit front-facing location to the center", () => {
     const placed = placeItems([{ id: "front", position: { latitude: 0, longitude: 0 } }], {
       radius: 100,

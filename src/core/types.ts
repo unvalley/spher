@@ -1,4 +1,4 @@
-export type SpherPlacement = "fibonacci" | "latitude-longitude-grid"
+export type SpherPlacement = "fibonacci" | "grid"
 
 export type SpherItem = {
   /** Default card cover source. Accepts URLs and drawable canvas sources. */

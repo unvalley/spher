@@ -76,7 +76,7 @@ export const placeItems = <TItem>(
     const explicitPosition = position?.(item, index, items)
     const { longitude, latitude, baseX, baseY, baseZ } = explicitPosition
       ? getSphericalPosition(explicitPosition.latitude, explicitPosition.longitude, radius)
-      : placement === "latitude-longitude-grid"
+      : placement === "grid"
         ? getLatitudeLongitudeGridPosition(index, items.length, radius)
         : getFibonacciSpherePosition(index, items.length, radius)
     const clampedLatitude = clamp(latitude, -82, 82)

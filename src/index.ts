@@ -21,8 +21,10 @@ export {
   type SpherRenderer,
   type SpherRenderState,
   type SpherResolvedTilt,
+  type SpherResolvedZoom,
   type SpherState,
   type SpherTilt,
+  type SpherZoom,
 } from "./canvas/index.js"
 export type { SpherItemBase, SpherPlacement } from "./core/index.js"
 export {

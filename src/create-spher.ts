@@ -20,10 +20,15 @@ import {
 type SpherCardText = string | number | null | undefined
 
 export type SpherCardRecipe = {
+  /** Resolved foreground and background colors for this item. */
   colors?: SpherColorPair
+  /** Resolved cover source for this item. Strings are loaded as images. */
   cover?: SpherCoverSource
+  /** Resolved secondary label drawn below the title. */
   subtitle?: SpherCardText
+  /** Resolved primary label drawn on the card. */
   title?: SpherCardText
+  /** Resolved color tone key used with `colors` records. */
   tone?: string | null | undefined
 }
 
@@ -31,22 +36,30 @@ export type SpherCardOptions<TItem extends SpherItem = SpherItem> = Omit<
   SpherCardRendererOptions<TItem>,
   "aspectRatio" | "colors" | "render" | "renderBack" | "tone"
 > & {
+  /** Color palette keyed by tone, or a resolver that returns colors per item. */
   colors?: Record<string, SpherColorPair> | ((item: TItem) => SpherColorPair | null | undefined)
+  /** Resolves the card cover source for an item. */
   cover?: (item: TItem) => SpherCoverSource
+  /** Aspect ratio for the cover area. Defaults to 3 / 4. */
   coverAspectRatio?: number
+  /** Preloads string cover sources. Defaults to true. */
   preloadCover?: boolean
+  /** Custom drawing hook for the main card side, called after the default cover and text. */
   render?: SpherCardContent<TItem>
+  /** Custom drawing hook for the back side. Defaults to a mirrored cover treatment. */
   renderBack?: SpherCardContent<TItem>
+  /** Resolves the secondary label for an item. */
   subtitle?: (item: TItem) => SpherCardText
+  /** Resolves the primary label for an item. */
   title?: (item: TItem) => SpherCardText
+  /** Resolves the tone key used to pick colors from a `colors` record. */
   tone?: (item: TItem) => string | null | undefined
 }
 
-export type SpherCard<TItem extends SpherItem = SpherItem> =
-  | SpherCardOptions<TItem>
-  | ((item: TItem) => SpherCardRecipe)
+export type SpherCard<TItem extends SpherItem = SpherItem> = SpherCardOptions<TItem>
 
 export type SpherOptions<TItem extends SpherItem = SpherItem> = SpherCanvasOptions<TItem> & {
+  /** High-level card preset. When omitted, use the lower-level `render` callback. */
   card?: SpherCard<TItem>
 }
 
@@ -62,8 +75,8 @@ export const createSpher = <TItem extends SpherItem>(
   if (!card) return createCanvasSpher(canvas, canvasOptions)
 
   let cardOptions = card
-  const cover = createCoverResolver(() => cardOptions)
-  const renderer = createCardPresetRenderer(() => cardOptions, cover)
+  const cover = createCoverResolver<TItem>((item) => cardOptions.cover?.(item))
+  const renderer: SpherRenderer<TItem> = createCardPresetRenderer(() => cardOptions, cover)
   const instance = createCanvasSpher(canvas, { ...canvasOptions, render: renderer })
   const update: SpherInstance<TItem>["update"] = (patch) => {
     const { card: nextCard, ...canvasPatch } = patch as Partial<SpherOptions<TItem>>
@@ -102,35 +115,28 @@ const createCardPresetRenderer = <TItem extends SpherItem>(
       }
 
       drawRecipeText(context, recipe, frame, state)
-      if (typeof card !== "function") card.render?.(context, item, state, frame)
+      card.render?.(context, item, state, frame)
     },
     renderBack: (context, item, state, frame) => {
       const card = getCard()
-      if (typeof card !== "function" && card.renderBack) {
+      if (card.renderBack) {
         card.renderBack(context, item, state, frame)
         return
       }
       drawCardBack(context, cover.resolve(item), frame)
     },
   }
+  const renderCard = createCardRenderer(cardRendererOptions)
 
   return (context, item, state) => {
-    const card = getCard()
-    Object.assign(cardRendererOptions, resolveCardRendererOptions(card))
-    createCardRenderer(cardRendererOptions)(context, item, state)
+    applyCardRendererOptions(cardRendererOptions, getCard())
+    renderCard(context, item, state)
   }
 }
 
 const resolveCardRendererOptions = <TItem extends SpherItem>(
   card: SpherCard<TItem>,
 ): SpherCardRendererOptions<TItem> => {
-  if (typeof card === "function") {
-    return {
-      colors: (item) => card(item).colors,
-      tone: (item) => card(item).tone,
-    }
-  }
-
   const { coverAspectRatio, render, renderBack, title, subtitle, preloadCover, ...options } = card
   return {
     ...options,
@@ -138,11 +144,25 @@ const resolveCardRendererOptions = <TItem extends SpherItem>(
   }
 }
 
+const applyCardRendererOptions = <TItem extends SpherItem>(
+  target: SpherCardRendererOptions<TItem>,
+  card: SpherCard<TItem>,
+) => {
+  const next = resolveCardRendererOptions(card)
+  target.aspectRatio = next.aspectRatio
+  target.colors = next.colors
+  target.cornerRadius = next.cornerRadius
+  target.coverRadius = next.coverRadius
+  target.fallbackColors = next.fallbackColors
+  target.inset = next.inset
+  target.tone = next.tone
+  target.widthOffset = next.widthOffset
+}
+
 const resolveCardRecipe = <TItem extends SpherItem>(
   card: SpherCard<TItem>,
   item: TItem,
 ): SpherCardRecipe => {
-  if (typeof card === "function") return card(item)
   return {
     cover: card.cover?.(item),
     subtitle: card.subtitle?.(item),
@@ -151,12 +171,14 @@ const resolveCardRecipe = <TItem extends SpherItem>(
   }
 }
 
-const createCoverResolver = <TItem extends SpherItem>(getCard: () => SpherCard<TItem>) => {
+const createCoverResolver = <TItem extends SpherItem>(
+  getCover: (item: TItem) => SpherCoverSource,
+) => {
   const cache = new Map<string, { cover: HTMLImageElement; src: string }>()
   let notifyLoad: (() => void) | undefined
 
   const resolve = (item: TItem): CanvasImageSource | undefined => {
-    const source = resolveCardRecipe(getCard(), item).cover
+    const source = getCover(item)
     if (!source) return undefined
     if (typeof source !== "string") return source
 
@@ -181,7 +203,7 @@ const createCoverResolver = <TItem extends SpherItem>(getCard: () => SpherCard<T
 }
 
 const shouldPreloadCover = <TItem extends SpherItem>(card: SpherCard<TItem>) =>
-  typeof card === "function" || card.preloadCover !== false
+  card.preloadCover !== false
 
 const drawRecipeText = <TItem extends SpherItem>(
   context: CanvasRenderingContext2D,

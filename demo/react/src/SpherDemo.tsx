@@ -374,14 +374,13 @@ export const SpherDemo = () => {
         controls={{ autoRotate: true, drag: true, keyboard: true, wheel: true }}
         faceMode={faceMode}
         items={items}
-        maxZoom={4.4}
-        minZoom={0.66}
         onSelect={handleSelect}
         perspective={980}
         radius="auto"
         selectedId={visibleSelectedId}
         size={{ ratio: cardSizeRatio }}
         tilt={{ x: tiltPitch, z: tiltRoll }}
+        zoom={{ min: 0.66, max: 4.4 }}
       />
     </main>
   )

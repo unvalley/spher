@@ -402,7 +402,7 @@ describe("createSpher", () => {
       render: (_context, item) => {
         renderedIds.push(item.id)
       },
-      zoom: 2,
+      zoom: { value: 2 },
     })
 
     expect(instance.getState().viewMode).toBe("inside")
@@ -427,7 +427,7 @@ describe("createSpher", () => {
         context.fillRect(-10, -10, 20, 20)
       },
       size: 40,
-      zoom: 4.4,
+      zoom: { value: 4.4 },
     })
 
     expect(instance.getState().viewMode).toBe("inside")

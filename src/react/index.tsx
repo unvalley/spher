@@ -1,9 +1,9 @@
 import {
   type CanvasHTMLAttributes,
   forwardRef,
-  type MutableRefObject,
   type ReactElement,
   type Ref,
+  type RefObject,
   useEffect,
   useRef,
 } from "react"
@@ -13,8 +13,8 @@ import { createSpher, type SpherOptions } from "../create-spher.js"
 export type UseSpherOptions<TItem extends SpherItem = SpherItem> = SpherOptions<TItem>
 
 export type UseSpherResult<TItem extends SpherItem = SpherItem> = {
-  canvasRef: MutableRefObject<HTMLCanvasElement | null>
-  instanceRef: MutableRefObject<SpherInstance<TItem> | null>
+  canvasRef: RefObject<HTMLCanvasElement | null>
+  instanceRef: RefObject<SpherInstance<TItem> | null>
 }
 
 export type SpherProps<TItem extends SpherItem = SpherItem> = UseSpherOptions<TItem> &
@@ -53,13 +53,11 @@ const SpherComponent = <TItem extends SpherItem>(
   forwardedRef: Ref<HTMLCanvasElement>,
 ) => {
   const {
+    card,
     controls,
     devicePixelRatio,
     faceMode,
-    insideZoomThreshold,
     items,
-    maxZoom,
-    minZoom,
     onSelect,
     perspective,
     placement,
@@ -69,19 +67,16 @@ const SpherComponent = <TItem extends SpherItem>(
     rotation,
     selectedId,
     size,
-    card,
     tilt,
     zoom,
     ...canvasProps
   } = props
   const { canvasRef } = useSpher({
+    card,
     controls,
     devicePixelRatio,
     faceMode,
-    insideZoomThreshold,
     items,
-    maxZoom,
-    minZoom,
     onSelect,
     perspective,
     placement,
@@ -91,7 +86,6 @@ const SpherComponent = <TItem extends SpherItem>(
     rotation,
     selectedId,
     size,
-    card,
     tilt,
     zoom,
   })
@@ -104,14 +98,19 @@ export const Spher = forwardRef(SpherComponent) as <TItem extends SpherItem = Sp
 ) => ReactElement | null
 
 const mergeRefs =
-  <TValue,>(...refs: Array<Ref<TValue> | MutableRefObject<TValue | null> | undefined>) =>
+  <TValue,>(...refs: Array<Ref<TValue> | RefObject<TValue | null> | undefined>) =>
   (value: TValue | null) => {
     for (const ref of refs) {
       if (!ref) continue
-      if (typeof ref === "function") {
-        ref(value)
-      } else {
-        ref.current = value
-      }
+      setRef(ref, value)
     }
   }
+
+const setRef = <TValue,>(ref: Ref<TValue> | RefObject<TValue | null>, value: TValue | null) => {
+  if (typeof ref === "function") {
+    ref(value)
+    return
+  }
+  const writableRef = ref as { current: TValue | null }
+  writableRef.current = value
+}

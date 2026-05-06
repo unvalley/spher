@@ -122,7 +122,7 @@ const instance = createSpher(canvas, {
   perspective: 900,
   rotation: { x: 0, y: 0 },
   tilt: { x: 12 },
-  zoom: 1,
+  zoom: { value: 1 },
   placement: "fibonacci",
   controls: true,
 });

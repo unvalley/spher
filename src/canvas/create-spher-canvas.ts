@@ -260,7 +260,7 @@ export const createSpher = <TItem extends SpherItem>(
     const projectedItems = projectItems(getPlacedItems(), {
       rotation: state.rotation,
       tilt: state.tilt,
-      zoom: state.sceneZoom,
+      zoom: state.zoom.effective,
       perspective: state.perspective,
       perspectiveMode: state.viewMode === "inside" ? "inside" : "outside",
     })
@@ -391,9 +391,10 @@ export const createSpher = <TItem extends SpherItem>(
     if (!controls().wheel) return
     if (controls().preventDocumentScroll) event.preventDefault()
     if (event.ctrlKey || event.metaKey || event.altKey) {
+      const value = clamp(state.zoom.value - event.deltaY * 0.0014, state.zoom.min, state.zoom.max)
       state = withDerivedState({
         ...state,
-        zoom: clamp(state.zoom - event.deltaY * 0.0014, state.minZoom, state.maxZoom),
+        zoom: { ...state.zoom, value },
       })
       render()
       emit()
@@ -415,13 +416,14 @@ export const createSpher = <TItem extends SpherItem>(
     if (event.metaKey && (event.key === "ArrowUp" || event.key === "ArrowDown")) {
       event.preventDefault()
       const zoomStep = event.shiftKey ? 0.18 : 0.1
+      const value = clamp(
+        state.zoom.value + (event.key === "ArrowUp" ? zoomStep : -zoomStep),
+        state.zoom.min,
+        state.zoom.max,
+      )
       state = withDerivedState({
         ...state,
-        zoom: clamp(
-          state.zoom + (event.key === "ArrowUp" ? zoomStep : -zoomStep),
-          state.minZoom,
-          state.maxZoom,
-        ),
+        zoom: { ...state.zoom, value },
       })
       render()
       emit()
@@ -565,11 +567,7 @@ const normalizeOptions = <TItem extends SpherItem>(
     perspective: options.perspective ?? previous?.perspective ?? defaultPerspective,
     rotation: options.rotation ?? previous?.rotation ?? defaultRotation,
     tilt: resolveTilt(options.tilt, previous?.tilt),
-    zoom: options.zoom ?? previous?.zoom ?? defaultZoom,
-    insideZoomThreshold:
-      options.insideZoomThreshold ?? previous?.insideZoomThreshold ?? defaultInsideZoomThreshold,
-    minZoom: options.minZoom ?? previous?.minZoom ?? defaultMinZoom,
-    maxZoom: options.maxZoom ?? previous?.maxZoom ?? defaultMaxZoom,
+    zoom: resolveZoom(options.zoom, previous?.zoom),
     faceMode: options.faceMode ?? previous?.faceMode ?? defaultFaceMode,
     placement: options.placement ?? previous?.placement ?? defaultPlacement,
     selectedId: objectHasOwnProperty.call(options, "selectedId")
@@ -580,28 +578,28 @@ const normalizeOptions = <TItem extends SpherItem>(
   })
 
 const withDerivedState = <TItem extends SpherItem>(
-  state: Omit<
-    SpherState<TItem>,
-    "insideZoomProgress" | "insideSceneScale" | "sceneZoom" | "viewMode"
-  >,
+  state: Omit<SpherState<TItem>, "viewMode">,
 ): SpherState<TItem> => {
-  const viewMode = state.zoom >= state.insideZoomThreshold ? "inside" : "shell"
-  const insideZoomProgress =
+  const viewMode = state.zoom.value >= state.zoom.insideThreshold ? "inside" : "shell"
+  const insideProgress =
     viewMode === "inside"
       ? clamp(
-          (state.zoom - state.insideZoomThreshold) /
-            Math.max(0.01, state.maxZoom - state.insideZoomThreshold),
+          (state.zoom.value - state.zoom.insideThreshold) /
+            Math.max(0.01, state.zoom.max - state.zoom.insideThreshold),
           0,
           1,
         )
       : 0
-  const insideSceneScale = 1 + insideZoomProgress * 1.45
+  const insideScale = 1 + insideProgress * 1.45
 
   return {
     ...state,
-    insideZoomProgress,
-    insideSceneScale,
-    sceneZoom: viewMode === "inside" ? insideSceneScale : state.zoom,
+    zoom: {
+      ...state.zoom,
+      insideProgress,
+      insideScale,
+      effective: viewMode === "inside" ? insideScale : state.zoom.value,
+    },
     viewMode,
   }
 }
@@ -642,6 +640,19 @@ const resolveTilt = (tilt: SpherOptions["tilt"], previous: SpherState["tilt"] | 
   }
 }
 
+const resolveZoom = (
+  zoom: SpherOptions["zoom"],
+  previous: SpherState["zoom"] | undefined,
+): SpherState["zoom"] => ({
+  value: zoom?.value ?? previous?.value ?? defaultZoom,
+  min: zoom?.min ?? previous?.min ?? defaultMinZoom,
+  max: zoom?.max ?? previous?.max ?? defaultMaxZoom,
+  insideThreshold: zoom?.insideThreshold ?? previous?.insideThreshold ?? defaultInsideZoomThreshold,
+  insideProgress: previous?.insideProgress ?? 0,
+  insideScale: previous?.insideScale ?? 1,
+  effective: previous?.effective ?? defaultZoom,
+})
+
 type GetVisibilityOptions<TItem extends SpherItem> = {
   edgeFactor: number
   selected: boolean
@@ -655,12 +666,12 @@ const getVisibility = <TItem extends SpherItem>({
   state,
   z,
 }: GetVisibilityOptions<TItem>) => {
-  const normalizedDepth = Math.abs(z) / Math.max(1, state.radius * state.sceneZoom)
+  const normalizedDepth = Math.abs(z) / Math.max(1, state.radius * state.zoom.effective)
   const sideVisibility = smoothstep(0.02, 0.18, normalizedDepth)
 
   if (state.viewMode === "inside") {
-    const insideVisibleDepth = -state.radius * state.insideSceneScale * 0.02
-    const fadeRange = state.radius * state.insideSceneScale * 0.12
+    const insideVisibleDepth = -state.radius * state.zoom.insideScale * 0.02
+    const fadeRange = state.radius * state.zoom.insideScale * 0.12
     const depthVisibility =
       1 - smoothstep(insideVisibleDepth - fadeRange, insideVisibleDepth + fadeRange, z)
     if (depthVisibility <= 0) return 0
@@ -749,7 +760,7 @@ const getPlaneBasis = <TItem extends SpherItem>(item: PositionedItem<TItem>) => 
 
 const projectPoint = <TItem extends SpherItem>(
   point: Point3D,
-  { perspective, rotation, sceneZoom, tilt, viewMode }: SpherState<TItem>,
+  { perspective, rotation, zoom, tilt, viewMode }: SpherState<TItem>,
 ): ProjectedPoint => {
   // cobe parity: RotX(theta) · RotY(phi) · p.
   const theta = toRadians(rotation.x + tilt.x)
@@ -772,9 +783,9 @@ const projectPoint = <TItem extends SpherItem>(
     x = rolledX
   }
 
-  x *= sceneZoom
-  y *= sceneZoom
-  z *= sceneZoom
+  x *= zoom.effective
+  y *= zoom.effective
+  z *= zoom.effective
 
   const perspectiveScale = perspective / Math.max(1, perspective + (viewMode === "inside" ? -z : z))
   return {

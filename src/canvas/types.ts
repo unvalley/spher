@@ -33,10 +33,15 @@ export type SpherResolvedTilt = {
 export type SpherControls =
   | boolean
   | {
+      /** Continuously rotates the sphere. Pass an object to customize the frame step. */
       autoRotate?: boolean | { speed?: number }
+      /** Enables pointer drag rotation. */
       drag?: boolean
+      /** Enables arrow-key rotation and command-arrow zoom. */
       keyboard?: boolean
+      /** Enables wheel rotation and modifier-wheel zoom. */
       wheel?: boolean
+      /** Prevents page scroll while handling wheel input on the canvas. */
       preventDocumentScroll?: boolean
     }
 
@@ -63,30 +68,67 @@ export type SpherAutoSize = {
   max?: number
 }
 
+export type SpherZoom = {
+  /** Current zoom level. Defaults to 1. */
+  value?: number
+  /** Lower bound for interactive zoom. Defaults to 0.66. */
+  min?: number
+  /** Upper bound for interactive zoom. Defaults to 4.4. */
+  max?: number
+  /** Zoom level where rendering switches from shell view to inside view. Defaults to 1.32. */
+  insideThreshold?: number
+}
+
+export type SpherResolvedZoom = {
+  /** Current zoom level before inside-view remapping. */
+  value: number
+  /** Lower bound for interactive zoom. */
+  min: number
+  /** Upper bound for interactive zoom. */
+  max: number
+  /** Zoom level where rendering switches from shell view to inside view. */
+  insideThreshold: number
+  /** Normalized inside-view progress from 0 to 1. */
+  insideProgress: number
+  /** Projection scale used while inside the sphere. */
+  insideScale: number
+  /** Zoom value passed to projection after inside-view remapping. */
+  effective: number
+}
+
 export type SpherOptions<TItem extends SpherItem = SpherItem> = {
+  /** Items to place on the sphere. Each item must have a stable `id`. */
   items: TItem[]
   /** Sphere radius in CSS pixels. `"auto"` tracks the canvas's shorter side. */
   radius?: number | "auto"
+  /** Perspective distance in CSS pixels. Higher values flatten depth. */
   perspective?: number
+  /** Initial or controlled rotation in degrees. */
   rotation?: {
     x: number
     y: number
   }
+  /** Static pitch/yaw/roll offset applied before user rotation. */
   tilt?: SpherTilt
-  zoom?: number
-  insideZoomThreshold?: number
-  minZoom?: number
-  maxZoom?: number
+  /** Zoom configuration. Groups the current value, bounds, and inside-view threshold. */
+  zoom?: SpherZoom
   /** Which side of each card shows the main cover. */
   faceMode?: SpherFaceMode
+  /** Strategy used to distribute items when `position` is not provided. */
   placement?: SpherPlacement
+  /** Built-in pointer, wheel, keyboard, and auto-rotation controls. */
   controls?: SpherControls
+  /** Currently selected item id. Pass `null` to clear selection. */
   selectedId?: string | null
+  /** Canvas backing-store scale. Defaults to `globalThis.devicePixelRatio`. */
   devicePixelRatio?: number
+  /** Optional explicit spherical coordinates for each item. */
   position?: (item: TItem, index: number, items: TItem[]) => SpherPosition | null | undefined
   /** Card size in CSS pixels. `"auto"` derives from the resolved radius. */
   size?: number | "auto" | SpherAutoSize | ((item: TItem, index: number, items: TItem[]) => number)
+  /** Custom renderer called for each visible item. */
   render?: (context: CanvasRenderingContext2D, item: TItem, state: SpherRenderState<TItem>) => void
+  /** Called when the user selects an item through built-in controls. */
   onSelect?: (item: TItem) => void
 }
 
@@ -99,13 +141,7 @@ export type SpherState<TItem extends SpherItem = SpherItem> = {
     y: number
   }
   tilt: SpherResolvedTilt
-  zoom: number
-  insideZoomProgress: number
-  insideZoomThreshold: number
-  insideSceneScale: number
-  sceneZoom: number
-  minZoom: number
-  maxZoom: number
+  zoom: SpherResolvedZoom
   placement: SpherPlacement
   selectedId: string | null
   devicePixelRatio: number

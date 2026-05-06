@@ -24,15 +24,25 @@ export type SpherCardContent<TItem extends SpherItem = SpherItem> = (
 ) => void
 
 export type SpherCardRendererOptions<TItem extends SpherItem = SpherItem> = {
+  /** Color palette keyed by tone, or a resolver that returns colors per item. */
   colors?: Record<string, SpherColorPair> | ((item: TItem) => SpherColorPair | null | undefined)
+  /** Resolves the tone key used to pick colors from a `colors` record. */
   tone?: (item: TItem) => string | null | undefined
+  /** Colors used when no item-specific colors are resolved. */
   fallbackColors?: SpherColorPair
+  /** Aspect ratio for the cover area. Defaults to 3 / 4. */
   aspectRatio?: number
+  /** Padding between the card edge and cover area in CSS pixels. */
   inset?: number
+  /** Outer card corner radius in CSS pixels. */
   cornerRadius?: number
+  /** Cover clipping radius in CSS pixels. */
   coverRadius?: number
+  /** Extra card width added to the placed item size. */
   widthOffset?: number
+  /** Custom drawing hook for the main card side. */
   render?: SpherCardContent<TItem>
+  /** Custom drawing hook for the back side. */
   renderBack?: SpherCardContent<TItem>
 }
 
@@ -52,7 +62,7 @@ export const createCardRenderer = <TItem extends SpherItem>(
   options: SpherCardRendererOptions<TItem> = {},
 ): SpherRenderer<TItem> => {
   return (context, item, state) => {
-    const frame = createCardFrame(options, item, state)
+    const frame = createCardFrame(options, state)
 
     context.save()
     context.globalAlpha *= frame.cardAlpha
@@ -197,7 +207,6 @@ const splitCardOptions = <TItem extends SpherItem>({
 
 const createCardFrame = <TItem extends SpherItem>(
   options: SpherCardRendererOptions<TItem>,
-  item: TItem,
   state: SpherRenderState<TItem>,
 ): SpherCardFrame => {
   const inset = options.inset ?? 3
@@ -218,7 +227,7 @@ const createCardFrame = <TItem extends SpherItem>(
     coverY: -height / 2 + inset,
     coverWidth,
     coverHeight,
-    colors: resolveColors(options, item),
+    colors: resolveColors(options, state.item),
     drawMain: state.coverVisible || faceIn || insideView,
     cardAlpha: getCardAlpha({ faceIn, faceOutBack, insideView, state }),
   }

@@ -31,6 +31,8 @@ export type {
   SpherProjection,
   SpherRenderState,
   SpherResolvedTilt,
+  SpherResolvedZoom,
   SpherState,
   SpherTilt,
+  SpherZoom,
 } from "./types.js"

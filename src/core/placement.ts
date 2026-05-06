@@ -1,7 +1,7 @@
 import { clamp, toRadians } from "./math.js"
-import type { PositionedItem, SpherItemBase, SpherPlacement } from "./types.js"
+import type { PositionedItem, SpherItem, SpherPlacement } from "./types.js"
 
-export type SphericalPosition = {
+type SphericalPosition = {
   longitude: number
   latitude: number
   baseX: number
@@ -9,14 +9,16 @@ export type SphericalPosition = {
   baseZ: number
 }
 
-export type PlaceItemsOptions<TItem extends SpherItemBase> = {
+type PlaceItemsOptions<TItem> = {
   radius: number
   placement?: SpherPlacement
-  size?: number | ((item: TItem, index: number, items: TItem[]) => number)
+  size?:
+    | number
+    | ((item: TItem & SpherItem, index: number, items: Array<TItem & SpherItem>) => number)
   position?: (
-    item: TItem,
+    item: TItem & SpherItem,
     index: number,
-    items: TItem[],
+    items: Array<TItem & SpherItem>,
   ) => Pick<SphericalPosition, "latitude" | "longitude"> | null | undefined
 }
 
@@ -66,8 +68,8 @@ export const getSphericalPosition = (
   ...sphereCoordinates(toRadians(latitude), toRadians(longitude), sphereRadius),
 })
 
-export const placeItems = <TItem extends SpherItemBase>(
-  items: TItem[],
+export const placeItems = <TItem>(
+  items: Array<TItem & SpherItem>,
   { radius, placement = "fibonacci", size = 64, position }: PlaceItemsOptions<TItem>,
 ): PositionedItem<TItem>[] => {
   return items.map((item, index) => {

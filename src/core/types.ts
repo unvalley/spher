@@ -1,21 +1,22 @@
 export type SpherPlacement = "fibonacci" | "latitude-longitude-grid"
 
-export type SpherItemBase = {
+export type SpherItem = {
   id: string
 }
 
-export type PositionedItem<TItem extends SpherItemBase> = TItem & {
-  longitude: number
-  latitude: number
-  baseX: number
-  baseY: number
-  baseZ: number
-  radius: number
-  roll: number
-  size: number
-}
+export type PositionedItem<TItem = SpherItem> = TItem &
+  SpherItem & {
+    longitude: number
+    latitude: number
+    baseX: number
+    baseY: number
+    baseZ: number
+    radius: number
+    roll: number
+    size: number
+  }
 
-export type ProjectedItem<TItem extends SpherItemBase> = {
+export type ProjectedItem<TItem = SpherItem> = {
   item: PositionedItem<TItem>
   projectedX: number
   projectedY: number

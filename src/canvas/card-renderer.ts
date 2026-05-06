@@ -1,5 +1,6 @@
-import type { SpherColorPair, SpherRenderer } from "./renderer-types.js"
 import type { SpherItem, SpherRenderState } from "./types.js"
+
+type ColorPair = readonly [string, string]
 
 export type SpherCardFrame = {
   x: number
@@ -10,25 +11,18 @@ export type SpherCardFrame = {
   coverY: number
   coverWidth: number
   coverHeight: number
-  colors: SpherColorPair
+  colors: ColorPair
   drawMain: boolean
   cardAlpha: number
 }
 
-export type SpherCardContent<TItem extends SpherItem = SpherItem> = (
-  context: CanvasRenderingContext2D,
-  item: TItem,
-  state: SpherRenderState<TItem>,
-  frame: SpherCardFrame,
-) => void
-
-export type SpherCardRendererOptions<TItem extends SpherItem = SpherItem> = {
+export type SpherCardRendererOptions<TItem = SpherItem> = {
   /** Color palette keyed by tone, or a resolver that returns colors per item. */
-  colors?: Record<string, SpherColorPair> | ((item: TItem) => SpherColorPair | null | undefined)
+  colors?: Record<string, ColorPair> | ((item: TItem & SpherItem) => ColorPair | null | undefined)
   /** Resolves the tone key used to pick colors from a `colors` record. */
-  tone?: (item: TItem) => string | null | undefined
+  tone?: (item: TItem & SpherItem) => string | null | undefined
   /** Colors used when no item-specific colors are resolved. */
-  fallbackColors?: SpherColorPair
+  fallbackColors?: ColorPair
   /** Aspect ratio for the cover area. Defaults to 3 / 4. */
   aspectRatio?: number
   /** Padding between the card edge and cover area in CSS pixels. */
@@ -40,16 +34,26 @@ export type SpherCardRendererOptions<TItem extends SpherItem = SpherItem> = {
   /** Extra card width added to the placed item size. */
   widthOffset?: number
   /** Custom drawing hook for the main card side. */
-  render?: SpherCardContent<TItem>
+  render?: (
+    context: CanvasRenderingContext2D,
+    item: TItem & SpherItem,
+    state: SpherRenderState<TItem>,
+    frame: SpherCardFrame,
+  ) => void
   /** Custom drawing hook for the back side. */
-  renderBack?: SpherCardContent<TItem>
+  renderBack?: (
+    context: CanvasRenderingContext2D,
+    item: TItem & SpherItem,
+    state: SpherRenderState<TItem>,
+    frame: SpherCardFrame,
+  ) => void
 }
 
 const defaultFallbackColors = ["#e5e7eb", "#94a3b8"] as const
 
-export const createCardRenderer = <TItem extends SpherItem>(
+export const createCardRenderer = <TItem = SpherItem>(
   options: SpherCardRendererOptions<TItem> = {},
-): SpherRenderer<TItem> => {
+) => {
   return (context, item, state) => {
     const frame = createCardFrame(options, state)
 
@@ -150,7 +154,7 @@ export const drawCover = (
   context.drawImage(cover, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height)
 }
 
-const createCardFrame = <TItem extends SpherItem>(
+const createCardFrame = <TItem>(
   options: SpherCardRendererOptions<TItem>,
   state: SpherRenderState<TItem>,
 ): SpherCardFrame => {
@@ -178,9 +182,9 @@ const createCardFrame = <TItem extends SpherItem>(
   }
 }
 
-const drawMainCardContent = <TItem extends SpherItem>(
+const drawMainCardContent = <TItem>(
   context: CanvasRenderingContext2D,
-  item: TItem,
+  item: TItem & SpherItem,
   state: SpherRenderState<TItem>,
   frame: SpherCardFrame,
   options: SpherCardRendererOptions<TItem>,
@@ -192,9 +196,9 @@ const drawMainCardContent = <TItem extends SpherItem>(
   drawFallbackCard(context, frame)
 }
 
-const drawBackCardContent = <TItem extends SpherItem>(
+const drawBackCardContent = <TItem>(
   context: CanvasRenderingContext2D,
-  item: TItem,
+  item: TItem & SpherItem,
   state: SpherRenderState<TItem>,
   frame: SpherCardFrame,
   options: SpherCardRendererOptions<TItem>,
@@ -206,10 +210,10 @@ const drawBackCardContent = <TItem extends SpherItem>(
   drawCardBack(context, undefined, frame)
 }
 
-const resolveColors = <TItem extends SpherItem>(
+const resolveColors = <TItem>(
   options: SpherCardRendererOptions<TItem>,
-  item: TItem,
-): SpherColorPair => {
+  item: TItem & SpherItem,
+): ColorPair => {
   if (typeof options.colors === "function") {
     return options.colors(item) ?? options.fallbackColors ?? defaultFallbackColors
   }
@@ -219,7 +223,7 @@ const resolveColors = <TItem extends SpherItem>(
   return options.fallbackColors ?? defaultFallbackColors
 }
 
-const getCardAlpha = <TItem extends SpherItem>({
+const getCardAlpha = <TItem>({
   faceIn,
   faceOutBack,
   insideView,
@@ -236,7 +240,7 @@ const getCardAlpha = <TItem extends SpherItem>({
   return state.visibleSide === "outside" ? 0.4 : 0.72
 }
 
-const drawCardFrame = <TItem extends SpherItem>(
+const drawCardFrame = <TItem>(
   context: CanvasRenderingContext2D,
   state: SpherRenderState<TItem>,
   { drawMain, height, width, x, y }: SpherCardFrame,

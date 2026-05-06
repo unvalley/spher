@@ -1,26 +1,22 @@
 import { clamp, toRadians } from "./math.js"
-import type { PositionedItem, ProjectedItem, SpherItemBase } from "./types.js"
+import type { PositionedItem, ProjectedItem } from "./types.js"
 
-export type SpherRotation = {
-  x: number
-  y: number
-}
-
-export type SpherTilt = {
-  x: number
-  y: number
-  z: number
-}
-
-export type ProjectItemsOptions = {
-  rotation: SpherRotation
-  tilt?: SpherTilt
+type ProjectItemsOptions = {
+  rotation: {
+    x: number
+    y: number
+  }
+  tilt?: {
+    x: number
+    y: number
+    z: number
+  }
   zoom?: number
   perspective: number
   perspectiveMode?: "inside" | "outside"
 }
 
-export const projectItems = <TItem extends SpherItemBase>(
+export const projectItems = <TItem>(
   items: PositionedItem<TItem>[],
   { rotation, tilt, zoom = 1, perspective, perspectiveMode = "outside" }: ProjectItemsOptions,
 ): ProjectedItem<TItem>[] => {

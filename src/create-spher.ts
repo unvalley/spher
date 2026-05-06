@@ -10,38 +10,32 @@ import type {
   SpherOptions as SpherCanvasOptions,
   SpherCardFrame,
   SpherCardRendererOptions,
-  SpherColorPair,
-  SpherCoverSource,
   SpherInstance,
   SpherItem,
-  SpherRenderer,
   SpherRenderState,
 } from "./canvas/index.js"
 
-type SpherCardText = string | number | null | undefined
+type ColorPair = readonly [string, string]
 
-export type SpherCardOptions<TItem extends SpherItem = SpherItem> = Omit<
+export type SpherCardOptions<TItem = SpherItem> = Omit<
   SpherCardRendererOptions<TItem>,
   "aspectRatio" | "colors" | "render" | "renderBack" | "tone"
 > & {
   /** Color palette keyed by tone, or a resolver that returns colors per item. */
-  colors?: Record<string, SpherColorPair> | ((item: TItem) => SpherColorPair | null | undefined)
+  colors?: Record<string, ColorPair> | ((item: TItem & SpherItem) => ColorPair | null | undefined)
   /** Resolves the card cover source for an item. */
-  cover?: (item: TItem) => SpherCoverSource
+  cover?: (item: TItem & SpherItem) => string | CanvasImageSource | null | undefined
   /** Aspect ratio for the cover area. Defaults to 3 / 4. */
   coverAspectRatio?: number
   /** Resolves the secondary label for an item. */
-  subtitle?: (item: TItem) => SpherCardText
+  subtitle?: (item: TItem & SpherItem) => string | number | null | undefined
   /** Resolves the primary label for an item. */
-  title?: (item: TItem) => SpherCardText
+  title?: (item: TItem & SpherItem) => string | number | null | undefined
   /** Resolves the tone key used to pick colors from a `colors` record. */
-  tone?: (item: TItem) => string | null | undefined
+  tone?: (item: TItem & SpherItem) => string | null | undefined
 }
 
-export type SpherOptions<TItem extends SpherItem = SpherItem> = Omit<
-  SpherCanvasOptions<TItem>,
-  "render"
-> &
+export type SpherOptions<TItem = SpherItem> = Omit<SpherCanvasOptions<TItem>, "render"> &
   (
     | {
         /** High-level card preset for framed covers and labels. */
@@ -55,7 +49,7 @@ export type SpherOptions<TItem extends SpherItem = SpherItem> = Omit<
       }
   )
 
-export const createSpher = <TItem extends SpherItem>(
+export const createSpher = <TItem>(
   canvas: HTMLCanvasElement,
   options: SpherOptions<TItem>,
 ): SpherInstance<TItem> => {
@@ -64,7 +58,7 @@ export const createSpher = <TItem extends SpherItem>(
 
   let cardOptions = card
   let cover = createCoverResolver<TItem>((item) => cardOptions.cover?.(item))
-  let renderer: SpherRenderer<TItem> = createCardPresetRenderer(cardOptions, cover)
+  let renderer = createCardPresetRenderer(cardOptions, cover)
   const instance = createCanvasSpher(canvas, { ...canvasOptions, render: renderer })
   const update: SpherInstance<TItem>["update"] = (patch) => {
     const { card: nextCard, ...canvasPatch } = patch as Partial<SpherOptions<TItem>>
@@ -87,10 +81,10 @@ export const createSpher = <TItem extends SpherItem>(
   }
 }
 
-const createCardPresetRenderer = <TItem extends SpherItem>(
+const createCardPresetRenderer = <TItem>(
   card: SpherCardOptions<TItem>,
   cover: ReturnType<typeof createCoverResolver<TItem>>,
-): SpherRenderer<TItem> => {
+) => {
   const cardRendererOptions: SpherCardRendererOptions<TItem> = {
     aspectRatio: card.coverAspectRatio,
     colors: card.colors,
@@ -118,13 +112,13 @@ const createCardPresetRenderer = <TItem extends SpherItem>(
   return createCardRenderer(cardRendererOptions)
 }
 
-const createCoverResolver = <TItem extends SpherItem>(
-  getCover: (item: TItem) => SpherCoverSource,
+const createCoverResolver = <TItem>(
+  getCover: (item: TItem & SpherItem) => string | CanvasImageSource | null | undefined,
 ) => {
   const cache = new Map<string, { cover: HTMLImageElement; src: string }>()
   let notifyLoad: (() => void) | undefined
 
-  const resolve = (item: TItem): CanvasImageSource | undefined => {
+  const resolve = (item: TItem & SpherItem): CanvasImageSource | undefined => {
     const source = getCover(item)
     if (!source) return undefined
     if (typeof source !== "string") return source
@@ -141,7 +135,7 @@ const createCoverResolver = <TItem extends SpherItem>(
   }
 
   return {
-    preload: (items: TItem[], onLoad?: () => void) => {
+    preload: (items: Array<TItem & SpherItem>, onLoad?: () => void) => {
       notifyLoad = onLoad
       for (const item of items) resolve(item)
     },
@@ -149,10 +143,10 @@ const createCoverResolver = <TItem extends SpherItem>(
   }
 }
 
-const drawCardText = <TItem extends SpherItem>(
+const drawCardText = <TItem>(
   context: CanvasRenderingContext2D,
   card: SpherCardOptions<TItem>,
-  item: TItem,
+  item: TItem & SpherItem,
   frame: SpherCardFrame,
   state: SpherRenderState<TItem>,
 ) => {

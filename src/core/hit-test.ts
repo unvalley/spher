@@ -1,13 +1,13 @@
-import type { PositionedItem, ProjectedItem, SpherItemBase } from "./types.js"
+import type { PositionedItem, ProjectedItem } from "./types.js"
 
-export type SpherRect = {
+type SpherRect = {
   left: number
   top: number
   width: number
   height: number
 }
 
-export const findNearestProjectedItem = <TItem extends SpherItemBase>(
+export const findNearestProjectedItem = <TItem>(
   clientX: number,
   clientY: number,
   projectedItems: ProjectedItem<TItem>[],

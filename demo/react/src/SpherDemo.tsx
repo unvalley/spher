@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react"
-import type { SpherFaceMode } from "../../../src/index.js"
 import { Spher } from "../../../src/react/index.js"
 import { items } from "./data.js"
 
@@ -10,7 +9,7 @@ const TILT_ROLL = 0
 export const SpherDemo = () => {
   const [selectedId, setSelectedId] = useState(items[0].id)
   const [cardSizeRatio, setCardSizeRatio] = useState(CARD_SIZE_RATIO)
-  const [faceMode, setFaceMode] = useState<SpherFaceMode>("face-out")
+  const [faceMode, setFaceMode] = useState<"face-out" | "face-in">("face-out")
   const [tiltPitch, setTiltPitch] = useState(TILT_PITCH)
   const [tiltRoll, setTiltRoll] = useState(TILT_ROLL)
   const [controlsVisible, setControlsVisible] = useState(true)

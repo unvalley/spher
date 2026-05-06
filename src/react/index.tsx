@@ -11,21 +11,11 @@ import {
 import type { SpherInstance, SpherItem } from "../canvas/index.js"
 import { createSpher, type SpherOptions } from "../create-spher.js"
 
-export type UseSpherResult<TItem extends SpherItem = SpherItem> = {
-  canvasRef: RefObject<HTMLCanvasElement | null>
-  instanceRef: RefObject<SpherInstance<TItem> | null>
-}
-
-export type SpherProps<TItem extends SpherItem = SpherItem> = Omit<
-  SpherOptions<TItem>,
-  "onSelect"
-> & {
+export type SpherProps<TItem = SpherItem> = Omit<SpherOptions<TItem>, "onSelect"> & {
   onItemSelect?: SpherOptions<TItem>["onSelect"]
 } & Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "children" | "onSelect">
 
-export const useSpher = <TItem extends SpherItem>(
-  options: SpherOptions<TItem>,
-): UseSpherResult<TItem> => {
+export const useSpher = <TItem,>(options: SpherOptions<TItem>) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const instanceRef = useRef<SpherInstance<TItem> | null>(null)
   const optionsRef = useRef(options)
@@ -51,10 +41,7 @@ export const useSpher = <TItem extends SpherItem>(
   return { canvasRef, instanceRef }
 }
 
-const SpherComponent = <TItem extends SpherItem>(
-  props: SpherProps<TItem>,
-  forwardedRef: Ref<HTMLCanvasElement>,
-) => {
+const SpherComponent = <TItem,>(props: SpherProps<TItem>, forwardedRef: Ref<HTMLCanvasElement>) => {
   const {
     card,
     controls,
@@ -105,7 +92,7 @@ const SpherComponent = <TItem extends SpherItem>(
   )
 }
 
-export const Spher = forwardRef(SpherComponent) as <TItem extends SpherItem = SpherItem>(
+export const Spher = forwardRef(SpherComponent) as <TItem = SpherItem>(
   props: SpherProps<TItem> & { ref?: Ref<HTMLCanvasElement> },
 ) => ReactElement | null
 

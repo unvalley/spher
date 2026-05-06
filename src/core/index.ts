@@ -4,12 +4,6 @@ export {
   getLatitudeLongitudeGridPosition,
   getLatitudeLongitudeGridRowCounts,
   getSphericalPosition,
-  type PlaceItemsOptions,
   placeItems,
-  type SphericalPosition,
 } from "./placement.js"
-export type {
-  PositionedItem,
-  SpherItemBase,
-  SpherPlacement,
-} from "./types.js"
+export type { SpherItem, SpherPlacement } from "./types.js"

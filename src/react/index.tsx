@@ -17,8 +17,12 @@ export type UseSpherResult<TItem extends SpherItem = SpherItem> = {
   instanceRef: RefObject<SpherInstance<TItem> | null>
 }
 
-export type SpherProps<TItem extends SpherItem = SpherItem> = UseSpherOptions<TItem> &
-  Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "children" | "onSelect">
+export type SpherProps<TItem extends SpherItem = SpherItem> = Omit<
+  UseSpherOptions<TItem>,
+  "onSelect"
+> & {
+  onItemSelect?: UseSpherOptions<TItem>["onSelect"]
+} & Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "children" | "onSelect">
 
 export const useSpher = <TItem extends SpherItem>(
   options: UseSpherOptions<TItem>,
@@ -58,12 +62,12 @@ const SpherComponent = <TItem extends SpherItem>(
     devicePixelRatio,
     faceMode,
     items,
-    onSelect,
+    onItemSelect,
     perspective,
     placement,
     position,
     radius,
-    render,
+    render: itemRenderer,
     rotation,
     selectedId,
     size,
@@ -71,24 +75,26 @@ const SpherComponent = <TItem extends SpherItem>(
     zoom,
     ...canvasProps
   } = props
-  const { canvasRef } = useSpher({
-    card,
+  const baseOptions = {
     controls,
     devicePixelRatio,
     faceMode,
     items,
-    onSelect,
+    onSelect: onItemSelect,
     perspective,
     placement,
     position,
     radius,
-    render,
     rotation,
     selectedId,
     size,
     tilt,
     zoom,
-  })
+  }
+  const options = card
+    ? ({ ...baseOptions, card } as UseSpherOptions<TItem>)
+    : ({ ...baseOptions, render: itemRenderer } as UseSpherOptions<TItem>)
+  const { canvasRef } = useSpher(options)
 
   return <canvas {...canvasProps} ref={mergeRefs(canvasRef, forwardedRef)} />
 }

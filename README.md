@@ -36,6 +36,7 @@ export function Globe() {
       className="sphere"
       controls={{ autoRotate: { speed: 0.18 }, drag: true, wheel: true }}
       items={items}
+      onItemSelect={(item) => console.log("selected", item.id)}
       perspective={900}
       position={(item) =>
         item.id === "tokyo"
@@ -53,7 +54,6 @@ export function Globe() {
         title: (item) => item.label,
         tone: (item) => item.tone,
       }}
-      onSelect={(item) => console.log("selected", item.id)}
     />
   );
 }
@@ -82,7 +82,7 @@ Use `Spher` from `spher/react` when you want React to own the canvas element and
 import { Spher, useSpher } from "spher/react";
 ```
 
-`Spher` accepts the same options as `createSpher`, plus normal canvas props such as `className` and `aria-label`.
+`Spher` exposes spher options as component props and keeps DOM selection separate through `onItemSelect`.
 
 ```tsx
 <Spher
@@ -124,7 +124,7 @@ const instance = createSpher(canvas, {
   tilt: { x: 12 },
   zoom: { value: 1 },
   placement: "fibonacci",
-  controls: true,
+  controls: { drag: true, keyboard: true, wheel: true },
 });
 ```
 
@@ -213,20 +213,22 @@ createSpher(canvas, {
 });
 ```
 
-For custom canvas content inside the framed card, use `card.render`.
+For custom canvas content inside a framed card, compose `createCardRenderer` with `render`.
 
 ```ts
+const renderer = createCardRenderer({
+  render: (context, item, state, frame) => {
+    context.fillStyle = state.selected ? "#020617" : "#334155";
+    context.font = "600 11px system-ui";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(item.label, 0, frame.coverY + frame.coverHeight / 2);
+  },
+});
+
 createSpher(canvas, {
   items,
-  card: {
-    render: (context, item, state, frame) => {
-      context.fillStyle = state.selected ? "#020617" : "#334155";
-      context.font = "600 11px system-ui";
-      context.textAlign = "center";
-      context.textBaseline = "middle";
-      context.fillText(item.label, 0, frame.coverY + frame.coverHeight / 2);
-    },
-  },
+  render: renderer,
 });
 ```
 

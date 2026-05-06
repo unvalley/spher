@@ -38,6 +38,15 @@ const momentumDecay = 0.95
 const maxMomentumVelocity = 8.6
 const minMomentumVelocity = 0.01
 
+type CanvasZoom = SpherState["zoom"] & {
+  insideScale: number
+  effective: number
+}
+
+type CanvasState<TItem extends SpherItem> = Omit<SpherState<TItem>, "zoom"> & {
+  zoom: CanvasZoom
+}
+
 export const createCanvasSpher = <TItem extends SpherItem>(
   canvas: HTMLCanvasElement,
   options: SpherOptions<TItem>,
@@ -52,13 +61,13 @@ export const createCanvasSpher = <TItem extends SpherItem>(
   let placedItemsCache: PositionedItem<TItem>[] | null = null
   let placedItemsCacheDeps: {
     items: TItem[]
-    placement: SpherState<TItem>["placement"]
+    placement: CanvasState<TItem>["placement"]
     position: SpherOptions<TItem>["position"]
     radius: number
     size: SpherOptions<TItem>["size"]
   } | null = null
   let dragStart: {
-    rotation: SpherState<TItem>["rotation"]
+    rotation: CanvasState<TItem>["rotation"]
     x: number
     y: number
   } | null = null
@@ -75,7 +84,8 @@ export const createCanvasSpher = <TItem extends SpherItem>(
   targetRotation = { ...state.rotation }
 
   const emit = () => {
-    for (const listener of listeners) listener({ ...state })
+    const snapshot = toPublicState(state)
+    for (const listener of listeners) listener(snapshot)
   }
 
   const controls = () => normalizeCanvasControls(stateOptions.controls)
@@ -139,7 +149,7 @@ export const createCanvasSpher = <TItem extends SpherItem>(
     autoRotationFrame = null
   }
 
-  const setRotationState = (rotation: SpherState<TItem>["rotation"]) => {
+  const setRotationState = (rotation: CanvasState<TItem>["rotation"]) => {
     state = { ...state, rotation }
     render()
     emit()
@@ -529,7 +539,7 @@ export const createCanvasSpher = <TItem extends SpherItem>(
     rotateTo,
     destroy,
     itemState,
-    getState: () => ({ ...state }),
+    getState: () => toPublicState(state),
     subscribe: (listener) => {
       listeners.add(listener)
       return () => listeners.delete(listener)
@@ -561,8 +571,8 @@ const resolveRadius = (
 const normalizeOptions = <TItem extends SpherItem>(
   options: SpherOptions<TItem>,
   viewport: Viewport,
-  previous?: SpherState<TItem>,
-): SpherState<TItem> =>
+  previous?: CanvasState<TItem>,
+): CanvasState<TItem> =>
   withDerivedState({
     items: options.items ?? previous?.items ?? [],
     radius: resolveRadius(options.radius, viewport, previous?.radius),
@@ -580,8 +590,8 @@ const normalizeOptions = <TItem extends SpherItem>(
   })
 
 const withDerivedState = <TItem extends SpherItem>(
-  state: Omit<SpherState<TItem>, "viewMode">,
-): SpherState<TItem> => {
+  state: Omit<CanvasState<TItem>, "viewMode">,
+): CanvasState<TItem> => {
   const viewMode = state.zoom.value >= state.zoom.insideThreshold ? "inside" : "shell"
   const insideProgress =
     viewMode === "inside"
@@ -641,10 +651,7 @@ const resolveTilt = (tilt: SpherOptions["tilt"], previous: SpherState["tilt"] | 
   }
 }
 
-const resolveZoom = (
-  zoom: SpherOptions["zoom"],
-  previous: SpherState["zoom"] | undefined,
-): SpherState["zoom"] => ({
+const resolveZoom = (zoom: SpherOptions["zoom"], previous: CanvasZoom | undefined): CanvasZoom => ({
   value: zoom?.value ?? previous?.value ?? defaultZoom,
   min: zoom?.min ?? previous?.min ?? defaultMinZoom,
   max: zoom?.max ?? previous?.max ?? defaultMaxZoom,
@@ -653,10 +660,20 @@ const resolveZoom = (
   effective: previous?.effective ?? defaultZoom,
 })
 
+const toPublicState = <TItem extends SpherItem>(state: CanvasState<TItem>): SpherState<TItem> => {
+  const zoom = {
+    value: state.zoom.value,
+    min: state.zoom.min,
+    max: state.zoom.max,
+    insideThreshold: state.zoom.insideThreshold,
+  }
+  return { ...state, zoom }
+}
+
 type GetVisibilityOptions<TItem extends SpherItem> = {
   edgeFactor: number
   selected: boolean
-  state: SpherState<TItem>
+  state: CanvasState<TItem>
   z: number
 }
 
@@ -693,7 +710,7 @@ type ProjectedPoint = { x: number; y: number; z: number }
 
 const getProjectedPlaneTransform = <TItem extends SpherItem>(
   item: PositionedItem<TItem>,
-  state: SpherState<TItem>,
+  state: CanvasState<TItem>,
 ) => {
   const center = { x: item.baseX, y: item.baseY, z: item.baseZ }
   const { right, down } = getPlaneBasis(item)
@@ -760,7 +777,7 @@ const getPlaneBasis = <TItem extends SpherItem>(item: PositionedItem<TItem>) => 
 
 const projectPoint = <TItem extends SpherItem>(
   point: Point3D,
-  { perspective, rotation, zoom, tilt, viewMode }: SpherState<TItem>,
+  { perspective, rotation, zoom, tilt, viewMode }: CanvasState<TItem>,
 ): ProjectedPoint => {
   // cobe parity: RotX(theta) · RotY(phi) · p.
   const theta = toRadians(rotation.x + tilt.x)

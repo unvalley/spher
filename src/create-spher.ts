@@ -8,7 +8,6 @@ import {
 import { createCanvasSpher } from "./canvas/create-spher-canvas.js"
 import type {
   SpherOptions as SpherCanvasOptions,
-  SpherCardContent,
   SpherCardFrame,
   SpherCardRendererOptions,
   SpherColorPair,
@@ -31,12 +30,6 @@ export type SpherCardOptions<TItem extends SpherItem = SpherItem> = Omit<
   cover?: (item: TItem) => SpherCoverSource
   /** Aspect ratio for the cover area. Defaults to 3 / 4. */
   coverAspectRatio?: number
-  /** Preloads string cover sources. Defaults to true. */
-  preloadCover?: boolean
-  /** Custom drawing hook for the main card side, called after the default cover and text. */
-  render?: SpherCardContent<TItem>
-  /** Custom drawing hook for the back side. Defaults to a mirrored cover treatment. */
-  renderBack?: SpherCardContent<TItem>
   /** Resolves the secondary label for an item. */
   subtitle?: (item: TItem) => SpherCardText
   /** Resolves the primary label for an item. */
@@ -45,10 +38,24 @@ export type SpherCardOptions<TItem extends SpherItem = SpherItem> = Omit<
   tone?: (item: TItem) => string | null | undefined
 }
 
-export type SpherOptions<TItem extends SpherItem = SpherItem> = SpherCanvasOptions<TItem> & {
-  /** High-level card preset. When omitted, use the lower-level `render` callback. */
-  card?: SpherCardOptions<TItem>
-}
+type SpherBaseOptions<TItem extends SpherItem = SpherItem> = Omit<
+  SpherCanvasOptions<TItem>,
+  "render"
+>
+
+export type SpherOptions<TItem extends SpherItem = SpherItem> = SpherBaseOptions<TItem> &
+  (
+    | {
+        /** High-level card preset for framed covers and labels. */
+        card?: SpherCardOptions<TItem>
+        render?: never
+      }
+    | {
+        card?: never
+        /** Low-level canvas renderer for custom item drawing. */
+        render?: SpherCanvasOptions<TItem>["render"]
+      }
+  )
 
 export const createSpher = <TItem extends SpherItem>(
   canvas: HTMLCanvasElement,
@@ -58,21 +65,23 @@ export const createSpher = <TItem extends SpherItem>(
   if (!card) return createCanvasSpher(canvas, canvasOptions)
 
   let cardOptions = card
-  const cover = createCoverResolver<TItem>((item) => cardOptions.cover?.(item))
-  const renderer: SpherRenderer<TItem> = createCardPresetRenderer(() => cardOptions, cover)
+  let cover = createCoverResolver<TItem>((item) => cardOptions.cover?.(item))
+  let renderer: SpherRenderer<TItem> = createCardPresetRenderer(cardOptions, cover)
   const instance = createCanvasSpher(canvas, { ...canvasOptions, render: renderer })
   const update: SpherInstance<TItem>["update"] = (patch) => {
     const { card: nextCard, ...canvasPatch } = patch as Partial<SpherOptions<TItem>>
-    if (nextCard) cardOptions = nextCard
+    if (nextCard) {
+      cardOptions = nextCard
+      cover = createCoverResolver<TItem>((item) => cardOptions.cover?.(item))
+      renderer = createCardPresetRenderer(cardOptions, cover)
+    }
     instance.update({ ...canvasPatch, render: renderer })
     if (nextCard || canvasPatch.items) {
       cover.preload(instance.getState().items, () => instance.update({}))
     }
   }
 
-  if (shouldPreloadCover(cardOptions)) {
-    cover.preload(canvasOptions.items, () => instance.update({}))
-  }
+  cover.preload(canvasOptions.items, () => instance.update({}))
 
   return {
     ...instance,
@@ -81,12 +90,17 @@ export const createSpher = <TItem extends SpherItem>(
 }
 
 const createCardPresetRenderer = <TItem extends SpherItem>(
-  getCard: () => SpherCardOptions<TItem>,
+  card: SpherCardOptions<TItem>,
   cover: ReturnType<typeof createCoverResolver<TItem>>,
 ): SpherRenderer<TItem> => {
   const cardRendererOptions: SpherCardRendererOptions<TItem> = {
+    aspectRatio: card.coverAspectRatio,
+    colors: card.colors,
+    cornerRadius: card.cornerRadius,
+    coverRadius: card.coverRadius,
+    fallbackColors: card.fallbackColors,
+    inset: card.inset,
     render: (context, item, state, frame) => {
-      const card = getCard()
       const source = cover.resolve(item)
 
       if (isDrawableCover(source)) {
@@ -96,37 +110,14 @@ const createCardPresetRenderer = <TItem extends SpherItem>(
       }
 
       drawCardText(context, card, item, frame, state)
-      card.render?.(context, item, state, frame)
     },
-    renderBack: (context, item, state, frame) => {
-      const card = getCard()
-      if (card.renderBack) {
-        card.renderBack(context, item, state, frame)
-        return
-      }
+    renderBack: (context, item, _state, frame) => {
       drawCardBack(context, cover.resolve(item), frame)
     },
+    tone: card.tone,
+    widthOffset: card.widthOffset,
   }
-  const renderCard = createCardRenderer(cardRendererOptions)
-
-  return (context, item, state) => {
-    applyCardRendererOptions(cardRendererOptions, getCard())
-    renderCard(context, item, state)
-  }
-}
-
-const applyCardRendererOptions = <TItem extends SpherItem>(
-  target: SpherCardRendererOptions<TItem>,
-  card: SpherCardOptions<TItem>,
-) => {
-  target.aspectRatio = card.coverAspectRatio
-  target.colors = card.colors
-  target.cornerRadius = card.cornerRadius
-  target.coverRadius = card.coverRadius
-  target.fallbackColors = card.fallbackColors
-  target.inset = card.inset
-  target.tone = card.tone
-  target.widthOffset = card.widthOffset
+  return createCardRenderer(cardRendererOptions)
 }
 
 const createCoverResolver = <TItem extends SpherItem>(
@@ -159,9 +150,6 @@ const createCoverResolver = <TItem extends SpherItem>(
     resolve,
   }
 }
-
-const shouldPreloadCover = <TItem extends SpherItem>(card: SpherCardOptions<TItem>) =>
-  card.preloadCover !== false
 
 const drawCardText = <TItem extends SpherItem>(
   context: CanvasRenderingContext2D,

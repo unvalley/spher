@@ -374,7 +374,7 @@ export const SpherDemo = () => {
         controls={{ autoRotate: true, drag: true, keyboard: true, wheel: true }}
         faceMode={faceMode}
         items={items}
-        onSelect={handleSelect}
+        onItemSelect={handleSelect}
         perspective={980}
         radius="auto"
         selectedId={visibleSelectedId}

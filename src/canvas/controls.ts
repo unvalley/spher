@@ -14,16 +14,6 @@ const defaultAutoRotateSpeed = 0.18
 export const normalizeCanvasControls = (
   controls: SpherControls | undefined,
 ): ResolvedSpherControls => {
-  if (controls === true) {
-    return {
-      autoRotate: false,
-      autoRotateSpeed: defaultAutoRotateSpeed,
-      drag: true,
-      keyboard: true,
-      wheel: true,
-      preventDocumentScroll: false,
-    }
-  }
   if (!controls) {
     return {
       autoRotate: false,

@@ -30,20 +30,18 @@ export type SpherResolvedTilt = {
   z: number
 }
 
-export type SpherControls =
-  | boolean
-  | {
-      /** Continuously rotates the sphere. Pass an object to customize the frame step. */
-      autoRotate?: boolean | { speed?: number }
-      /** Enables pointer drag rotation. */
-      drag?: boolean
-      /** Enables arrow-key rotation and command-arrow zoom. */
-      keyboard?: boolean
-      /** Enables wheel rotation and modifier-wheel zoom. */
-      wheel?: boolean
-      /** Prevents page scroll while handling wheel input on the canvas. */
-      preventDocumentScroll?: boolean
-    }
+export type SpherControls = {
+  /** Continuously rotates the sphere. Pass an object to customize the frame step. */
+  autoRotate?: boolean | { speed?: number }
+  /** Enables pointer drag rotation. */
+  drag?: boolean
+  /** Enables arrow-key rotation and command-arrow zoom. */
+  keyboard?: boolean
+  /** Enables wheel rotation and modifier-wheel zoom. */
+  wheel?: boolean
+  /** Prevents page scroll while handling wheel input on the canvas. */
+  preventDocumentScroll?: boolean
+}
 
 export type SpherRenderState<TItem extends SpherItem = SpherItem> = {
   item: PositionedItem<TItem>
@@ -88,10 +86,6 @@ export type SpherResolvedZoom = {
   max: number
   /** Zoom level where rendering switches from shell view to inside view. */
   insideThreshold: number
-  /** Projection scale used while inside the sphere. */
-  insideScale: number
-  /** Zoom value passed to projection after inside-view remapping. */
-  effective: number
 }
 
 export type SpherOptions<TItem extends SpherItem = SpherItem> = {

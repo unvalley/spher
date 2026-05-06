@@ -11,22 +11,20 @@ import {
 import type { SpherInstance, SpherItem } from "../canvas/index.js"
 import { createSpher, type SpherOptions } from "../create-spher.js"
 
-export type UseSpherOptions<TItem extends SpherItem = SpherItem> = SpherOptions<TItem>
-
 export type UseSpherResult<TItem extends SpherItem = SpherItem> = {
   canvasRef: RefObject<HTMLCanvasElement | null>
   instanceRef: RefObject<SpherInstance<TItem> | null>
 }
 
 export type SpherProps<TItem extends SpherItem = SpherItem> = Omit<
-  UseSpherOptions<TItem>,
+  SpherOptions<TItem>,
   "onSelect"
 > & {
-  onItemSelect?: UseSpherOptions<TItem>["onSelect"]
+  onItemSelect?: SpherOptions<TItem>["onSelect"]
 } & Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "children" | "onSelect">
 
 export const useSpher = <TItem extends SpherItem>(
-  options: UseSpherOptions<TItem>,
+  options: SpherOptions<TItem>,
 ): UseSpherResult<TItem> => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const instanceRef = useRef<SpherInstance<TItem> | null>(null)
@@ -94,8 +92,8 @@ const SpherComponent = <TItem extends SpherItem>(
     zoom,
   }
   const options = card
-    ? ({ ...baseOptions, card } as UseSpherOptions<TItem>)
-    : ({ ...baseOptions, render: itemRenderer } as UseSpherOptions<TItem>)
+    ? ({ ...baseOptions, card } as SpherOptions<TItem>)
+    : ({ ...baseOptions, render: itemRenderer } as SpherOptions<TItem>)
   const { canvasRef } = useSpher(options)
 
   return (

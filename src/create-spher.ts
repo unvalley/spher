@@ -38,12 +38,10 @@ export type SpherCardOptions<TItem extends SpherItem = SpherItem> = Omit<
   tone?: (item: TItem) => string | null | undefined
 }
 
-type SpherBaseOptions<TItem extends SpherItem = SpherItem> = Omit<
+export type SpherOptions<TItem extends SpherItem = SpherItem> = Omit<
   SpherCanvasOptions<TItem>,
   "render"
->
-
-export type SpherOptions<TItem extends SpherItem = SpherItem> = SpherBaseOptions<TItem> &
+> &
   (
     | {
         /** High-level card preset for framed covers and labels. */

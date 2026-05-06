@@ -1,6 +1,6 @@
 # spher
 
-Canvas-first sphere layout engine with a React binding.
+An interactive spher(e) layout engine based on canvas.
 
 https://github.com/user-attachments/assets/fdd3f7f9-761b-4bba-bfd2-dafc9f3ec17a
 
@@ -15,17 +15,15 @@ npm install spher
 ```tsx
 import { Spher } from "spher/react";
 
-const items = [
-  { id: "tokyo", cover: "/tokyo.jpg" },
-  { id: "sf", cover: "/sf.jpg" },
-];
-
-export function Globe() {
+export function SpherUI() {
   return (
     <Spher
-      className="sphere"
+      className="spher"
       controls={{ drag: true, wheel: true, autoRotate: { speed: 0.18 } }}
-      items={items}
+      items={[
+        { id: "tokyo", cover: "/tokyo.jpg" },
+        { id: "sf", cover: "/sf.jpg" },
+      ]}
       onItemSelect={(item) => console.log(item.id)}
       radius="auto"
       size={{ ratio: 0.1 }}
@@ -35,12 +33,12 @@ export function Globe() {
 ```
 
 ```css
-.sphere {
+.spher {
   cursor: grab;
   width: 480px;
 }
 
-.sphere:active {
+.spher:active {
   cursor: grabbing;
 }
 ```

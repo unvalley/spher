@@ -125,10 +125,6 @@ button {
   position: fixed;
   inset: 0;
   z-index: 10;
-  display: block;
-  width: 100vw;
-  height: 100vh;
-  touch-action: none;
 }
 
 .sphere-canvas[data-over-sphere="true"] {

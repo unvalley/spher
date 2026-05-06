@@ -1,5 +1,6 @@
 import {
   type CanvasHTMLAttributes,
+  type CSSProperties,
   forwardRef,
   type ReactElement,
   type Ref,
@@ -73,6 +74,7 @@ const SpherComponent = <TItem extends SpherItem>(
     size,
     tilt,
     zoom,
+    style,
     ...canvasProps
   } = props
   const baseOptions = {
@@ -96,7 +98,13 @@ const SpherComponent = <TItem extends SpherItem>(
     : ({ ...baseOptions, render: itemRenderer } as UseSpherOptions<TItem>)
   const { canvasRef } = useSpher(options)
 
-  return <canvas {...canvasProps} ref={mergeRefs(canvasRef, forwardedRef)} />
+  return (
+    <canvas
+      {...canvasProps}
+      ref={mergeRefs(canvasRef, forwardedRef)}
+      style={{ ...defaultCanvasStyle, ...style }}
+    />
+  )
 }
 
 export const Spher = forwardRef(SpherComponent) as <TItem extends SpherItem = SpherItem>(
@@ -119,4 +127,11 @@ const setRef = <TValue,>(ref: Ref<TValue> | RefObject<TValue | null>, value: TVa
   }
   const writableRef = ref as { current: TValue | null }
   writableRef.current = value
+}
+
+const defaultCanvasStyle: CSSProperties = {
+  aspectRatio: "1 / 1",
+  display: "block",
+  touchAction: "none",
+  width: "100%",
 }

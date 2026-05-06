@@ -63,8 +63,6 @@ export function Globe() {
 .sphere {
   cursor: grab;
   width: 480px;
-  height: 480px;
-  touch-action: none;
 }
 
 .sphere:active {

@@ -67,7 +67,7 @@ export function Globe() {
 Use `Spher` from `spher/react` when you want React to own the canvas element and lifecycle while spher keeps dense rendering on canvas.
 
 ```tsx
-import { Spher, useSpher } from "spher/react";
+import { Spher } from "spher/react";
 ```
 
 `Spher` exposes spher options as component props and keeps DOM selection separate through `onItemSelect`.
@@ -81,17 +81,6 @@ import { Spher, useSpher } from "spher/react";
     cover: (item) => item.thumbnail,
   }}
 />
-```
-
-Use `useSpher` when you need to place the `<canvas>` yourself.
-
-```tsx
-const { canvasRef, instanceRef } = useSpher({
-  items,
-  card: { cover: (item) => item.thumbnail },
-});
-
-return <canvas ref={canvasRef} />;
 ```
 
 ### `createSpher(canvas, options)`
@@ -197,25 +186,6 @@ createSpher(canvas, {
 });
 ```
 
-For custom canvas content inside a framed card, compose `createCardRenderer` with `render`.
-
-```ts
-const renderer = createCardRenderer({
-  render: (context, item, state, frame) => {
-    context.fillStyle = state.selected ? "#020617" : "#334155";
-    context.font = "600 11px system-ui";
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillText(item.label, 0, frame.coverY + frame.coverHeight / 2);
-  },
-});
-
-createSpher(canvas, {
-  items,
-  render: renderer,
-});
-```
-
 ### Low-Level Canvas Rendering
 
 Use `render` to draw each projected item. The canvas transform is already positioned on the sphere card before your function runs, so draw around `(0, 0)`.
@@ -228,47 +198,6 @@ createSpher(canvas, {
     context.fillStyle = state.selected ? "#111827" : "#ffffff";
     context.fillRect(-size / 2, -size / 2, size, size);
   },
-});
-```
-
-The same canvas API is also available from `spher/canvas`.
-
-```ts
-import { createSpher } from "spher/canvas";
-```
-
-### Canvas Renderers
-
-Use `createCardRenderer` when you want the card frame preset while wiring the low-level canvas instance yourself.
-
-```ts
-import { createCardRenderer, createSpher } from "spher";
-
-const renderer = createCardRenderer({
-  render: (context, item, _state, frame) => {
-    context.fillStyle = "#0f172a";
-    context.fillText(item.label, 0, frame.coverY + frame.coverHeight / 2);
-  },
-});
-
-const sphere = createSpher(canvas, {
-  items,
-  radius: "auto",
-  size: { ratio: 0.06 },
-  render: renderer,
-});
-```
-
-## Core Utilities
-
-Pure placement utilities are available from `spher/core`.
-
-```ts
-import { placeItems } from "spher/core";
-
-const placed = placeItems([{ id: "a" }, { id: "b" }], {
-  radius: 320,
-  placement: "fibonacci",
 });
 ```
 

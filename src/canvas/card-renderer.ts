@@ -1,19 +1,13 @@
+import type { SpherCardStyle } from "../create-spher.js"
 import type { SpherItem, SpherRenderState } from "./types.js"
 
-type SpherCardStyle = {
-  /** Outer card border color. */
-  borderColor?: string
-  /** Outer card border color when the back side is visible. */
-  backBorderColor?: string
-  /** Outer card border color for the selected item. */
-  selectedBorderColor?: string
-  /** Outer card border width in CSS pixels. */
-  borderWidth?: number
-  /** Outer card border width for the selected item in CSS pixels. */
-  selectedBorderWidth?: number
-}
+const cardAspectRatio = 3 / 4
+const cardCornerRadius = 4
+const cardCoverRadius = 2
+const cardInset = 3
+const cardWidthOffset = 4
 
-export type SpherCardFrame = {
+type SpherCardFrame = {
   x: number
   y: number
   width: number
@@ -26,42 +20,16 @@ export type SpherCardFrame = {
   cardAlpha: number
 }
 
-export type SpherCardRendererOptions<TItem = SpherItem> = {
-  /** Aspect ratio for the cover area. Defaults to 3 / 4. */
-  aspectRatio?: number
-  /** Padding between the card edge and cover area in CSS pixels. */
-  inset?: number
-  /** Outer card corner radius in CSS pixels. */
-  cornerRadius?: number
-  /** Cover clipping radius in CSS pixels. */
-  coverRadius?: number
-  /** Visual overrides for the card frame. */
+type SpherCardRendererOptions<TItem = SpherItem> = {
+  cover: (item: TItem & SpherItem) => CanvasImageSource | undefined
   style?: SpherCardStyle
-  /** Extra card width added to the placed item size. */
-  widthOffset?: number
-  /** Custom drawing hook for the main card side. */
-  render?: (
-    context: CanvasRenderingContext2D,
-    item: TItem & SpherItem,
-    state: SpherRenderState<TItem>,
-    frame: SpherCardFrame,
-  ) => void
-  /** Custom drawing hook for the back side. */
-  renderBack?: (
-    context: CanvasRenderingContext2D,
-    item: TItem & SpherItem,
-    state: SpherRenderState<TItem>,
-    frame: SpherCardFrame,
-  ) => void
 }
 
 const defaultFallbackColors = ["#e5e7eb", "#94a3b8"] as const
 
-export const createCardRenderer = <TItem = SpherItem>(
-  options: SpherCardRendererOptions<TItem> = {},
-) => {
+export const createCardRenderer = <TItem = SpherItem>(options: SpherCardRendererOptions<TItem>) => {
   return (context, item, state) => {
-    const frame = createCardFrame(options, state)
+    const frame = createCardFrame(state)
 
     context.save()
     context.globalAlpha *= frame.cardAlpha
@@ -74,14 +42,15 @@ export const createCardRenderer = <TItem = SpherItem>(
       frame.coverY,
       frame.coverWidth,
       frame.coverHeight,
-      options.coverRadius ?? 2,
+      cardCoverRadius,
     )
     context.clip()
 
+    const cover = options.cover(item)
     if (frame.drawMain) {
-      drawMainCardContent(context, item, state, frame, options)
+      drawCardCover(context, cover, frame)
     } else {
-      drawBackCardContent(context, item, state, frame, options)
+      drawCardBack(context, cover, frame)
     }
 
     drawCardLight(context, frame)
@@ -90,7 +59,7 @@ export const createCardRenderer = <TItem = SpherItem>(
   }
 }
 
-export const drawFallbackCard = (
+const drawFallbackCard = (
   context: CanvasRenderingContext2D,
   frame: Pick<SpherCardFrame, "coverHeight" | "coverWidth" | "coverX" | "coverY">,
 ) => {
@@ -106,7 +75,7 @@ export const drawFallbackCard = (
   context.fillRect(frame.coverX, frame.coverY, frame.coverWidth, frame.coverHeight)
 }
 
-export const drawCardBack = (
+const drawCardBack = (
   context: CanvasRenderingContext2D,
   cover: CanvasImageSource | undefined,
   frame: Pick<SpherCardFrame, "coverHeight" | "coverWidth" | "coverX" | "coverY">,
@@ -144,7 +113,19 @@ export const drawCardBack = (
   )
 }
 
-export const drawCover = (
+const drawCardCover = (
+  context: CanvasRenderingContext2D,
+  cover: CanvasImageSource | undefined,
+  frame: Pick<SpherCardFrame, "coverHeight" | "coverWidth" | "coverX" | "coverY">,
+) => {
+  if (isDrawableCover(cover)) {
+    drawCover(context, cover, frame.coverX, frame.coverY, frame)
+  } else {
+    drawFallbackCard(context, frame)
+  }
+}
+
+const drawCover = (
   context: CanvasRenderingContext2D,
   cover: CanvasImageSource,
   x: number,
@@ -160,14 +141,11 @@ export const drawCover = (
   context.drawImage(cover, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height)
 }
 
-const createCardFrame = <TItem>(
-  options: SpherCardRendererOptions<TItem>,
-  state: SpherRenderState<TItem>,
-): SpherCardFrame => {
-  const inset = options.inset ?? 3
-  const width = state.item.size + (options.widthOffset ?? 4)
+const createCardFrame = <TItem>(state: SpherRenderState<TItem>): SpherCardFrame => {
+  const inset = cardInset
+  const width = state.item.size + cardWidthOffset
   const coverWidth = width - inset * 2
-  const coverHeight = coverWidth / (options.aspectRatio ?? 3 / 4)
+  const coverHeight = coverWidth / cardAspectRatio
   const height = coverHeight + inset * 2
   const faceIn = state.faceMode === "face-in"
   const faceOutBack = state.faceMode === "face-out" && state.visibleSide === "inside"
@@ -185,34 +163,6 @@ const createCardFrame = <TItem>(
     drawMain: state.coverVisible || faceIn || insideView,
     cardAlpha: getCardAlpha({ faceIn, faceOutBack, insideView, state }),
   }
-}
-
-const drawMainCardContent = <TItem>(
-  context: CanvasRenderingContext2D,
-  item: TItem & SpherItem,
-  state: SpherRenderState<TItem>,
-  frame: SpherCardFrame,
-  options: SpherCardRendererOptions<TItem>,
-) => {
-  if (options.render) {
-    options.render(context, item, state, frame)
-    return
-  }
-  drawFallbackCard(context, frame)
-}
-
-const drawBackCardContent = <TItem>(
-  context: CanvasRenderingContext2D,
-  item: TItem & SpherItem,
-  state: SpherRenderState<TItem>,
-  frame: SpherCardFrame,
-  options: SpherCardRendererOptions<TItem>,
-) => {
-  if (options.renderBack) {
-    options.renderBack(context, item, state, frame)
-    return
-  }
-  drawCardBack(context, undefined, frame)
 }
 
 const getCardAlpha = <TItem>({
@@ -236,7 +186,7 @@ const drawCardFrame = <TItem>(
   context: CanvasRenderingContext2D,
   state: SpherRenderState<TItem>,
   { drawMain, height, width, x, y }: SpherCardFrame,
-  options: Pick<SpherCardRendererOptions<TItem>, "cornerRadius" | "style">,
+  options: Pick<SpherCardRendererOptions<TItem>, "style">,
 ) => {
   const style = options.style
   if (state.selected) {
@@ -251,7 +201,7 @@ const drawCardFrame = <TItem>(
       ? (style?.borderColor ?? "rgba(15, 23, 42, 0.16)")
       : (style?.backBorderColor ?? style?.borderColor ?? "rgba(15, 23, 42, 0.2)")
   context.lineWidth = state.selected ? (style?.selectedBorderWidth ?? 2) : (style?.borderWidth ?? 1)
-  roundedRect(context, x, y, width, height, options.cornerRadius ?? 4)
+  roundedRect(context, x, y, width, height, cardCornerRadius)
   context.fill()
   context.stroke()
 }
@@ -275,7 +225,7 @@ const drawCardLight = (
   context.fillRect(coverX, coverY, coverWidth, coverHeight)
 }
 
-export const isDrawableCover = (
+const isDrawableCover = (
   cover: CanvasImageSource | null | undefined,
 ): cover is CanvasImageSource => {
   if (!cover) return false

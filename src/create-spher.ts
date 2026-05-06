@@ -1,32 +1,35 @@
-import {
-  createCardRenderer,
-  drawCardBack,
-  drawCover,
-  drawFallbackCard,
-  isDrawableCover,
-} from "./canvas/card-renderer.js"
+import { createCardRenderer } from "./canvas/card-renderer.js"
 import { createCanvasSpher } from "./canvas/create-spher-canvas.js"
 import type {
   SpherOptions as SpherCanvasOptions,
-  SpherCardRendererOptions,
   SpherInstance,
   SpherItem,
-} from "./canvas/index.js"
+} from "./canvas/types.js"
 
-export type SpherCardOptions<TItem = SpherItem> = Omit<
-  SpherCardRendererOptions<TItem>,
-  "aspectRatio" | "render" | "renderBack"
-> & {
+export type SpherCardStyle = {
+  /** Outer card border color. */
+  borderColor?: string
+  /** Outer card border color when the back side is visible. */
+  backBorderColor?: string
+  /** Outer card border color for the selected item. */
+  selectedBorderColor?: string
+  /** Outer card border width in CSS pixels. */
+  borderWidth?: number
+  /** Outer card border width for the selected item in CSS pixels. */
+  selectedBorderWidth?: number
+}
+
+export type SpherCardOptions<TItem = SpherItem> = {
   /** Resolves the card cover source for an item. */
   cover?: (item: TItem & SpherItem) => string | CanvasImageSource | null | undefined
-  /** Aspect ratio for the cover area. Defaults to 3 / 4. */
-  coverAspectRatio?: number
+  /** Visual overrides for the card frame. */
+  style?: SpherCardStyle
 }
 
 export type SpherOptions<TItem = SpherItem> = Omit<SpherCanvasOptions<TItem>, "render"> &
   (
     | {
-        /** High-level card preset for framed covers and labels. */
+        /** High-level card preset for framed covers. */
         card?: SpherCardOptions<TItem>
         render?: never
       }
@@ -73,27 +76,10 @@ const createCardPresetRenderer = <TItem>(
   card: SpherCardOptions<TItem>,
   cover: ReturnType<typeof createCoverResolver<TItem>>,
 ) => {
-  const cardRendererOptions: SpherCardRendererOptions<TItem> = {
-    aspectRatio: card.coverAspectRatio,
-    cornerRadius: card.cornerRadius,
-    coverRadius: card.coverRadius,
-    inset: card.inset,
-    render: (context, item, _state, frame) => {
-      const source = cover.resolve(item)
-
-      if (isDrawableCover(source)) {
-        drawCover(context, source, frame.coverX, frame.coverY, frame)
-      } else {
-        drawFallbackCard(context, frame)
-      }
-    },
-    renderBack: (context, item, _state, frame) => {
-      drawCardBack(context, cover.resolve(item), frame)
-    },
+  return createCardRenderer<TItem>({
+    cover: (item) => cover.resolve(item),
     style: card.style,
-    widthOffset: card.widthOffset,
-  }
-  return createCardRenderer(cardRendererOptions)
+  })
 }
 
 const createCoverResolver = <TItem>(

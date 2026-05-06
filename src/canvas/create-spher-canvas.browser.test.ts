@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { createSpher as createRootSpher } from "../create-spher.js"
 import { createSpher } from "./create-spher-canvas.js"
-import { createCardRenderer } from "./renderers.js"
 
 const canvases: HTMLCanvasElement[] = []
 
@@ -55,29 +54,6 @@ describe("createSpher", () => {
       items: [{ id: "card" }],
       position: () => ({ latitude: 0, longitude: 0 }),
       radius: 100,
-      size: 60,
-    })
-    const context = canvas.getContext("2d")
-
-    expect(context?.getImageData(200, 200, 1, 1).data[3]).toBeGreaterThan(0)
-
-    instance.destroy()
-  })
-
-  it("renders custom card content with the generic preset renderer", () => {
-    const canvas = createCanvas()
-    const renderer = createCardRenderer({
-      render: (context, item, _state, frame) => {
-        context.fillStyle = item.id === "metric" ? "#111827" : "#ffffff"
-        context.fillRect(frame.coverX, frame.coverY, frame.coverWidth, frame.coverHeight)
-      },
-    })
-    const instance = createSpher(canvas, {
-      devicePixelRatio: 1,
-      items: [{ id: "metric" }],
-      position: () => ({ latitude: 0, longitude: 0 }),
-      radius: 100,
-      render: renderer,
       size: 60,
     })
     const context = canvas.getContext("2d")

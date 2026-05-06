@@ -8,14 +8,14 @@ import {
   useEffect,
   useRef,
 } from "react"
-import type { SpherInstance, SpherItem } from "../canvas/index.js"
+import type { SpherInstance, SpherItem } from "../canvas/types.js"
 import { createSpher, type SpherOptions } from "../create-spher.js"
 
-export type SpherProps<TItem = SpherItem> = Omit<SpherOptions<TItem>, "onSelect"> & {
+type SpherProps<TItem = SpherItem> = Omit<SpherOptions<TItem>, "onSelect"> & {
   onItemSelect?: SpherOptions<TItem>["onSelect"]
 } & Omit<CanvasHTMLAttributes<HTMLCanvasElement>, "children" | "onSelect">
 
-export const useSpher = <TItem,>(options: SpherOptions<TItem>) => {
+const useSpher = <TItem,>(options: SpherOptions<TItem>) => {
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const instanceRef = useRef<SpherInstance<TItem> | null>(null)
   const optionsRef = useRef(options)

@@ -13,13 +13,9 @@ const entryPoints = [
     limit: 6 * 1024,
   },
   {
-    name: "spher/core",
-    path: "dist/core/index.js",
-    limit: 5 * 1024,
-  },
-  {
-    name: "spher/canvas",
-    path: "dist/canvas/index.js",
+    external: ["react", "react/jsx-runtime"],
+    name: "spher/react",
+    path: "dist/react/index.js",
     limit: 7 * 1024,
   },
 ]

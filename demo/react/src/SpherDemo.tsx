@@ -112,11 +112,15 @@ export const SpherDemo = () => {
         aria-label="Spher demo"
         card={{
           cover: (item) => item.cover,
-          title: (item) => item.title,
-          tone: (item) => item.category,
         }}
         className="sphere-canvas"
-        controls={{ autoRotate: true, drag: true, keyboard: true, wheel: true }}
+        controls={{
+          autoRotate: true,
+          drag: true,
+          keyboard: true,
+          preventDocumentScroll: true,
+          wheel: true,
+        }}
         faceMode={faceMode}
         items={items}
         onItemSelect={(item) => setSelectedId(item.id)}

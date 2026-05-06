@@ -18,15 +18,11 @@ import { Spher } from "spher/react";
 const items = [
   {
     id: "tokyo",
-    label: "Tokyo",
     cover: "/tokyo.jpg",
-    tone: "city",
   },
   {
     id: "sf",
-    label: "San Francisco",
     cover: "/sf.jpg",
-    tone: "coast",
   },
 ];
 
@@ -46,13 +42,7 @@ export function Globe() {
       radius="auto"
       size={{ ratio: 0.1 }}
       card={{
-        colors: {
-          city: ["#dbeafe", "#60a5fa"],
-          coast: ["#dcfce7", "#34d399"],
-        },
         cover: (item) => item.cover,
-        title: (item) => item.label,
-        tone: (item) => item.tone,
       }}
     />
   );
@@ -89,7 +79,6 @@ import { Spher, useSpher } from "spher/react";
   size={{ ratio: 0.08 }}
   card={{
     cover: (item) => item.thumbnail,
-    title: (item) => item.name,
   }}
 />
 ```
@@ -200,12 +189,9 @@ createSpher(canvas, {
   size: { ratio: 0.08 },
   card: {
     cover: (item) => item.preview,
-    title: (item) => item.label,
-    subtitle: (item) => item.kind,
-    tone: (item) => item.kind,
-    colors: {
-      alert: ["#fee2e2", "#fb7185"],
-      metric: ["#dbeafe", "#60a5fa"],
+    style: {
+      borderColor: "rgb(15 23 42 / 16%)",
+      selectedBorderColor: "rgb(17 24 39 / 96%)",
     },
   },
 });
@@ -259,11 +245,6 @@ Use `createCardRenderer` when you want the card frame preset while wiring the lo
 import { createCardRenderer, createSpher } from "spher";
 
 const renderer = createCardRenderer({
-  tone: (item) => item.category,
-  colors: {
-    archive: ["#dbeafe", "#60a5fa"],
-    network: ["#fee2e2", "#fb7185"],
-  },
   render: (context, item, _state, frame) => {
     context.fillStyle = "#0f172a";
     context.fillText(item.label, 0, frame.coverY + frame.coverHeight / 2);

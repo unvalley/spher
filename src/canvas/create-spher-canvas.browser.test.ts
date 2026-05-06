@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest"
+import { afterEach, describe, expect, it, vi } from "vitest"
 import { createSpher as createRootSpher } from "../create-spher.js"
 import { createSpher } from "./create-spher-canvas.js"
 import { createCardRenderer } from "./renderers.js"
@@ -17,6 +17,7 @@ const createCanvas = () => {
 }
 
 afterEach(() => {
+  vi.restoreAllMocks()
   for (const canvas of canvases) canvas.remove()
   canvases.length = 0
 })
@@ -48,9 +49,7 @@ describe("createSpher", () => {
     const canvas = createCanvas()
     const instance = createRootSpher(canvas, {
       card: {
-        colors: { archive: ["#dbeafe", "#60a5fa"] },
         cover: () => undefined,
-        tone: () => "archive",
       },
       devicePixelRatio: 1,
       items: [{ id: "card" }],
@@ -85,6 +84,45 @@ describe("createSpher", () => {
 
     expect(context?.getImageData(200, 200, 1, 1).data[3]).toBeGreaterThan(0)
 
+    instance.destroy()
+  })
+
+  it("uses configured card border styles", () => {
+    const canvas = createCanvas()
+    const strokes: Array<{
+      lineWidth: number
+      strokeStyle: string | CanvasGradient | CanvasPattern
+    }> = []
+    const stroke = vi
+      .spyOn(CanvasRenderingContext2D.prototype, "stroke")
+      .mockImplementation(function (this: CanvasRenderingContext2D) {
+        strokes.push({ lineWidth: this.lineWidth, strokeStyle: this.strokeStyle })
+      })
+
+    const instance = createRootSpher(canvas, {
+      card: {
+        style: {
+          borderColor: "#ef4444",
+          borderWidth: 3,
+          selectedBorderColor: "#22c55e",
+          selectedBorderWidth: 5,
+        },
+      },
+      devicePixelRatio: 1,
+      items: [{ id: "card" }],
+      position: () => ({ latitude: 0, longitude: 0 }),
+      radius: 100,
+      selectedId: "card",
+      size: 60,
+    })
+
+    expect(strokes).toContainEqual({ lineWidth: 5, strokeStyle: "#22c55e" })
+
+    instance.update({ selectedId: null })
+
+    expect(strokes).toContainEqual({ lineWidth: 3, strokeStyle: "#ef4444" })
+
+    stroke.mockRestore()
     instance.destroy()
   })
 

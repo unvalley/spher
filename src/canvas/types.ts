@@ -88,8 +88,6 @@ export type SpherResolvedZoom = {
   max: number
   /** Zoom level where rendering switches from shell view to inside view. */
   insideThreshold: number
-  /** Normalized inside-view progress from 0 to 1. */
-  insideProgress: number
   /** Projection scale used while inside the sphere. */
   insideScale: number
   /** Zoom value passed to projection after inside-view remapping. */

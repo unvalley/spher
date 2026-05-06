@@ -1,6 +1,5 @@
-import { createSpher } from "./create-spher-canvas.js"
 import type { SpherColorPair, SpherRenderer } from "./renderer-types.js"
-import type { SpherInstance, SpherItem, SpherOptions, SpherRenderState } from "./types.js"
+import type { SpherItem, SpherRenderState } from "./types.js"
 
 export type SpherCardFrame = {
   x: number
@@ -46,12 +45,6 @@ export type SpherCardRendererOptions<TItem extends SpherItem = SpherItem> = {
   renderBack?: SpherCardContent<TItem>
 }
 
-export type SpherCardSpherOptions<TItem extends SpherItem = SpherItem> = Omit<
-  SpherOptions<TItem>,
-  "render"
-> &
-  SpherCardRendererOptions<TItem>
-
 const defaultFallbackColors = ["#e5e7eb", "#94a3b8"] as const
 
 export const createCardRenderer = <TItem extends SpherItem>(
@@ -85,15 +78,6 @@ export const createCardRenderer = <TItem extends SpherItem>(
     context.restore()
     context.restore()
   }
-}
-
-export const createCardSpher = <TItem extends SpherItem>(
-  canvas: HTMLCanvasElement,
-  options: SpherCardSpherOptions<TItem>,
-): SpherInstance<TItem> => {
-  const { canvasOptions, rendererOptions } = splitCardOptions(options)
-  const renderer = createCardRenderer<TItem>(rendererOptions)
-  return createSpher(canvas, { ...canvasOptions, render: renderer })
 }
 
 export const drawFallbackCard = (
@@ -165,36 +149,6 @@ export const drawCover = (
   const sourceY = (size.height - sourceHeight) / 2
   context.drawImage(cover, sourceX, sourceY, sourceWidth, sourceHeight, x, y, width, height)
 }
-
-const splitCardOptions = <TItem extends SpherItem>({
-  aspectRatio,
-  colors,
-  cornerRadius,
-  fallbackColors,
-  inset,
-  coverRadius,
-  radius,
-  render,
-  renderBack,
-  tone,
-  widthOffset,
-  ...canvasOptions
-}: SpherCardSpherOptions<TItem>) => ({
-  canvasOptions,
-  rendererOptions: {
-    aspectRatio,
-    colors,
-    cornerRadius,
-    fallbackColors,
-    inset,
-    coverRadius,
-    radius,
-    render,
-    renderBack,
-    tone,
-    widthOffset,
-  },
-})
 
 const createCardFrame = <TItem extends SpherItem>(
   options: SpherCardRendererOptions<TItem>,

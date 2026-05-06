@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "vitest"
 import { createSpher as createRootSpher } from "../create-spher.js"
 import { createSpher } from "./create-spher-canvas.js"
-import { createCardRenderer, createCardSpher } from "./renderers.js"
+import { createCardRenderer } from "./renderers.js"
 
 const canvases: HTMLCanvasElement[] = []
 
@@ -79,26 +79,6 @@ describe("createSpher", () => {
       position: () => ({ latitude: 0, longitude: 0 }),
       radius: 100,
       render: renderer,
-      size: 60,
-    })
-    const context = canvas.getContext("2d")
-
-    expect(context?.getImageData(200, 200, 1, 1).data[3]).toBeGreaterThan(0)
-
-    instance.destroy()
-  })
-
-  it("creates a generic card sphere preset", () => {
-    const canvas = createCanvas()
-    const instance = createCardSpher(canvas, {
-      devicePixelRatio: 1,
-      items: [{ id: "label" }],
-      position: () => ({ latitude: 0, longitude: 0 }),
-      radius: 100,
-      render: (context, _item, _state, frame) => {
-        context.fillStyle = "#111827"
-        context.fillRect(frame.coverX, frame.coverY, frame.coverWidth, frame.coverHeight)
-      },
       size: 60,
     })
     const context = canvas.getContext("2d")

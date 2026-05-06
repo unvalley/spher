@@ -38,7 +38,7 @@ const momentumDecay = 0.95
 const maxMomentumVelocity = 8.6
 const minMomentumVelocity = 0.01
 
-export const createSpher = <TItem extends SpherItem>(
+export const createCanvasSpher = <TItem extends SpherItem>(
   canvas: HTMLCanvasElement,
   options: SpherOptions<TItem>,
 ): SpherInstance<TItem> => {
@@ -537,6 +537,8 @@ export const createSpher = <TItem extends SpherItem>(
   }
 }
 
+export { createCanvasSpher as createSpher }
+
 type Viewport = { width: number; height: number }
 
 const readViewport = (canvas: HTMLCanvasElement): Viewport => {
@@ -596,7 +598,6 @@ const withDerivedState = <TItem extends SpherItem>(
     ...state,
     zoom: {
       ...state.zoom,
-      insideProgress,
       insideScale,
       effective: viewMode === "inside" ? insideScale : state.zoom.value,
     },
@@ -648,7 +649,6 @@ const resolveZoom = (
   min: zoom?.min ?? previous?.min ?? defaultMinZoom,
   max: zoom?.max ?? previous?.max ?? defaultMaxZoom,
   insideThreshold: zoom?.insideThreshold ?? previous?.insideThreshold ?? defaultInsideZoomThreshold,
-  insideProgress: previous?.insideProgress ?? 0,
   insideScale: previous?.insideScale ?? 1,
   effective: previous?.effective ?? defaultZoom,
 })

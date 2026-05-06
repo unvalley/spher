@@ -8,7 +8,6 @@ The public card is now centered on:
 
 - `createSpher` from `spher`
 - `Spher` and `useSpher` from `spher/react`
-- `createCardSpher` for common framed card compositions
 - canvas renderer helpers such as `createCardRenderer`
 - pure geometry helpers from `spher/core`
 
@@ -51,7 +50,7 @@ const instance = createSpher(canvas, {
 });
 ```
 
-`createSpher` owns card placement, projection, selection, controls, canvas sizing, and cleanup. Its `card` option covers the common framed-cover recipe without requiring users to write canvas drawing code. `createCardSpher` composes the default card frame with custom content rendering. Renderer helpers reduce the amount of user code needed for common visual patterns without forcing a product-specific component API.
+`createSpher` owns card placement, projection, selection, controls, canvas sizing, and cleanup. Its `card` option covers the common framed-cover recipe without requiring users to write canvas drawing code. Renderer helpers reduce the amount of user code needed for common visual patterns without forcing a product-specific component API.
 
 ### React
 

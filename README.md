@@ -251,32 +251,6 @@ The same canvas API is also available from `spher/canvas`.
 import { createSpher } from "spher/canvas";
 ```
 
-### Card Renderers
-
-Use `createCardSpher` when you want spher to handle the sphere, controls, card frame, front/back visibility, and selection styling while you draw arbitrary canvas content inside each card.
-
-```ts
-import { createCardSpher } from "spher";
-
-const sphere = createCardSpher(canvas, {
-  items,
-  radius: "auto",
-  size: { ratio: 0.08 },
-  colors: {
-    alert: ["#fee2e2", "#fb7185"],
-    metric: ["#dbeafe", "#60a5fa"],
-  },
-  tone: (item) => item.kind,
-  render: (context, item, state, frame) => {
-    context.fillStyle = state.selected ? "#020617" : "#334155";
-    context.font = "600 11px system-ui";
-    context.textAlign = "center";
-    context.textBaseline = "middle";
-    context.fillText(item.label, 0, frame.coverY + frame.coverHeight / 2);
-  },
-});
-```
-
 ### Canvas Renderers
 
 Use `createCardRenderer` when you want the card frame preset while wiring the low-level canvas instance yourself.

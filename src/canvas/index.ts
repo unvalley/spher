@@ -3,19 +3,11 @@ export type {
   SpherCardContent,
   SpherCardFrame,
   SpherCardRendererOptions,
-  SpherCardSpherOptions,
   SpherColorPair,
   SpherCoverSource,
   SpherRenderer,
 } from "./renderers.js"
-export {
-  createCardRenderer,
-  createCardSpher,
-  drawCardBack,
-  drawCover,
-  drawFallbackCard,
-  isDrawableCover,
-} from "./renderers.js"
+export { createCardRenderer } from "./renderers.js"
 export type {
   SpherAutoSize,
   SpherCardSide,
@@ -23,13 +15,9 @@ export type {
   SpherFaceMode,
   SpherInstance,
   SpherItem,
-  SpherListener,
   SpherOptions,
   SpherPosition,
-  SpherProjection,
   SpherRenderState,
-  SpherResolvedTilt,
-  SpherResolvedZoom,
   SpherState,
   SpherTilt,
   SpherZoom,

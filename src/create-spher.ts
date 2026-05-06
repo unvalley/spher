@@ -1,20 +1,22 @@
 import {
-  createSpher as createCanvasSpher,
   createCardRenderer,
   drawCardBack,
   drawCover,
   drawFallbackCard,
   isDrawableCover,
-  type SpherOptions as SpherCanvasOptions,
-  type SpherCardContent,
-  type SpherCardFrame,
-  type SpherCardRendererOptions,
-  type SpherColorPair,
-  type SpherCoverSource,
-  type SpherInstance,
-  type SpherItem,
-  type SpherRenderer,
-  type SpherRenderState,
+} from "./canvas/card-renderer.js"
+import { createCanvasSpher } from "./canvas/create-spher-canvas.js"
+import type {
+  SpherOptions as SpherCanvasOptions,
+  SpherCardContent,
+  SpherCardFrame,
+  SpherCardRendererOptions,
+  SpherColorPair,
+  SpherCoverSource,
+  SpherInstance,
+  SpherItem,
+  SpherRenderer,
+  SpherRenderState,
 } from "./canvas/index.js"
 
 type SpherCardText = string | number | null | undefined

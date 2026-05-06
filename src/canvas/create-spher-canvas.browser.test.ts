@@ -47,9 +47,6 @@ describe("createSpher", () => {
   it("renders card covers with the root preset", () => {
     const canvas = createCanvas()
     const instance = createRootSpher(canvas, {
-      card: {
-        cover: () => undefined,
-      },
       devicePixelRatio: 1,
       items: [{ id: "card" }],
       position: () => ({ latitude: 0, longitude: 0 }),
@@ -77,12 +74,10 @@ describe("createSpher", () => {
 
     const instance = createRootSpher(canvas, {
       card: {
-        style: {
-          borderColor: "#ef4444",
-          borderWidth: 3,
-          selectedBorderColor: "#22c55e",
-          selectedBorderWidth: 5,
-        },
+        borderColor: "#ef4444",
+        borderWidth: 3,
+        selectedBorderColor: "#22c55e",
+        selectedBorderWidth: 5,
       },
       devicePixelRatio: 1,
       items: [{ id: "card" }],

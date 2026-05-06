@@ -62,7 +62,8 @@ const SpherComponent = <TItem,>(props: SpherProps<TItem>, forwardedRef: Ref<HTML
     style,
     ...canvasProps
   } = props
-  const baseOptions = {
+  const options = {
+    card,
     controls,
     devicePixelRatio,
     faceMode,
@@ -76,11 +77,9 @@ const SpherComponent = <TItem,>(props: SpherProps<TItem>, forwardedRef: Ref<HTML
     selectedId,
     size,
     tilt,
+    render: itemRenderer,
     zoom,
-  }
-  const options = card
-    ? ({ ...baseOptions, card } as SpherOptions<TItem>)
-    : ({ ...baseOptions, render: itemRenderer } as SpherOptions<TItem>)
+  } as SpherOptions<TItem>
   const { canvasRef } = useSpher(options)
 
   return (

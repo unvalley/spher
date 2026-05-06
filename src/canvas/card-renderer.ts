@@ -1,4 +1,3 @@
-import type { SpherCardStyle } from "../create-spher.js"
 import type { SpherItem, SpherRenderState } from "./types.js"
 
 const cardAspectRatio = 3 / 4
@@ -21,8 +20,14 @@ type SpherCardFrame = {
 }
 
 type SpherCardRendererOptions<TItem = SpherItem> = {
+  card?: {
+    borderColor?: string
+    backBorderColor?: string
+    selectedBorderColor?: string
+    borderWidth?: number
+    selectedBorderWidth?: number
+  }
   cover: (item: TItem & SpherItem) => CanvasImageSource | undefined
-  style?: SpherCardStyle
 }
 
 const defaultFallbackColors = ["#e5e7eb", "#94a3b8"] as const
@@ -186,9 +191,9 @@ const drawCardFrame = <TItem>(
   context: CanvasRenderingContext2D,
   state: SpherRenderState<TItem>,
   { drawMain, height, width, x, y }: SpherCardFrame,
-  options: Pick<SpherCardRendererOptions<TItem>, "style">,
+  options: Pick<SpherCardRendererOptions<TItem>, "card">,
 ) => {
-  const style = options.style
+  const card = options.card
   if (state.selected) {
     context.shadowBlur = 18
     context.shadowColor = "rgba(15, 23, 42, 0.24)"
@@ -196,11 +201,11 @@ const drawCardFrame = <TItem>(
 
   context.fillStyle = drawMain ? "rgba(255, 255, 255, 0.72)" : "rgba(255, 255, 255, 0.46)"
   context.strokeStyle = state.selected
-    ? (style?.selectedBorderColor ?? "rgba(17, 24, 39, 0.96)")
+    ? (card?.selectedBorderColor ?? "rgba(17, 24, 39, 0.96)")
     : drawMain
-      ? (style?.borderColor ?? "rgba(15, 23, 42, 0.16)")
-      : (style?.backBorderColor ?? style?.borderColor ?? "rgba(15, 23, 42, 0.2)")
-  context.lineWidth = state.selected ? (style?.selectedBorderWidth ?? 2) : (style?.borderWidth ?? 1)
+      ? (card?.borderColor ?? "rgba(15, 23, 42, 0.16)")
+      : (card?.backBorderColor ?? card?.borderColor ?? "rgba(15, 23, 42, 0.2)")
+  context.lineWidth = state.selected ? (card?.selectedBorderWidth ?? 2) : (card?.borderWidth ?? 1)
   roundedRect(context, x, y, width, height, cardCornerRadius)
   context.fill()
   context.stroke()

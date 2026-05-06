@@ -110,9 +110,6 @@ export const SpherDemo = () => {
 
       <Spher
         aria-label="Spher demo"
-        card={{
-          cover: (item) => item.cover,
-        }}
         className="sphere-canvas"
         controls={{
           autoRotate: true,

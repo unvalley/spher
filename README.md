@@ -41,9 +41,6 @@ export function Globe() {
       }
       radius="auto"
       size={{ ratio: 0.1 }}
-      card={{
-        cover: (item) => item.cover,
-      }}
     />
   );
 }
@@ -77,9 +74,6 @@ import { Spher } from "spher/react";
   items={items}
   radius="auto"
   size={{ ratio: 0.08 }}
-  card={{
-    cover: (item) => item.thumbnail,
-  }}
 />
 ```
 
@@ -120,12 +114,12 @@ type SpherInstance = {
 
 ### Items
 
-Items only need an `id`. Keep your domain data on the item and use resolver options when you want explicit coordinates or sizes.
+Items need a stable `id`. Add `cover` when you want the default framed-card renderer.
 
 ```ts
 const items = [
-  { id: "tokyo", label: "Tokyo" },
-  { id: "sf", label: "San Francisco" },
+  { id: "tokyo", cover: "/tokyo.jpg", label: "Tokyo" },
+  { id: "sf", cover: "/sf.jpg", label: "San Francisco" },
 ];
 
 createSpher(canvas, {
@@ -169,19 +163,19 @@ createSpher(canvas, {
 
 ### Cards
 
-Use `card` for the common framed-cover case. `cover` can return a URL string or any drawable `CanvasImageSource`, including images, videos, canvases, and image bitmaps.
+Use `cover` on each item for the common framed-card case. It can be a URL string or any drawable `CanvasImageSource`, including images, videos, canvases, and image bitmaps. Pass `card` only when you want to tune the default card drawing.
 
 ```ts
 createSpher(canvas, {
-  items,
+  items: [
+    { id: "tokyo", cover: "/tokyo.jpg" },
+    { id: "sf", cover: "/sf.jpg" },
+  ],
   radius: "auto",
   size: { ratio: 0.08 },
   card: {
-    cover: (item) => item.preview,
-    style: {
-      borderColor: "rgb(15 23 42 / 16%)",
-      selectedBorderColor: "rgb(17 24 39 / 96%)",
-    },
+    borderColor: "rgb(15 23 42 / 16%)",
+    selectedBorderColor: "rgb(17 24 39 / 96%)",
   },
 });
 ```

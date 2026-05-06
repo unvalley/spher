@@ -6,60 +6,51 @@ import type {
   SpherItem,
 } from "./canvas/types.js"
 
-export type SpherCardStyle = {
-  /** Outer card border color. */
-  borderColor?: string
-  /** Outer card border color when the back side is visible. */
-  backBorderColor?: string
-  /** Outer card border color for the selected item. */
-  selectedBorderColor?: string
-  /** Outer card border width in CSS pixels. */
-  borderWidth?: number
-  /** Outer card border width for the selected item in CSS pixels. */
-  selectedBorderWidth?: number
+export type SpherOptions<TItem = SpherItem> = Omit<SpherCanvasOptions<TItem>, "render"> & {
+  /** Shared drawing options for the default card renderer. */
+  card?: {
+    /** Outer card border color. */
+    borderColor?: string
+    /** Outer card border color when the back side is visible. */
+    backBorderColor?: string
+    /** Outer card border color for the selected item. */
+    selectedBorderColor?: string
+    /** Outer card border width in CSS pixels. */
+    borderWidth?: number
+    /** Outer card border width for the selected item in CSS pixels. */
+    selectedBorderWidth?: number
+  }
+  /** Low-level canvas renderer for custom item drawing. */
+  render?: SpherCanvasOptions<TItem>["render"]
 }
-
-export type SpherCardOptions<TItem = SpherItem> = {
-  /** Resolves the card cover source for an item. */
-  cover?: (item: TItem & SpherItem) => string | CanvasImageSource | null | undefined
-  /** Visual overrides for the card frame. */
-  style?: SpherCardStyle
-}
-
-export type SpherOptions<TItem = SpherItem> = Omit<SpherCanvasOptions<TItem>, "render"> &
-  (
-    | {
-        /** High-level card preset for framed covers. */
-        card?: SpherCardOptions<TItem>
-        render?: never
-      }
-    | {
-        card?: never
-        /** Low-level canvas renderer for custom item drawing. */
-        render?: SpherCanvasOptions<TItem>["render"]
-      }
-  )
 
 export const createSpher = <TItem>(
   canvas: HTMLCanvasElement,
   options: SpherOptions<TItem>,
 ): SpherInstance<TItem> => {
-  const { card, ...canvasOptions } = options
-  if (!card) return createCanvasSpher(canvas, canvasOptions)
+  const { card, render, ...canvasOptions } = options
+  if (render) return createCanvasSpher(canvas, { ...canvasOptions, render })
 
+  const cover = createCoverResolver<TItem>()
   let cardOptions = card
-  let cover = createCoverResolver<TItem>((item) => cardOptions.cover?.(item))
-  let renderer = createCardPresetRenderer(cardOptions, cover)
+  let renderer = createCardPresetRenderer(cover, cardOptions)
   const instance = createCanvasSpher(canvas, { ...canvasOptions, render: renderer })
   const update: SpherInstance<TItem>["update"] = (patch) => {
-    const { card: nextCard, ...canvasPatch } = patch as Partial<SpherOptions<TItem>>
-    if (nextCard) {
+    const {
+      card: nextCard,
+      render: nextRender,
+      ...canvasPatch
+    } = patch as Partial<SpherOptions<TItem>>
+    if (nextRender) {
+      instance.update({ ...canvasPatch, render: nextRender })
+      return
+    }
+    if ("card" in patch) {
       cardOptions = nextCard
-      cover = createCoverResolver<TItem>((item) => cardOptions.cover?.(item))
-      renderer = createCardPresetRenderer(cardOptions, cover)
+      renderer = createCardPresetRenderer(cover, cardOptions)
     }
     instance.update({ ...canvasPatch, render: renderer })
-    if (nextCard || canvasPatch.items) {
+    if (canvasPatch.items) {
       cover.preload(instance.getState().items, () => instance.update({}))
     }
   }
@@ -73,23 +64,21 @@ export const createSpher = <TItem>(
 }
 
 const createCardPresetRenderer = <TItem>(
-  card: SpherCardOptions<TItem>,
   cover: ReturnType<typeof createCoverResolver<TItem>>,
+  card: SpherOptions<TItem>["card"],
 ) => {
   return createCardRenderer<TItem>({
+    card,
     cover: (item) => cover.resolve(item),
-    style: card.style,
   })
 }
 
-const createCoverResolver = <TItem>(
-  getCover: (item: TItem & SpherItem) => string | CanvasImageSource | null | undefined,
-) => {
+const createCoverResolver = <TItem>() => {
   const cache = new Map<string, { cover: HTMLImageElement; src: string }>()
   let notifyLoad: (() => void) | undefined
 
   const resolve = (item: TItem & SpherItem): CanvasImageSource | undefined => {
-    const source = getCover(item)
+    const source = item.cover
     if (!source) return undefined
     if (typeof source !== "string") return source
 

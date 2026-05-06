@@ -115,8 +115,6 @@ const setRef = <TValue,>(ref: Ref<TValue> | RefObject<TValue | null>, value: TVa
 }
 
 const defaultCanvasStyle: CSSProperties = {
-  aspectRatio: "1 / 1",
   display: "block",
   touchAction: "none",
-  width: "100%",
 }

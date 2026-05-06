@@ -2,12 +2,10 @@ export { createSpher } from "./create-spher-canvas.js"
 export type {
   SpherCardContent,
   SpherCardFrame,
-  SpherCardInstance,
   SpherCardRendererOptions,
   SpherCardSpherOptions,
   SpherColorPair,
   SpherCoverSource,
-  SpherPreloadableRenderer,
   SpherRenderer,
 } from "./renderers.js"
 export {

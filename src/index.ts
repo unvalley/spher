@@ -4,7 +4,6 @@ export {
   type SpherAutoSize,
   type SpherCardContent,
   type SpherCardFrame,
-  type SpherCardInstance,
   type SpherCardRendererOptions,
   type SpherCardSide,
   type SpherCardSpherOptions,
@@ -16,7 +15,6 @@ export {
   type SpherItem,
   type SpherListener,
   type SpherPosition,
-  type SpherPreloadableRenderer,
   type SpherProjection,
   type SpherRenderer,
   type SpherRenderState,
@@ -29,8 +27,6 @@ export {
 export type { SpherItemBase, SpherPlacement } from "./core/index.js"
 export {
   createSpher,
-  type SpherCard,
   type SpherCardOptions,
-  type SpherCardRecipe,
   type SpherOptions,
 } from "./create-spher.js"

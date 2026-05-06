@@ -1,4 +1,4 @@
-export { clamp, cssNumber, toRadians } from "./math.js"
+export { clamp, toRadians } from "./math.js"
 export {
   getFibonacciSpherePosition,
   getLatitudeLongitudeGridPosition,

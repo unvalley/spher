@@ -52,10 +52,6 @@ export type SpherCardSpherOptions<TItem extends SpherItem = SpherItem> = Omit<
 > &
   SpherCardRendererOptions<TItem>
 
-export type SpherCardInstance<TItem extends SpherItem = SpherItem> = SpherInstance<TItem> & {
-  renderer: SpherRenderer<TItem>
-}
-
 const defaultFallbackColors = ["#e5e7eb", "#94a3b8"] as const
 
 export const createCardRenderer = <TItem extends SpherItem>(
@@ -94,15 +90,10 @@ export const createCardRenderer = <TItem extends SpherItem>(
 export const createCardSpher = <TItem extends SpherItem>(
   canvas: HTMLCanvasElement,
   options: SpherCardSpherOptions<TItem>,
-): SpherCardInstance<TItem> => {
+): SpherInstance<TItem> => {
   const { canvasOptions, rendererOptions } = splitCardOptions(options)
   const renderer = createCardRenderer<TItem>(rendererOptions)
-  const instance = createSpher(canvas, { ...canvasOptions, render: renderer })
-
-  return {
-    ...instance,
-    renderer,
-  }
+  return createSpher(canvas, { ...canvasOptions, render: renderer })
 }
 
 export const drawFallbackCard = (

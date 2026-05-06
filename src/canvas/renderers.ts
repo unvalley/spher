@@ -1,7 +1,6 @@
 export type {
   SpherCardContent,
   SpherCardFrame,
-  SpherCardInstance,
   SpherCardRendererOptions,
   SpherCardSpherOptions,
 } from "./card-renderer.js"
@@ -16,6 +15,5 @@ export {
 export type {
   SpherColorPair,
   SpherCoverSource,
-  SpherPreloadableRenderer,
   SpherRenderer,
 } from "./renderer-types.js"

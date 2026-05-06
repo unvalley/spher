@@ -103,7 +103,6 @@ describe("createSpher", () => {
     })
     const context = canvas.getContext("2d")
 
-    expect(instance.renderer).toBeTypeOf("function")
     expect(context?.getImageData(200, 200, 1, 1).data[3]).toBeGreaterThan(0)
 
     instance.destroy()

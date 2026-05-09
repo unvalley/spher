@@ -62,6 +62,7 @@ export function SpherUI() {
 ## Resources
 
 See [demo/react](demo/react) for a styled React example.
+
 See [docs/options.md](docs/options.md) for detailed option reference.
 
 ## License

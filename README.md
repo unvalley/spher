@@ -68,3 +68,7 @@ See [docs/options.md](docs/options.md) for detailed option reference.
 ## License
 
 MIT
+
+## Acknowledgement
+
+Inspired by [jess yin's post](https://x.com/itsjessyin/status/2040885952193696093?s=20).

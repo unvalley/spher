@@ -301,7 +301,7 @@ describe("createSpher", () => {
     instance.destroy()
   })
 
-  it("reports whether the configured card cover side is visible", () => {
+  it("reports the configured cover side and currently visible side", () => {
     const canvas = createCanvas()
     const instance = createSpher(canvas, {
       items: [{ id: "near" }, { id: "far" }],
@@ -310,15 +310,17 @@ describe("createSpher", () => {
       radius: 100,
     })
 
+    expect(instance.itemState("near")?.coverSide).toBe("outside")
     expect(instance.itemState("near")?.visibleSide).toBe("outside")
-    expect(instance.itemState("near")?.coverVisible).toBe(true)
+    expect(instance.itemState("far")?.coverSide).toBe("outside")
     expect(instance.itemState("far")?.visibleSide).toBe("inside")
-    expect(instance.itemState("far")?.coverVisible).toBe(false)
 
-    instance.update({ faceMode: "face-in" })
+    instance.update({ coverSide: "inside" })
 
-    expect(instance.itemState("near")?.coverVisible).toBe(false)
-    expect(instance.itemState("far")?.coverVisible).toBe(true)
+    expect(instance.itemState("near")?.coverSide).toBe("inside")
+    expect(instance.itemState("near")?.visibleSide).toBe("outside")
+    expect(instance.itemState("far")?.coverSide).toBe("inside")
+    expect(instance.itemState("far")?.visibleSide).toBe("inside")
 
     instance.destroy()
   })
@@ -349,7 +351,7 @@ describe("createSpher", () => {
 
     expect(instance.itemState("edge")?.visibility).toBeLessThan(0.01)
 
-    instance.update({ faceMode: "face-in" })
+    instance.update({ coverSide: "inside" })
 
     expect(instance.itemState("edge")?.visibility).toBeLessThan(0.01)
 
@@ -371,7 +373,7 @@ describe("createSpher", () => {
     expect(instance.itemState("side")?.visibility).toBeLessThan(0.01)
     expect(instance.itemState("rear")?.visibility).toBeGreaterThan(0.1)
 
-    instance.update({ faceMode: "face-in" })
+    instance.update({ coverSide: "inside" })
 
     expect(instance.itemState("side")?.visibility).toBeLessThan(0.01)
     expect(instance.itemState("rear")?.visibility).toBeGreaterThan(0.5)

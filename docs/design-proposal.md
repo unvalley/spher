@@ -97,9 +97,8 @@ The canvas engine calls the user renderer after applying the projected item tran
 ```txt
 item
 selected
-visible
 visibility
-coverVisible
+coverSide
 visibleSide
 viewMode
 ```

@@ -1,10 +1,8 @@
 # spher options
 
-This document describes the options accepted by `createSpher(canvas, options)` from `spher`.
-The React `Spher` component from `spher/react` accepts the same options as props, except
-that `onSelect` is exposed as `onItemSelect`.
-
-## Basic Shape
+`createSpher(canvas, options)` creates and controls a canvas sphere.
+`Spher` from `spher/react` accepts the same options as props, except `onSelect` is named
+`onItemSelect`.
 
 ```ts
 import { createSpher } from "spher";
@@ -12,12 +10,14 @@ import { createSpher } from "spher";
 const instance = createSpher(canvas, {
   items,
   radius: "auto",
-  size: { ratio: 0.1 },
+  size: { ratio: 0.1, min: 48, max: 96 },
   controls: { drag: true, wheel: true },
 });
 ```
 
-Every item must have a stable `id`. Add `cover` when you want to use the default card renderer.
+## Items
+
+`items` is required. Every item must have a stable `id`.
 
 ```ts
 type SpherItem = {
@@ -26,163 +26,86 @@ type SpherItem = {
 };
 ```
 
-## Required Options
+`cover` is only used by the default card renderer. String covers are loaded as images and
+cached by item id. Pass `render` when you want full control over item drawing.
 
-### `items`
+## Option Summary
+
+| Option | Type | Default |
+| --- | --- | --- |
+| `items` | `Array<TItem & SpherItem>` | Required |
+| `radius` | `number \| "auto"` | `320` |
+| `size` | `number \| "auto" \| { ratio?, min?, max? } \| fn` | `64` |
+| `placement` | `"fibonacci" \| "grid"` | `"fibonacci"` |
+| `position` | `(item, index, items) => { latitude, longitude } \| null` | Auto placement |
+| `perspective` | `number` | `900` |
+| `rotation` | `{ x: number; y: number }` | `{ x: 0, y: 0 }` |
+| `tilt` | `number \| { x?, y?, z? }` | `{ x: 0, y: 0, z: 0 }` |
+| `zoom` | `{ value?, min?, max?, insideThreshold? }` | See below |
+| `coverSide` | `"outside" \| "inside"` | `"outside"` |
+| `card` | Card renderer style options | Default card style |
+| `render` | `(context, item, state) => void` | Default card renderer |
+| `controls` | Built-in control options | Disabled |
+| `selectedId` | `string \| null` | `null` |
+| `onSelect` | `(item) => void` | None |
+| `devicePixelRatio` | `number` | `globalThis.devicePixelRatio ?? 1` |
+
+## Layout
+
+`radius: "auto"` uses `42%` of the canvas shorter side and updates on resize.
+
+`size` controls the item size passed to render state as `state.item.size`.
+
+- `number`: fixed CSS pixel size.
+- `"auto"`: `10%` of the sphere diameter.
+- `{ ratio, min, max }`: `radius * 2 * ratio`, clamped by optional bounds. `ratio` defaults to
+  `0.1`.
+- Function: resolves a size per item.
+
+`placement` is used when `position` does not return coordinates.
+
+- `"fibonacci"`: even distribution for arbitrary item counts.
+- `"grid"`: latitude/longitude rows.
+
+`position` can override placement per item:
 
 ```ts
-items: Array<TItem & SpherItem>
+position: (item) => ({ latitude: item.lat, longitude: item.lng });
 ```
 
-Items placed on the sphere. Each item must have a stable `id`; it is used for selection,
-updates, hit testing, and `itemState(id)`.
+Coordinates are degrees. Latitude is clamped to `-82..82`; longitude `0` starts at the front
+of the camera.
 
-When `cover` is a string, `spher` creates and caches an `HTMLImageElement` for the default
-card renderer. When `cover` is already a drawable `CanvasImageSource`, it is used directly.
+## View
 
-## Layout Options
+`rotation` is the interactive or controlled rotation in degrees.
 
-### `radius`
+- `x`: pitch. Built-in controls clamp it to `-72..72`.
+- `y`: yaw. It is not bounded.
 
-```ts
-radius?: number | "auto"
-```
+`tilt` is a static offset applied before `rotation`. A number means `{ x: value, y: 0, z: 0 }`.
+Use it for the base angle of the sphere.
 
-Sphere radius in CSS pixels.
+`perspective` controls depth projection. Higher values look flatter; lower values exaggerate
+depth.
 
-- Default: `320`
-- `"auto"`: uses `42%` of the canvas's shorter side and updates on resize
-- Number: fixed radius in CSS pixels
-
-### `size`
+`zoom` defaults to:
 
 ```ts
-size?:
-  | number
-  | "auto"
-  | { ratio?: number; min?: number; max?: number }
-  | ((item, index, items) => number)
-```
-
-Item size in CSS pixels. This size is passed to the renderer as `state.item.size`.
-
-- Default: `64`
-- `"auto"`: `10%` of the resolved sphere diameter
-- `{ ratio }`: responsive size based on sphere diameter; default ratio is `0.1`
-- `{ min, max }`: clamps responsive sizing
-- Function: resolves size per item
-
-### `placement`
-
-```ts
-placement?: "fibonacci" | "grid"
-```
-
-Controls how items are distributed when `position` is not provided.
-
-- Default: `"fibonacci"`
-- `"fibonacci"`: even spherical distribution for arbitrary item counts
-- `"grid"`: row-based latitude/longitude layout
-
-### `position`
-
-```ts
-position?: (
-  item: TItem & SpherItem,
-  index: number,
-  items: Array<TItem & SpherItem>,
-) => { latitude: number; longitude: number } | null | undefined
-```
-
-Provides explicit spherical coordinates per item. Coordinates are in degrees.
-
-- `latitude` is clamped to `-82..82`
-- `longitude: 0` starts at the front of the camera at default rotation
-- Return `null` or `undefined` to fall back to `placement` for that item
-
-## Camera Options
-
-### `perspective`
-
-```ts
-perspective?: number
-```
-
-Perspective distance in CSS pixels.
-
-- Default: `900`
-- Higher values flatten depth
-- Lower values make depth scaling stronger
-
-### `rotation`
-
-```ts
-rotation?: { x: number; y: number }
-```
-
-Current rotation in degrees.
-
-- Default: `{ x: 0, y: 0 }`
-- `x`: pitch, clamped to `-72..72` by interactive controls
-- `y`: yaw, unbounded
-
-Use `instance.rotateTo(rotation)` or update the option when controlling rotation externally.
-
-### `tilt`
-
-```ts
-tilt?: number | { x?: number; y?: number; z?: number }
-```
-
-Static pitch/yaw/roll offset applied before user rotation.
-
-- Default: `{ x: 0, y: 0, z: 0 }`
-- Number: shorthand for `{ x: value, y: 0, z: 0 }`
-- `x`: pitch offset
-- `y`: yaw offset
-- `z`: roll offset
-
-Use `tilt` for a fixed base angle, and `rotation` for interaction or controlled movement.
-
-### `zoom`
-
-```ts
-zoom?: {
-  value?: number;
-  min?: number;
-  max?: number;
-  insideThreshold?: number;
+{
+  value: 1,
+  min: 0.66,
+  max: 4.4,
+  insideThreshold: 1.32,
 }
 ```
 
-Zoom configuration.
+When `value >= insideThreshold`, `viewMode` becomes `"inside"`. The public state still reports
+the original `zoom.value`; the renderer uses an internal inside-view scale.
 
-- `value` default: `1`
-- `min` default: `0.66`
-- `max` default: `4.4`
-- `insideThreshold` default: `1.32`
+## Rendering
 
-When `value >= insideThreshold`, rendering switches from shell view to inside view.
-Inside view uses a derived zoom scale, while the public state still reports the original
-`zoom.value`.
-
-## Rendering Options
-
-### `faceMode`
-
-```ts
-faceMode?: "face-out" | "face-in"
-```
-
-Controls which side of each card is considered the main cover side.
-
-- Default: `"face-out"`
-- `"face-out"`: covers face the outside of the sphere
-- `"face-in"`: covers face the inside of the sphere
-
-Read `state.coverVisible` in a custom renderer to decide whether to draw the cover or a back side.
-
-### `card`
+The root `createSpher` export uses the built-in card renderer unless `render` is provided.
 
 ```ts
 card?: {
@@ -194,29 +117,23 @@ card?: {
 }
 ```
 
-Drawing options for the default framed-card renderer. This option is only used when `render`
-is not provided.
+Card defaults:
 
-Defaults:
+| Field | Default |
+| --- | --- |
+| `borderColor` | `"rgba(15, 23, 42, 0.16)"` |
+| `backBorderColor` | `borderColor ?? "rgba(15, 23, 42, 0.2)"` |
+| `selectedBorderColor` | `"rgba(17, 24, 39, 0.96)"` |
+| `borderWidth` | `1` |
+| `selectedBorderWidth` | `2` |
 
-- `borderColor`: `"rgba(15, 23, 42, 0.16)"`
-- `backBorderColor`: `borderColor` or `"rgba(15, 23, 42, 0.2)"`
-- `selectedBorderColor`: `"rgba(17, 24, 39, 0.96)"`
-- `borderWidth`: `1`
-- `selectedBorderWidth`: `2`
+`coverSide` chooses which sphere-facing side shows the main cover:
 
-### `render`
+- `"outside"`: cover faces the outside of the sphere.
+- `"inside"`: cover faces the inside of the sphere.
 
-```ts
-render?: (
-  context: CanvasRenderingContext2D,
-  item: TItem & SpherItem,
-  state: SpherRenderState<TItem>,
-) => void
-```
-
-Low-level canvas renderer for each visible item. Before `render` runs, the canvas transform
-has already been moved and projected onto the item's card plane, so draw around `(0, 0)`.
+Use `render` for custom drawing. The canvas transform is already positioned on the item plane,
+so draw around `(0, 0)`.
 
 ```ts
 createSpher(canvas, {
@@ -229,9 +146,30 @@ createSpher(canvas, {
 });
 ```
 
-## Control Options
+Custom renderers receive:
 
-### `controls`
+```ts
+type SpherRenderState<TItem = SpherItem> = {
+  item: PositionedItem<TItem>;
+  edgeFactor: number;
+  coverSide: "outside" | "inside";
+  front: boolean;
+  normalY: number;
+  perspectiveScale: number;
+  selected: boolean;
+  visibleSide: "outside" | "inside";
+  visibility: number;
+  viewMode: "inside" | "outside";
+};
+```
+
+Most custom renderers only need `item`, `selected`, `visibility`, `coverSide`,
+`visibleSide`, `viewMode`, and `perspectiveScale`. If you need to know whether the configured
+cover side is currently visible, compare `coverSide === visibleSide`.
+
+## Controls
+
+Controls are opt-in.
 
 ```ts
 controls?: {
@@ -243,84 +181,34 @@ controls?: {
 }
 ```
 
-Built-in controls are disabled by default.
+- `autoRotate`: increments `rotation.y`; speed defaults to `0.18` degrees per frame.
+- `drag`: pointer drag rotates the sphere and applies momentum on release.
+- `wheel`: plain wheel rotates; `ctrl`, `meta`, or `alt` wheel zooms.
+- `keyboard`: arrow keys rotate; `meta` + arrow up/down zooms.
+- `preventDocumentScroll`: calls `preventDefault()` for handled wheel input.
 
-- `autoRotate`: continuously increases `rotation.y`
-- `autoRotate.speed` default: `0.18` degrees per animation frame
-- `drag`: pointer drag rotates the sphere and adds momentum after release
-- `wheel`: wheel rotates the sphere; modifier-wheel zooms
-- `keyboard`: arrow keys rotate; command-arrow up/down zooms
-- `preventDocumentScroll`: calls `event.preventDefault()` while handling wheel input
+Click or tap selection is handled by the drag control when movement stays below the click
+threshold.
 
-Selection is handled by click/tap when drag movement stays below the click threshold.
+## Selection And State
 
-## Selection And State Options
+`selectedId` controls the selected item. Pass `null` to clear it.
 
-### `selectedId`
+`onSelect` runs when built-in controls select an item, or when `instance.select(id)` selects an
+existing item. In React, use `onItemSelect`.
 
-```ts
-selectedId?: string | null
+```tsx
+import { Spher } from "spher/react";
+
+<Spher
+  items={items}
+  controls={{ drag: true, wheel: true }}
+  selectedId={selectedId}
+  onItemSelect={(item) => setSelectedId(item.id)}
+/>;
 ```
 
-Currently selected item id.
-
-- Default: `null`
-- Pass an item id to select it
-- Pass `null` to clear selection
-
-### `onSelect`
-
-```ts
-onSelect?: (item: TItem & SpherItem) => void
-```
-
-Called when built-in controls select an item, or when `instance.select(id)` selects an existing item.
-In React, use `onItemSelect`.
-
-### `devicePixelRatio`
-
-```ts
-devicePixelRatio?: number
-```
-
-Canvas backing-store scale.
-
-- Default: `globalThis.devicePixelRatio`, falling back to `1`
-- Override this for deterministic tests or explicit rendering scale
-
-## Render State
-
-Custom renderers receive this state object:
-
-```ts
-type SpherRenderState<TItem = SpherItem> = {
-  item: PositionedItem<TItem>;
-  edgeFactor: number;
-  faceMode: "face-out" | "face-in";
-  front: boolean;
-  coverVisible: boolean;
-  normalY: number;
-  perspectiveScale: number;
-  selected: boolean;
-  visibleSide: "outside" | "inside";
-  visibility: number;
-  viewMode: "inside" | "shell";
-};
-```
-
-Common fields:
-
-- `item`: resolved item with `latitude`, `longitude`, `radius`, and `size`
-- `selected`: whether this item matches `selectedId`
-- `visibility`: current alpha multiplier, from `0` to `1`
-- `coverVisible`: whether the configured cover side is visible
-- `visibleSide`: `"outside"` or `"inside"`
-- `viewMode`: `"shell"` before `zoom.insideThreshold`, `"inside"` after it
-- `perspectiveScale`: current projection scale for depth
-- `edgeFactor`: how close the item is to the visual sphere edge
-- `normalY`: vertical normal, clamped to `-1..1`
-
-## Instance Methods
+## Instance
 
 `createSpher` returns:
 
@@ -336,30 +224,17 @@ type SpherInstance<TItem = SpherItem> = {
 };
 ```
 
-- `update`: patches options and re-renders
-- `select`: updates selection and calls `onSelect` when the id exists
-- `rotateTo`: cancels momentum and applies a target rotation
-- `destroy`: removes listeners, observers, animation frames, and cached projections
-- `itemState`: returns the latest render state for a projected item
-- `getState`: returns the public state snapshot
-- `subscribe`: listens to public state changes and returns an unsubscribe function
+- `update`: patches options and renders again.
+- `select`: updates selection; calls `onSelect` when the id exists.
+- `rotateTo`: cancels momentum and applies a target rotation.
+- `destroy`: removes listeners, observers, animation frames, and cached projections.
+- `itemState`: returns the latest render state for an item.
+- `getState`: returns the public state snapshot.
+- `subscribe`: listens to public state changes and returns an unsubscribe function.
 
-## React Props
+## React
 
-```tsx
-import { Spher } from "spher/react";
-
-<Spher
-  items={items}
-  radius="auto"
-  size={{ ratio: 0.1 }}
-  controls={{ drag: true, wheel: true }}
-  onItemSelect={(item) => console.log(item.id)}
-/>;
-```
-
-`Spher` renders a `<canvas>` and forwards standard canvas attributes. It sets these default
-styles:
+`Spher` renders a canvas, forwards standard canvas attributes, and applies these default styles:
 
 ```ts
 {

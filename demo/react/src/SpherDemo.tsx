@@ -9,7 +9,7 @@ const TILT_ROLL = 0
 export const SpherDemo = () => {
   const [selectedId, setSelectedId] = useState(items[0].id)
   const [cardSizeRatio, setCardSizeRatio] = useState(CARD_SIZE_RATIO)
-  const [faceMode, setFaceMode] = useState<"face-out" | "face-in">("face-out")
+  const [coverSide, setCoverSide] = useState<"outside" | "inside">("outside")
   const [tiltPitch, setTiltPitch] = useState(TILT_PITCH)
   const [tiltRoll, setTiltRoll] = useState(TILT_ROLL)
   const [controlsVisible, setControlsVisible] = useState(true)
@@ -77,20 +77,20 @@ export const SpherDemo = () => {
               <output>{tiltRoll}deg</output>
             </label>
             <div className="demo-control-row">
-              <fieldset aria-label="Card face mode" className="demo-face-control">
+              <fieldset aria-label="Cover side" className="demo-face-control">
                 <button
-                  data-active={faceMode === "face-out"}
-                  onClick={() => setFaceMode("face-out")}
+                  data-active={coverSide === "outside"}
+                  onClick={() => setCoverSide("outside")}
                   type="button"
                 >
-                  Face out
+                  Outside
                 </button>
                 <button
-                  data-active={faceMode === "face-in"}
-                  onClick={() => setFaceMode("face-in")}
+                  data-active={coverSide === "inside"}
+                  onClick={() => setCoverSide("inside")}
                   type="button"
                 >
-                  Face in
+                  Inside
                 </button>
               </fieldset>
               <button className="demo-control-button" onClick={resetView} type="button">
@@ -118,7 +118,7 @@ export const SpherDemo = () => {
           preventDocumentScroll: true,
           wheel: true,
         }}
-        faceMode={faceMode}
+        coverSide={coverSide}
         items={items}
         onItemSelect={(item) => setSelectedId(item.id)}
         perspective={980}

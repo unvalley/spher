@@ -20,7 +20,7 @@ const defaultZoom = 1
 const defaultInsideZoomThreshold = 1.32
 const defaultMinZoom = 0.66
 const defaultMaxZoom = 4.4
-const defaultFaceMode = "face-out" as const
+const defaultCoverSide = "outside" as const
 const defaultPlacement = "fibonacci" as const
 const autoRadiusRatio = 0.42
 const autoSizeRatio = 0.1
@@ -43,9 +43,8 @@ type CanvasState<TItem> = Omit<SpherState<TItem>, "zoom"> & {
 }
 
 type CanvasProjection<TItem> = ProjectedItem<TItem> & {
-  faceMode: SpherRenderState["faceMode"]
+  coverSide: SpherRenderState["coverSide"]
   front: boolean
-  coverVisible: boolean
   selected: boolean
   visibleSide: SpherRenderState["visibleSide"]
   visibility: number
@@ -287,7 +286,6 @@ export const createCanvasSpher = <TItem>(
       const selected = projected.item.id === state.selectedId
       const front = state.viewMode === "inside" ? projected.z < 0 : projected.z < -30
       const visibleSide = getVisibleSide(projected.z, state.viewMode)
-      const coverVisible = isCoverVisible(state.faceMode, visibleSide)
       const visibility = getVisibility({
         edgeFactor: projected.edgeFactor,
         selected,
@@ -296,9 +294,8 @@ export const createCanvasSpher = <TItem>(
       })
       const projection = {
         ...projected,
-        faceMode: state.faceMode,
+        coverSide: state.coverSide,
         front,
-        coverVisible,
         selected,
         visibleSide,
         visibility,
@@ -585,7 +582,7 @@ const normalizeOptions = <TItem>(
     rotation: options.rotation ?? previous?.rotation ?? defaultRotation,
     tilt: resolveTilt(options.tilt, previous?.tilt),
     zoom: resolveZoom(options.zoom, previous?.zoom),
-    faceMode: options.faceMode ?? previous?.faceMode ?? defaultFaceMode,
+    coverSide: options.coverSide ?? previous?.coverSide ?? defaultCoverSide,
     placement: options.placement ?? previous?.placement ?? defaultPlacement,
     selectedId: objectHasOwnProperty.call(options, "selectedId")
       ? (options.selectedId ?? null)
@@ -597,7 +594,7 @@ const normalizeOptions = <TItem>(
 const withDerivedState = <TItem>(
   state: Omit<CanvasState<TItem>, "viewMode">,
 ): CanvasState<TItem> => {
-  const viewMode = state.zoom.value >= state.zoom.insideThreshold ? "inside" : "shell"
+  const viewMode = state.zoom.value >= state.zoom.insideThreshold ? "inside" : "outside"
   const insideProgress =
     viewMode === "inside"
       ? clamp(
@@ -631,9 +628,9 @@ const getVisibleSide = (
 }
 
 const isCoverVisible = (
-  faceMode: SpherRenderState["faceMode"],
+  coverSide: SpherRenderState["coverSide"],
   visibleSide: SpherRenderState["visibleSide"],
-) => visibleSide === (faceMode === "face-out" ? "outside" : "inside")
+) => visibleSide === coverSide
 
 const resolveSizeOption = <TItem>(
   size: SpherOptions<TItem>["size"],
@@ -823,9 +820,8 @@ const projectPoint = <TItem>(
 
 const toRenderState = <TItem>({
   edgeFactor,
-  faceMode,
+  coverSide,
   front,
-  coverVisible,
   item,
   normalY,
   perspectiveScale,
@@ -836,9 +832,8 @@ const toRenderState = <TItem>({
 }: CanvasProjection<TItem>): SpherRenderState<TItem> => ({
   item,
   edgeFactor,
-  faceMode,
+  coverSide,
   front,
-  coverVisible,
   normalY,
   perspectiveScale,
   selected,
@@ -849,10 +844,11 @@ const toRenderState = <TItem>({
 
 const renderDefaultItem = <TItem>(
   context: CanvasRenderingContext2D,
-  { coverVisible, item, selected }: SpherRenderState<TItem>,
+  { coverSide, item, selected, visibleSide }: SpherRenderState<TItem>,
 ) => {
   const width = item.size
   const height = item.size * 1.28
+  const coverVisible = isCoverVisible(coverSide, visibleSide)
   context.fillStyle = selected
     ? "rgba(255, 255, 255, 0.92)"
     : coverVisible

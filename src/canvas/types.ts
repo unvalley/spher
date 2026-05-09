@@ -5,15 +5,14 @@ export type { SpherItem } from "../core/types.js"
 export type SpherRenderState<TItem = SpherItem> = {
   item: PositionedItem<TItem>
   edgeFactor: number
-  faceMode: "face-out" | "face-in"
+  coverSide: "outside" | "inside"
   front: boolean
-  coverVisible: boolean
   normalY: number
   perspectiveScale: number
   selected: boolean
   visibleSide: "outside" | "inside"
   visibility: number
-  viewMode: "inside" | "shell"
+  viewMode: "inside" | "outside"
 }
 
 export type SpherOptions<TItem = SpherItem> = {
@@ -47,11 +46,11 @@ export type SpherOptions<TItem = SpherItem> = {
     min?: number
     /** Upper bound for interactive zoom. Defaults to 4.4. */
     max?: number
-    /** Zoom level where rendering switches from shell view to inside view. Defaults to 1.32. */
+    /** Zoom level where rendering switches from outside view to inside view. Defaults to 1.32. */
     insideThreshold?: number
   }
   /** Which side of each card shows the main cover. */
-  faceMode?: "face-out" | "face-in"
+  coverSide?: "outside" | "inside"
   /** Strategy used to distribute items when `position` is not provided. */
   placement?: SpherPlacement
   /** Built-in pointer, wheel, keyboard, and auto-rotation controls. */
@@ -120,14 +119,14 @@ export type SpherState<TItem = SpherItem> = {
     min: number
     /** Upper bound for interactive zoom. */
     max: number
-    /** Zoom level where rendering switches from shell view to inside view. */
+    /** Zoom level where rendering switches from outside view to inside view. */
     insideThreshold: number
   }
   placement: SpherPlacement
   selectedId: string | null
   devicePixelRatio: number
-  faceMode: "face-out" | "face-in"
-  viewMode: "inside" | "shell"
+  coverSide: "outside" | "inside"
+  viewMode: "inside" | "outside"
 }
 
 export type SpherInstance<TItem = SpherItem> = {

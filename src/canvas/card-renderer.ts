@@ -152,8 +152,9 @@ const createCardFrame = <TItem>(state: SpherRenderState<TItem>): SpherCardFrame 
   const coverWidth = width - inset * 2
   const coverHeight = coverWidth / cardAspectRatio
   const height = coverHeight + inset * 2
-  const faceIn = state.faceMode === "face-in"
-  const faceOutBack = state.faceMode === "face-out" && state.visibleSide === "inside"
+  const coverInside = state.coverSide === "inside"
+  const coverOutsideBack = state.coverSide === "outside" && state.visibleSide === "inside"
+  const coverVisible = state.coverSide === state.visibleSide
   const insideView = state.viewMode === "inside"
 
   return {
@@ -165,25 +166,25 @@ const createCardFrame = <TItem>(state: SpherRenderState<TItem>): SpherCardFrame 
     coverY: -height / 2 + inset,
     coverWidth,
     coverHeight,
-    drawMain: state.coverVisible || faceIn || insideView,
-    cardAlpha: getCardAlpha({ faceIn, faceOutBack, insideView, state }),
+    drawMain: coverVisible || coverInside || insideView,
+    cardAlpha: getCardAlpha({ coverInside, coverOutsideBack, insideView, state }),
   }
 }
 
 const getCardAlpha = <TItem>({
-  faceIn,
-  faceOutBack,
+  coverInside,
+  coverOutsideBack,
   insideView,
   state,
 }: {
-  faceIn: boolean
-  faceOutBack: boolean
+  coverInside: boolean
+  coverOutsideBack: boolean
   insideView: boolean
   state: SpherRenderState<TItem>
 }) => {
   if (insideView) return 0.86
-  if (faceOutBack) return 0.54
-  if (!faceIn) return 1
+  if (coverOutsideBack) return 0.54
+  if (!coverInside) return 1
   return state.visibleSide === "outside" ? 0.4 : 0.72
 }
 
